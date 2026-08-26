@@ -13,12 +13,17 @@ corpus found), `formatter.md` §7.8
 > the fix, instead of leaving it to be found by accident downstream. Expect it
 > red on arrival; that is the point. `CQ-3` is still formally open.
 >
-> **Nothing is committed.** Three working trees carry staged changes —
-> `pss-corpus` (97 files), `pygments-pss` (the C3 migration, including a
-> `git rm` of 93 files), and `pssfmt`. C3 deleted the donor's copy on the
-> strength of this repo's *staged* content, which is recoverable from
-> `pygments-pss` history at `0e11de7` but is not yet durable anywhere else.
-> **Commit and push `pss-corpus` before that stops being true.**
+> **Durability: resolved 2026-08-26.** This repo is committed and pushed
+> (`8bc3403`), and `pygments-pss` with it (`cbc1964`). The window where C3 had
+> deleted the donor's copy against nothing but a staging area is closed.
+> `pssfmt` remains uncommitted, but that predates this work and nothing here
+> depends on it.
+>
+> **Blocked on you:** the GitHub mirror (`C-2a`) still returns *repository not
+> found*, so `ivpm update` cannot resolve the corpus in `pssfmt`, whose
+> `ivpm.yaml` names the mirror by convention. Nothing is broken today — the
+> working copy was placed by hand — but a fresh checkout of `pssfmt` cannot
+> currently get a corpus.
 
 ---
 
@@ -317,10 +322,38 @@ corpus that the source does not state.
       differently than framed — see §2. Not "write it once" but "write it once
       per repo": both forges serve the other deps, so this is convention, and
       the two repos already have opposite, defensible conventions.*
-- [ ] **`C-2a`** — *(new)* Confirm `https://github.com/psstools/pss-corpus.git`
+- [~] **`C-2a`** — *(new)* Confirm `https://github.com/psstools/pss-corpus.git`
       resolves once the Forgejo→GitHub mirror lands, then run a **clean**
       `ivpm update` — not one in this working copy, whose `packages/pss-corpus`
       was placed by hand and would mask a broken URL entirely.
+      *Checked 2026-08-26: still `repository not found`. The upstream is live
+      and anonymously cloneable (`git clone https://git.dvkit.org/…` returns 92
+      files at `8bc3403`), so this is purely the mirror. Blocked, not failing:
+      the consequence is that a fresh `pssfmt` checkout cannot resolve a corpus,
+      which `C-9a` now makes say so in as many words.*
+- [x] **`C-9a`** — *(new, found while committing)* Answer the CI consequence of
+      `C-8` in both consumers. Fail-rather-than-skip is only half a design: the
+      other half is that every runner which was quietly getting away with no
+      corpus now has to be given one, or it goes red for a reason that reads
+      like a test bug.
+      *Found by reading the workflows before pushing, not by watching a build
+      fail. Two distinct shapes:*
+      *`pygments-pss` — the test matrix deliberately skips `ivpm update` (the
+      drift guard has its own job), so all twelve legs would have failed at
+      collection. Fixed with a direct clone, which keeps the property the matrix
+      was shaped around: test data has nothing to build, so resolving a graph to
+      fetch it reintroduces exactly the cost that structure avoids. Verified
+      both ways against a fresh checkout with no sibling to fall back on — 374
+      passed with the step, collection error without it.*
+      *`pssfmt` — same trap, but its `ivpm.yaml` names the mirror that `C-2a`
+      says does not exist. So the step is written to fail **loudly and by
+      name**: it prints that this is `C-2a` and not a fault in the workflow.
+      Executed the extracted step to confirm the message renders as intended.
+      A latent trap either way, since `pssfmt`'s CI has never run — but latent
+      traps are cheapest to fix while you are already looking at them.*
+      *Also dropped `--depth 1`: the transport in front of `git.dvkit.org` can
+      fall back to dumb http, which has no shallow capability and errors out
+      rather than degrading. Whole history is 324K.*
 - [x] **`C-3`** — Replace `.gitignore` with something a data repo wants — `.DS_Store`,
       `__pycache__/`, editor droppings. Nothing that ignores a directory by a
       name a PSS bucket might use. Verify with
