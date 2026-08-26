@@ -1,0 +1,194 @@
+// procedural_realization.pss
+//
+// The realization half: exec blocks, functions, procedural statements, and the
+// solve/target platform split.
+//
+// The governing rule: every piece of procedural code runs on the SOLVE platform
+// (during generation) or the TARGET platform (in the generated test), and PSS
+// enforces which functions each may call. Getting that wrong is the most common
+// error in PSS.
+//
+// Demonstrates:
+//   - init_down / init_up / pre_solve / post_solve / pre_body / body
+//   - solve, target and unqualified functions, and where each may be called
+//   - native parameter passing: scalars by value, aggregates by handle, const
+//   - procedural statements: if, match, repeat, while, foreach, break/continue
+//   - a target-template exec block with mustache references
+//
+// See: reference/lang/procedural/01-exec-blocks.md
+//      reference/lang/procedural/02-functions.md
+//      reference/lang/procedural/03-procedural-statements.md
+
+package rt_pkg {
+    import std_pkg::*;
+
+    struct params_s {
+        int x;
+        int y;
+    }
+
+    // Unqualified: available on BOTH platforms. This is the default and the
+    // right choice for pure computation.
+    function int add(int a, int b) {
+        return a + b;
+    }
+
+    // Solve platform only: callable from init_down/init_up/pre_solve/
+    // post_solve/pre_body, and NEVER from body/run_start/run_end.
+    solve function bit[32] alloc_addr(bit[32] size) {
+        return 0x8000_0000 + size;
+    }
+
+    // Target platform only: callable from body/run_start/run_end, and NEVER
+    // from a solve exec. Bound to a C function.
+    import target C function void poke(bit[32] addr, bit[32] data);
+    import target C function int  sample_dut();
+
+    // Native functions take NO parameter direction modifiers -- input/output/
+    // inout are for imported functions only. Scalars pass by value; aggregates
+    // pass by HANDLE, so the callee mutates the caller's instance unless the
+    // parameter is const.
+    function void bump(params_s p, int a) {
+        p.x = a;      // visible to the caller: p is a handle
+        a = 0;        // NOT visible to the caller: a is a copy
+    }
+
+    function void copy_pair(const params_s src, params_s dst) {
+        dst.x = src.x;
+        dst.y = src.y;
+        // src.x = 0;      // ERROR: src is const
+    }
+
+    // `pure` promises the result depends only on the parameters and that there
+    // are no side effects -- the tool may CACHE it. Only non-void functions
+    // with no output/inout parameters may be pure.
+    pure function int square(int n) {
+        return n * n;
+    }
+
+    // Every procedural statement, in one place.
+    function int demo(array<int,8> a, int n) {
+        int sum;                      // declare anywhere, reference after
+        int i = 0;
+        int j = 1;
+        // rand int bad;              // ERROR: no rand in a procedural scope
+
+        sum = 0;
+
+        if (n > 0) {
+            sum += n;                 // compound assignment: statements only
+        } else {
+            sum -= n;
+        }
+
+        repeat (4)       { sum += 1; }
+        repeat (idx : 4) { sum += idx; }
+        while (i < n)    { i += 1; }              // tested before
+        repeat { j += 1; } while (j < n);         // tested after
+
+        foreach (el : a) {
+            if (el == 0)  break;                  // innermost loop
+            if (el == 42) continue;
+            sum += el;
+        }
+
+        // Exactly one arm must match. Without a default, an unmatched value is
+        // a runtime error that nothing detects statically.
+        match (n) {
+            [0..3]:    sum = 1;
+            [4..7]:    sum = 2;
+            [8,16,32]: sum = 3;
+            default:   sum = 4;
+        }
+
+        return sum;
+    }
+}
+
+component dma_c {
+    import rt_pkg::*;
+    import std_pkg::*;
+
+    bit[32] base_addr = 0x1000;
+
+    // Component data is set during ELABORATION and read thereafter. An action
+    // never writes comp.<field>.
+    exec init_up {
+        base_addr = 0x2000;
+    }
+
+    // An instance function, reached through `comp` from an action.
+    function bit[32] ch_addr(int ch) {
+        return base_addr + ch * 0x20;
+    }
+
+    action xfer {
+        rand bit[32] size;
+        rand int in [0..3] ch;
+
+        bit[32] addr;                 // derived: NOT rand
+        int     observed;             // filled in on the target platform
+
+        constraint size in [4..4096];
+
+        // Solve platform: initialize non-random fields the solve will read.
+        exec pre_solve {
+            addr = 0;
+        }
+
+        // Solve platform: compute non-rand fields from solved values.
+        exec post_solve {
+            addr = alloc_addr(size);        // solve function, solve exec: OK
+            // poke(addr, size);            // ERROR: target function here
+        }
+
+        // A `exec pre_body { ... }` block runs on the solve platform AFTER
+        // executor assignment and address allocation -- it is the only place
+        // executor(), addr_value_solve() and addr_value_abs() may be called.
+        // Not every front end implements it, so it is described rather than
+        // compiled:
+        //
+        //     exec pre_body {
+        //         print("xfer addr=0x%x size=%d\n", addr, size);
+        //     }
+
+        // Target platform: the action's actual implementation.
+        exec body {
+            int local;
+            local = add(1, 2);              // unqualified: available here
+            // addr = alloc_addr(size);     // ERROR: solve function here
+
+            poke(comp.ch_addr(ch), addr);
+            poke(addr, size);
+
+            // Reading DUT state back is legal; it can steer a LATER activity
+            // decision, but can never feed a constraint on this action.
+            observed = sample_dut();
+
+            // message() logs from the generated test. The verbosity, the
+            // format string and any string arguments must be solve-time known,
+            // and no argument may have a side effect (verbosity gating may
+            // elide it entirely).
+            message(LOW, "xfer %d bytes to 0x%x", size, addr);
+        }
+    }
+
+    // A target-template exec emits TEXT rather than calling a function. Only
+    // scalars may be referenced with {{...}}, and references are read-only.
+    action emit_c {
+        rand bit[2] func_id;
+        rand bit[4] arg;
+
+        exec header C = """
+            #include "dut.h"
+        """;
+
+        exec body C = """
+            func_{{func_id}}({{arg}});   {#} a mustache may sit inside an identifier
+        """;
+    }
+}
+
+component pss_top {
+    dma_c dma;
+}

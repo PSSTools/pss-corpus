@@ -1,0 +1,30 @@
+// Write `pattern` over a block of memory, one 32-bit word at a time.
+//
+// completes_when: every word of [base, base+nbytes) holds pattern_word() of its
+//                 index.
+// waits for:      nothing. Straight-line stores.
+//
+// `target`, because it is memory traffic: legal from exec body / run_start /
+// run_end and from functions reached by them, and from nowhere else.
+//
+// Word at a time rather than write_bytes(): the block sizes here are word
+// multiples by construction (mem_pkg::mem_blk_s.size_c), and a word store is
+// what a processor doing this would actually issue.
+import addr_reg_pkg::*;
+import mem_pkg::*;
+
+extend component mem_c {
+
+    target function void fill(
+        addr_handle_t  base,
+        bit[32]        nbytes,
+        mem_pattern_e  pattern,
+        bit[32]        seed) {
+        int nwords = nbytes / 4;
+
+        repeat (i : nwords) {
+            write32(make_handle_from_handle(base, i * 4),
+                    pattern_word(pattern, seed, i));
+        }
+    }
+}

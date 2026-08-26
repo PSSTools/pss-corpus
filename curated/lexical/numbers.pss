@@ -1,0 +1,38 @@
+// Clause 4.6 -- every numeric form. Lexically nasty on purpose; the
+// declarations here are not meant to be semantically meaningful.
+package numbers_pkg {
+    struct all_numbers_s {
+        // dec_number
+        int a1 = 42;
+        int a2 = 1_000_000;
+        int a3 = 0;
+        // oct_number: a leading 0 makes it octal
+        int b1 = 0755;
+        int b2 = 0_7_5_5;
+        int b3 = 00;
+        // hex_number
+        int c1 = 0xDEAD_BEEF;
+        int c2 = 0Xff;
+        // bin_number
+        int d1 = 0b1101;
+        int d2 = 0B1010_1010;
+        // based literals, sized and unsized, signed and unsigned
+        bit[31:0] e1 = 4'sd12;
+        bit[31:0] e2 = 'd12;
+        bit[31:0] e3 = 8'hFF;
+        bit[31:0] e4 = 'hff;
+        bit[31:0] e5 = 8'b1010_1010;
+        bit[31:0] e6 = 'B1;
+        bit[31:0] e7 = 3'o7;
+        bit[31:0] e8 = 'O777;
+        bit[31:0] e9 = 16'sH_FF;
+        bit[31:0] e10 = 4'SD9;
+        // floating point: digits on both sides of the point, or an exponent
+        float64 f1 = 20.14;
+        float64 f2 = 1_0.2_5;
+        float64 f3 = 2e6;
+        float64 f4 = 1e-9;
+        float64 f5 = 6.02E+23;
+        float64 f6 = 3.0e0;
+    }
+}

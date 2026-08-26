@@ -1,0 +1,26 @@
+// A DMA-SERVICED transfer, from the controller's side: arm it, then wait.
+//
+// completes_when: nbytes bytes have been shifted and SPI_STATUS.done is set.
+// waits for:      the DMA channel wired to this controller to move every word.
+//
+// THE BODY IS SHORT BECAUSE THE OTHER HALF IS SOMEBODY ELSE'S. The processor's
+// entire job in a DMA-serviced transfer is to arm both ends and wait; the words
+// move between the FIFO and memory without it. That asymmetry -- almost no code
+// on this side, a whole channel programming sequence on the other -- is the
+// thing this model is trying to show, so it gets its own named operation rather
+// than being inlined into the two actions that call it.
+//
+// It requires SPI_CTRL.dma_en to have been configured (spi_c/actions/ constrains
+// it). Without it the controller never raises its request line, the DMA channel
+// never sees a request, and this waits forever -- a hang, not an error, which is
+// exactly why the requirement is a constraint the solver enforces rather than a
+// check this function could make.
+import spi_types_pkg::*;
+
+extend component spi_c {
+
+    target function void dma_transfer(spi_dir_e dir, bit[32] nbytes) {
+        start_transfer(dir, nbytes);
+        wait_done();
+    }
+}

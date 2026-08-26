@@ -1,0 +1,76 @@
+// System memory: the buffer object every data movement in this model starts or
+// ends with, and the plain data that describes it.
+//
+// One file, because these types are looked up by NAME from wherever they are
+// used and are never included selectively (coding guidelines rule 1). There is
+// no build that wants the fill pattern enum but not the block it describes.
+package mem_pkg {
+    import addr_reg_pkg::*;
+
+    // What a memory block CONTAINS, described well enough that a consumer can
+    // predict every word of it (mem_c/functions/pattern_word.pss).
+    //
+    // Carried in the buffer rather than passed between actions, because the
+    // producer and the consumer of a block are usually in different components
+    // -- and because a copy has to be able to say "the destination now holds
+    // what the source held", which is a statement about the object, not about
+    // either action.
+    //
+    // UNKNOWN is the one that earns its place. Data that arrived over the SPI
+    // wire was produced by a device this model does not model, so it is not
+    // predictable and shall not be checked. Making that a value of this enum,
+    // and constraining check_a to reject it, turns "you cannot check received
+    // data without a slave model" from a comment into an unschedulable
+    // scenario.
+    enum mem_pattern_e {
+        MEM_PATTERN_ZERO,       // all words zero
+        MEM_PATTERN_INCR,       // word i == seed + i
+        MEM_PATTERN_PRAND,      // word i == a reproducible hash of seed and i
+        MEM_PATTERN_UNKNOWN     // produced by the DUT; contents not predictable
+    }
+
+    // A block of system memory: THE unit of data this system moves.
+    //
+    // A `buffer` rather than a `stream` or a `struct`, deliberately:
+    //
+    //   * buffer   a consumer may not begin until the producer COMPLETES, which
+    //              is exactly the semantics of "fill it, then DMA it, then check
+    //              it". The ordering in every scenario below comes from this,
+    //              not from the shape of an activity block.
+    //   * not a stream, because a filled block persists and may have several
+    //     consumers -- a stream permits exactly one.
+    //   * not a struct, because it carries scheduling meaning.
+    //
+    // THE CLAIM IS THE ALLOCATION. Declaring a claim inside a flow object causes
+    // allocation when the object is instantiated (§21.11), so each block gets
+    // its own addresses and two blocks live simultaneously never overlap. That
+    // is what makes a memory-to-memory copy a copy rather than a no-op, and it
+    // is why the claim lives here rather than in each action that touches a
+    // block: an action-local claim would give the producer and the consumer
+    // different memory.
+    //
+    // The claim is TRANSPARENT so a scenario may constrain the address (see
+    // pss_top: the system RAM region is added to a transparent space). Nothing
+    // here does, but the alignment and size rules below need the size to be
+    // solvable, and a transparent claim keeps the address available to a
+    // scenario that wants to place a block deliberately.
+    buffer mem_blk_s {
+        rand transparent_addr_claim_s<>  mem;
+        rand mem_pattern_e               pattern;
+        rand bit[32]                     seed;
+
+        // The transfer sizes this system supports. A DMA length register is
+        // 32 bits, but nothing here needs to model a transfer bigger than a
+        // few pages, and an unbounded size makes every scenario slow to solve.
+        constraint size_c {
+            mem.size in [4..4096];
+            mem.size % 4 == 0;          // whole words: every engine here is 32-bit
+        }
+
+        // Word alignment is a DEVICE rule, not a preference: both the DMA
+        // address registers and the SPI FIFO path move whole 32-bit words.
+        constraint align_c {
+            mem.alignment == 4;
+        }
+    }
+}

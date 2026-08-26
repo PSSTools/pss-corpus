@@ -1,0 +1,138 @@
+// flow_basic.pss
+//
+// Flow objects, pools, implicit binding, and action inferencing.
+//
+// Demonstrates:
+//   - buffer  : consumer starts after the producer COMPLETES
+//   - stream  : producer and consumer start together (exactly one of each)
+//   - state   : one object per pool, with `initial` and `prev`
+//   - pool placement deciding per-instance vs shared exchange
+//   - a partially specified activity completed by action inference
+//
+// See: reference/lang/structural/04-flow-objects.md
+//      reference/lang/structural/06-pools-and-binding.md
+//      reference/lang/activity/02-action-inferencing.md
+
+package flow_basic_pkg {
+
+    struct mem_segment_s {
+        rand bit[32] addr;
+        rand bit[16] size;
+        constraint size in [4..4096];
+        constraint addr % 4 == 0;
+    }
+
+    // Persistent data: the consumer runs after the producer completes.
+    buffer data_buff_s {
+        rand mem_segment_s seg;
+    }
+
+    // Transient data: producer and consumer run in parallel.
+    // Exactly one producer and exactly one consumer.
+    stream data_stream_s {
+        rand mem_segment_s seg;
+    }
+
+    enum dma_mode_e { UNKNOWN, IDLE, ACTIVE }
+
+    // A state variable: the pool holds exactly one of these at a time.
+    state dma_state_s {
+        rand dma_mode_e mode;
+
+        // The object present before any action writes the pool.
+        constraint initial -> mode == UNKNOWN;
+
+        // A sequencing constraint relating this state to the previous one
+        // would be written with the built-in `prev` reference. It is legal PSS
+        // (LRM 9.3.3.1 g), but `prev` is not accepted by every front end, so it
+        // is shown here rather than compiled -- note the `!initial` guard,
+        // without which the constraint is unresolved for the initial object:
+        //
+        //     constraint !initial -> mode != prev.mode;
+    }
+}
+
+component producer_c {
+    import flow_basic_pkg::*;
+
+    action produce {
+        output data_buff_s out_data;
+        rand bit[16]       len;
+        constraint out_data.seg.size == len;
+    }
+}
+
+component consumer_c {
+    import flow_basic_pkg::*;
+
+    action consume {
+        input data_buff_s in_data;
+        input dma_state_s st;
+        constraint st.mode == ACTIVE;
+    }
+}
+
+component dma_c {
+    import flow_basic_pkg::*;
+
+    // Pools live here, so each dma_c instance exchanges through its own.
+    // Moving them to pss_top would make the two DMAs share.
+    pool data_buff_s   buff_p;
+    pool data_stream_s strm_p;
+    pool dma_state_s   state_p;
+
+    bind buff_p  *;
+    bind strm_p  *;
+    bind state_p *;
+
+    producer_c prod;
+    consumer_c cons;
+
+    action set_mode {
+        output dma_state_s st;
+        rand dma_mode_e    to;
+        constraint st.mode == to;
+    }
+
+    action stream_src { output data_stream_s s; }
+    action stream_dst { input  data_stream_s s; }
+
+    // Fully specified: every producer is traversed explicitly.
+    action directed_test {
+        set_mode           m;
+        producer_c::produce p;
+        consumer_c::consume c;
+
+        activity {
+            m;
+            p;
+            c;
+        }
+
+        constraint m.to == ACTIVE;
+        constraint c.in_data.seg.size == p.out_data.seg.size;
+    }
+
+    // Partially specified: `consume` has two unbound inputs, so the tool
+    // INFERS a `produce` and a `set_mode` and schedules them ahead of it.
+    action inferred_test {
+        activity {
+            do consumer_c::consume;
+        }
+    }
+
+    // A stream forces its producer and consumer to start together.
+    action stream_test {
+        activity {
+            parallel {
+                do stream_src;
+                do stream_dst;
+            }
+        }
+    }
+}
+
+component pss_top {
+    dma_c dma0;
+    dma_c dma1;
+}

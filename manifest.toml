@@ -1,0 +1,47 @@
+# Machine-readable bucket policy.
+#
+# WHAT BELONGS HERE: facts about the *files*. Does this bucket parse? What is
+# it for? A new bucket arrives with its policy attached, instead of requiring a
+# matching commit in each consumer to teach it that `pathological/` is
+# special.
+#
+# WHAT MUST NOT: facts about a *consumer's* current bugs. `pssfmt` keeps a
+# KNOWN_UNPARSEABLE list of corpus files that fail to parse because of five
+# open `pssparser` gaps. Those entries describe pssparser today, not the
+# corpus, and they stay in pssfmt. Moving them here would mean a pssparser fix
+# requires a commit to this repository, and would turn a shared data repo into
+# the place where one consumer records its defects.
+#
+# The test for a proposed field: would it still be true if every consumer were
+# deleted? If not, it does not go here.
+#
+# Keep this minimal. Three consumers depend on it and none of them should ever
+# need to negotiate its schema.
+
+[bucket.example2]
+parses = true
+description = "Hand-written idiomatic PSS"
+
+[bucket.stdlib]
+parses = true
+description = "The PSS core library"
+
+[bucket.peakrdl]
+parses = true
+description = "Machine-generated register-model idioms"
+
+[bucket.language-ref]
+parses = true
+description = "Feature-targeted examples written against the LRM"
+
+[bucket.pss31]
+parses = true
+description = "PSS 3.1-only surface"
+
+[bucket.lexical]
+parses = true
+description = "Clause 4 lexical torture"
+
+[bucket.pathological]
+parses = false
+description = "Deliberately broken input"

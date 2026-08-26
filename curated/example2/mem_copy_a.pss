@@ -1,0 +1,30 @@
+// Fill a block, copy it with the DMA, check the copy.
+//
+// The scenario the memory-to-memory path exists for, and the only one in this
+// model that verifies data end to end: the copy constraint on mem2mem_a says
+// the destination holds what the source held, and check_a is what makes that
+// claim testable.
+//
+// WHY THE `bind` STATEMENTS. Three mem_blk_s objects are in flight and they all
+// come from the same pool, so "check the block the copy produced" is not
+// something the listing order says -- without the binds the solver is free to
+// point the check at the block the fill produced, and the scenario would pass
+// while testing nothing. The binds pin the identities; the buffers then supply
+// the ordering.
+extend component pss_top {
+
+    action mem_copy_a {
+        mem_c::fill_a     fill;
+        dma_c::mem2mem_a  copy;
+        mem_c::check_a    chk;
+
+        activity {
+            bind fill.blk copy.src;
+            bind copy.dst chk.blk;
+
+            fill;
+            copy;
+            chk;
+        }
+    }
+}

@@ -1,0 +1,27 @@
+// Arm a transfer of `nbytes` bytes in direction `dir` and pulse it into motion.
+//
+// completes_when: SPI_LEN and SPI_CTRL.dir are programmed and SPI_CTRL.start
+//                 has been written. The transfer is RUNNING, not finished.
+// waits for:      nothing -- this is the arm half. wait_done() is the other.
+//
+// Splitting arm from wait is what lets both transfer styles share this code.
+// A programmed transfer has to interleave FIFO accesses between the two;
+// a DMA transfer has nothing to do in between at all.
+//
+// TWO WRITES, IN THIS ORDER, and it matters. `dir` decides which way the shift
+// engine sources data, so it has to be settled before the pulse; folding both
+// into one write_fields() would coalesce them into a single bus
+// read-modify-write and lose the ordering (§21.14.1). write_field() also names
+// the field to the compiler, so a typo is a compile error rather than a wrong
+// bit.
+import spi_regs_pkg::*;
+import spi_types_pkg::*;
+
+extend component spi_c {
+
+    target function void start_transfer(spi_dir_e dir, bit[32] nbytes) {
+        regs.len.write_val(nbytes);
+        regs.ctrl.write_field("dir", (bit[32])dir);
+        regs.ctrl.write_field("start", 1);
+    }
+}

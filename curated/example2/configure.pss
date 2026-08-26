@@ -1,0 +1,36 @@
+// Put the controller into a configuration: clock, framing, slave select, and
+// who services the FIFOs.
+//
+// completes_when: SPI_DIV and the persistent fields of SPI_CTRL hold cfg, and
+//                 the controller is enabled. No transfer has been started.
+// waits for:      nothing. Straight-line stores.
+//
+// The CTRL register is written WHOLE rather than field-wise. Nothing is running
+// at this point -- the caller holds the shift engine and has not pulsed start --
+// so there is no state in the register worth preserving, and one bus write is
+// both cheaper and easier to read than four read-modify-writes.
+//
+// `dir` and `start` are deliberately left at their reset values here: they
+// belong to a transfer, not to a configuration, and start_transfer() sets them.
+import spi_regs_pkg::*;
+import spi_types_pkg::*;
+
+extend component spi_c {
+
+    target function void configure(spi_cfg_s cfg) {
+        spi_ctrl_s  ctrl;
+        spi_div_s   div;
+
+        div.clk_div = cfg.clk_div;
+        regs.div.write(div);
+
+        ctrl.en        = 1;
+        ctrl.start     = 0;
+        ctrl.mode      = cfg.mode;
+        ctrl.lsb_first = cfg.lsb_first;
+        ctrl.cs        = cfg.cs;
+        ctrl.dir       = SPI_XFER_WRITE;
+        ctrl.dma_en    = (bit)cfg.dma_en;
+        regs.ctrl.write(ctrl);
+    }
+}

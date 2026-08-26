@@ -1,0 +1,78 @@
+/*
+ * PSS 3.1 behavioral coverage: monitors, cover statements, and the activity
+ * forms that only appear inside them (Clause 16, Syntax 73).
+ */
+package coverage_pkg {
+
+    action write_a { rand int size; }
+    action read_a  { rand int size; }
+    action idle_a  { }
+
+    monitor write_then_read_m {
+        write_a w;
+        read_a  r;
+
+        constraint same_size { w.size == r.size; }
+
+        activity {
+            sequence {
+                w;
+                eventually r;
+            }
+        }
+    }
+
+    abstract monitor base_m {
+        activity { }
+    }
+
+    monitor overlapping_m : base_m {
+        write_a w;
+        read_a  r;
+
+        activity {
+            overlap {
+                w;
+                r;
+            }
+        }
+    }
+
+    monitor concat_m {
+        write_a a1, a2;
+        activity {
+            concat {
+                a1;
+                a2;
+            }
+        }
+    }
+
+    component pss_top {
+        // Cover an existing monitor type.
+        cover write_then_read_m;
+
+        // Cover an inline scenario.
+        interesting_c: cover {
+            write_a w;
+            read_a  r;
+            activity {
+                schedule {
+                    w;
+                    r;
+                }
+            }
+        }
+
+        covergroup size_cg (int s) {
+            option.per_instance = true;
+            cp_size: coverpoint s {
+                bins small[]  = [0..7];
+                bins large    = [8..31];
+                ignore_bins  zero = [0];
+                illegal_bins neg  = [-1];
+            }
+            cp_cross: cross cp_size, cp_size;
+        }
+    }
+}

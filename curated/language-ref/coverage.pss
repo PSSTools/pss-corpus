@@ -1,0 +1,80 @@
+// coverage.pss
+//
+// Data coverage: covergroup.
+//
+// Behavioral coverage (cover / monitor) is in behavioral_coverage.pss.
+//
+// Demonstrates:
+//   - an in-line covergroup, which may reference its enclosing scope
+//   - a reusable covergroup type, which must be parameterized and must NOT
+//   - explicit bins, bin arrays, ignore_bins and illegal_bins
+//   - cross coverage
+//   - coverage options
+//
+// See: reference/lang/coverage/01-data-coverage.md
+
+package cov_pkg {
+    enum xfer_mode_e  { NARROW, WIDE }
+    enum lock_mode_e  { LOCKED, UNLOCKED }
+
+    // A reusable covergroup type: it takes formal parameters and references
+    // nothing from the scope in which it is declared.
+    covergroup xfer_cg(bit[16] len, xfer_mode_e m) {
+        // A bin per value, a bin per range, and a fixed number of bins
+        // spanning a range. Without explicit bins a bit[16] coverpoint would
+        // get auto bins (min(2**16, auto_bin_max) == 64 by default), which
+        // reports 100% and means nothing.
+        ln : coverpoint len {
+            bins small[]  = [1..16];
+            bins medium   = [17..1023];
+            bins large[4] = [1024..4096];
+            ignore_bins   unused = [0];
+            illegal_bins  toobig = [4097..65535];
+        }
+
+        // An enum coverpoint: auto bins are exactly the enumeration, so they
+        // are fine here.
+        md : coverpoint m;
+
+        // A cross references COVERPOINTS, never expressions.
+        md_x_ln : cross md, ln;
+    }
+}
+
+component dma_c {
+    import cov_pkg::*;
+
+    action xfer {
+        rand bit[16]     len;
+        rand xfer_mode_e mode;
+        rand bit[4]      chan;
+
+        constraint len in [1..4096];
+
+        // Instantiating the reusable type, binding ports by name and setting
+        // an instance option.
+        xfer_cg cg(.len(len), .m(mode)) with {
+            option.at_least = 2;
+            option.comment  = "per-xfer value coverage";
+        };
+
+        // An in-line covergroup MAY reference the enclosing scope directly.
+        covergroup {
+            option.per_instance    = true;
+            option.detect_overlap  = true;
+
+            // An `iff` guard: sampled only when the condition holds.
+            ch : coverpoint chan iff (mode == WIDE) {
+                bins low  = [0..3];
+                bins high = [4..15];
+            }
+        } inline_cg;
+    }
+
+    action read  { rand lock_mode_e lock_mode; }
+    action write { rand xfer_mode_e write_mode; }
+}
+
+component pss_top {
+    dma_c dma;
+}

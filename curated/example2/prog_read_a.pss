@@ -1,0 +1,33 @@
+// Receive into a block of memory, processor-driven.
+//
+// The block is an OUTPUT: this action is where received data enters the model,
+// so anything that wants to look at it is scheduled after this completes.
+import addr_reg_pkg::*;
+import mem_pkg::*;
+import spi_types_pkg::*;
+
+extend component spi_c {
+
+    action prog_read_a {
+        output mem_blk_s      dst;
+        input  spi_state_s    st;
+        lock   spi_engine_s   eng;
+
+        constraint style_c {
+            st.configured;
+            !st.cfg.dma_en;     // programmed: the processor moves the words
+        }
+
+        // What a slave sent us is not something this model can predict -- there
+        // is no slave model here. Marking the block UNKNOWN makes that explicit
+        // and makes a check_a on it unschedulable rather than wrong.
+        constraint content_c {
+            dst.pattern == MEM_PATTERN_UNKNOWN;
+        }
+
+        exec body {
+            comp.program_read(make_handle_from_claim(dst.mem),
+                              (bit[32])dst.mem.size);
+        }
+    }
+}

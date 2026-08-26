@@ -1,0 +1,43 @@
+// Read a block back and compare it against the pattern it is supposed to hold.
+//
+// completes_when: every word has been read and compared.
+// waits for:      nothing.
+//
+// HOW A FAILURE IS REPORTED, and why it is only a message. PSS has no runtime
+// error() -- std_pkg offers print() and message() only -- so a native model
+// cannot fail a test by itself. The choices are a message or an environment
+// contract (`import target function void ...`) that the integrator must supply.
+// This model takes the message, so that it stands up and runs against any
+// target without an integration step; an environment that wants a hard failure
+// should bind its own reporter and call it from here.
+//
+// The comparison STOPS at the first mismatch. A corrupted transfer usually
+// corrupts everything after the first bad word too, and a thousand messages
+// bury the one that says where it started.
+import addr_reg_pkg::*;
+import std_pkg::*;
+import mem_pkg::*;
+
+extend component mem_c {
+
+    target function void check(
+        addr_handle_t  base,
+        bit[32]        nbytes,
+        mem_pattern_e  pattern,
+        bit[32]        seed) {
+        int      nwords = nbytes / 4;
+        bit[32]  expected;
+        bit[32]  actual;
+
+        repeat (i : nwords) {
+            expected = pattern_word(pattern, seed, i);
+            actual   = read32(make_handle_from_handle(base, i * 4));
+
+            if (actual != expected) {
+                message(NONE, "mem_c: data mismatch at word %d: expected %x, read %x",
+                        i, expected, actual);
+                return;
+            }
+        }
+    }
+}

@@ -1,0 +1,40 @@
+/*
+ * PSS 3.1 annotations -- declaration, element application, standalone.
+ * Annex B.6 / clause 7 (Mantis8360).
+ */
+package annotation_pkg {
+
+    /// Declares an annotation type.
+    annotation desc_c {
+        string text;
+        int priority;
+    }
+
+    annotation owner_c : desc_c {
+        string team;
+    }
+
+    @desc_c {.text = "a buffer of bytes", .priority = 3}
+    buffer data_b {
+        rand bit[7:0] payload[16];
+    }
+
+    @owner_c {.text = "top-level entry", .priority = 1, .team = "dv"}
+    action entry_a {
+        // Element annotation, no semicolon.
+        @desc_c {.text = "the interesting field"}
+        rand int size;
+
+        // Bare application, no parameters.
+        @deprecated
+        rand bool legacy;
+
+        activity {
+            // Standalone annotation, with a semicolon.
+            @desc_c {.text = "the write leg"};
+            do write_a;
+        }
+    }
+
+    action write_a { }
+}

@@ -1,0 +1,19 @@
+// A processor-driven SPI receive: configure, then shift data in and store it.
+//
+// There is no check_a here, and there cannot be one: the received block is
+// MEM_PATTERN_UNKNOWN, and check_a is constrained to refuse it. Adding a check
+// would not produce a scenario that fails -- it would produce no scenario at
+// all, which is the model saying "you need a slave model before you can verify
+// received data".
+extend component pss_top {
+
+    action spi_prog_read_a {
+        spi_c::configure_a  cfg;
+        spi_c::prog_read_a  recv;
+
+        activity {
+            cfg;
+            recv;
+        }
+    }
+}

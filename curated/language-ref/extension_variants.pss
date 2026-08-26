@@ -1,0 +1,155 @@
+// extension_variants.pss
+//
+// Reuse mechanisms: inheritance, extension, overrides, templates, compile if.
+//
+// The governing distinction: INHERITANCE adds a choice someone must make;
+// EXTENSION removes one -- it changes the type everywhere it is already used.
+// Project configuration is almost always extension, packaged so that a tool
+// can include or exclude it per test.
+//
+// Demonstrates:
+//   - an abstract action as a shared base
+//   - inheritance, and (in comments) super in a derived exec
+//   - extension in its own package, and why a WILDCARD import is required
+//   - type and instance overrides (in comments)
+//   - a template type with a value parameter
+//   - compile if driven by a package-scope constant
+//
+// See: reference/lang/structural/07-inheritance-extension-overrides.md
+//      reference/lang/structural/01-packages-and-name-resolution.md
+
+package config_pkg {
+    // compile if conditions may reference only package-scope constants, and
+    // only ones declared EARLIER in the processing order.
+    static const bool HAS_FAST_PATH = true;
+    static const int  MAX_LEN       = 4096;
+}
+
+package base_pkg {
+    import config_pkg::*;
+
+    // An abstract action may be declared outside a component. It captures the
+    // shared fields and constraints and is never traversed directly.
+    abstract action base_xfer {
+        rand bit[16] len;
+        constraint len > 0 && len <= MAX_LEN;
+    }
+}
+
+component dma_c {
+    import base_pkg::*;
+    import config_pkg::*;
+
+    // Inheritance: a NEW type that a traversal site must name explicitly.
+    action xfer : base_xfer {
+        exec body {
+            message(LOW, "xfer len=%d", len);
+        }
+    }
+
+    // A derived action's exec block REPLACES the base's. The `super;`
+    // statement splices the base behaviour back in -- omitting it is a silent
+    // loss of behaviour, and is the most damaging inheritance mistake in PSS.
+    // `super;` is legal PSS (LRM 17.1, 20.1.4.2) but is not accepted by every
+    // front end, so it is shown here rather than compiled:
+    //
+    //     action logged_xfer : xfer {
+    //         exec body {
+    //             super;                        // runs xfer's body first
+    //             message(LOW, "logged");
+    //         }
+    //     }
+    action logged_xfer : xfer {
+        exec body {
+            message(LOW, "logged");
+        }
+    }
+
+    // compile if elaborates declarations conditionally. A disabled branch must
+    // be syntactically valid but is NOT semantically checked -- which is why
+    // package selection is usually the better tool.
+    compile if (config_pkg::HAS_FAST_PATH) {
+        action fast_xfer : xfer {
+            constraint len >= 1024;
+        }
+    }
+
+    action test {
+        activity {
+            do xfer;
+            do logged_xfer;
+        }
+    }
+}
+
+// Configuration for one SoC, in its own package so that it can be included or
+// excluded per test, and so that it may contradict soc_b_pkg freely.
+package soc_a_pkg {
+    import base_pkg::*;
+
+    extend action dma_c::xfer {
+        rand int in [1, 2, 4, 8] ta_width;      // a NEW attribute
+        constraint ta_width < 4 -> len <= 256;  // and a layered constraint
+    }
+}
+
+// A conflicting configuration. Both packages can exist in the source tree;
+// a tool includes at most one in a given test.
+package soc_b_pkg {
+    extend action dma_c::xfer {
+        constraint len <= 64;
+    }
+}
+
+// A template type. Angle brackets are required at instantiation even when
+// every parameter has a default.
+package tmpl_pkg {
+    struct base_payload_s {
+        rand bit[8] core;
+    }
+
+    // A `compile assert (N > 0 && N <= 16, "N out of range");` here is the
+    // idiomatic way to validate a template value parameter at elaboration
+    // time (LRM 19.4); not every front end evaluates it correctly inside a
+    // generic template, so it is described rather than compiled.
+    struct wrapper_s <struct T : base_payload_s = base_payload_s, int N = 4> {
+        rand T   payload;
+        rand int in [1..N] count;
+    }
+}
+
+component pss_top {
+    // A WILDCARD import is required to see members introduced in an extension:
+    // extensions are unnamed and cannot be imported explicitly.
+    import soc_a_pkg::*;
+    import tmpl_pkg::*;
+
+    dma_c dma;
+
+    wrapper_s<>               w_default;   // <> required
+    wrapper_s<base_payload_s, 8> w_eight;
+
+    action run {
+        dma_c::xfer x;
+
+        // ta_width is introduced by the extension in soc_a_pkg. It is
+        // referenceable here ONLY because of the wildcard import above -- an
+        // explicit import cannot bring in extensions, because extensions are
+        // unnamed. Front ends differ in how completely they weave extension
+        // members into a type, so the reference is described rather than
+        // compiled:
+        //
+        //     constraint x.ta_width == 4;
+
+        // Overrides substitute a subtype for a declared type.
+        //   override { type dma_c::xfer with dma_c::logged_xfer; }  // all
+        //   override { instance dma.x with dma_c::logged_xfer; }    // one
+        // Resolution: highest in the containment tree wins; within a
+        // container, instance beats type; later beats earlier. Overrides do
+        // NOT apply to input/output/lock/share fields.
+
+        activity {
+            x;
+        }
+    }
+}

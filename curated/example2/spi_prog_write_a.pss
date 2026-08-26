@@ -1,0 +1,27 @@
+// A processor-driven SPI transmit: configure, fill a block, shift it out.
+//
+// The DMA engine appears nowhere in this scenario, and that is the point --
+// this is the baseline the DMA-serviced transmit is worth comparing against.
+//
+// NOTHING HERE SAYS `dma_en == false`. prog_write_a does, and because the
+// controller's configuration is a state object with one live value, that
+// constraint propagates back into the configure action this scenario traverses:
+// the solver is obliged to produce a configuration with DMA off. Compare
+// spi_dma_write_a, which is the same shape and gets the opposite configuration
+// for the same reason.
+extend component pss_top {
+
+    action spi_prog_write_a {
+        spi_c::configure_a   cfg;
+        mem_c::fill_a        fill;
+        spi_c::prog_write_a  xmit;
+
+        activity {
+            bind fill.blk xmit.src;
+
+            cfg;
+            fill;
+            xmit;
+        }
+    }
+}

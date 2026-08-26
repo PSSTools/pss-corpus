@@ -1,0 +1,33 @@
+// Clause 4.1 and 4.7 -- every comment form and every legal string escape.
+/* a block comment */
+/**/
+/* a block comment
+   spanning lines, with a lone * and a lone / inside */
+/// A doc comment.
+//! Another doc comment form.
+/** A doc block comment. */
+/*! Another doc block form. */
+package strings_pkg {
+    struct strings_s {
+        // Every escape in Clause 4.7's table.
+        string s1  = "single quote: \' ";
+        string s2  = "double quote: \" ";
+        string s3  = "question: \? ";
+        string s4  = "backslash: \\ ";
+        string s5  = "bell: \a backspace: \b formfeed: \f ";
+        string s6  = "newline: \n return: \r tab: \t vtab: \v ";
+        string s7  = "octal: \101\102\103 ";
+        string s8  = "";
+        string s9  = "a string with // what looks like a comment";
+        string s10 = "and /* one of these too */";
+
+        // Triple-quoted: no escapes, embedded quotes and newlines are content.
+        string t1 = """a "quoted" word and a lone " inside""";
+        string t2 = """
+            multiple
+            lines
+        """;
+        string t3 = """""";
+        string t4 = """contains \n which is two characters, not an escape""";
+    }
+}

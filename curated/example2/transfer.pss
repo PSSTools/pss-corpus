@@ -1,0 +1,30 @@
+// One complete transfer on one channel: configure, arm, wait, report.
+//
+// completes_when: the channel has reached DONE or ERR.
+// waits for:      the transfer, and on a peripheral channel for the peripheral
+//                 half of it.
+//
+// The end-to-end operation every action in dma_c/actions/ calls, and the only
+// one they call. The core underneath it (enable / configure_channel /
+// start_channel / wait_done) stays separate and public because a driver that
+// arms several channels before waiting on any of them needs the pieces -- this
+// wrapper adds no device knowledge, only the sequence.
+//
+// A failed transfer is reported once, here, rather than by each caller: PSS has
+// no runtime error(), so a message is the strongest thing a native model can do
+// (the same reasoning as mem_c/functions/check.pss).
+import std_pkg::*;
+import dma_types_pkg::*;
+
+extend component dma_c {
+
+    target function void transfer(int ch, dma_xfer_s xfer) {
+        enable();
+        configure_channel(ch, xfer);
+        start_channel(ch);
+
+        if (!wait_done(ch)) {
+            message(NONE, "dma_c: channel %d reported a bus error", ch);
+        }
+    }
+}

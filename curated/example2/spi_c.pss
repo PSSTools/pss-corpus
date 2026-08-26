@@ -1,0 +1,48 @@
+// The SPI controller.
+//
+// It has one shift engine and one register bank, and it can be driven two ways:
+// the processor moving every word through SPI_TX / SPI_RX, or the DMA moving
+// them in response to the controller's FIFO request lines. Both styles are
+// modelled, and the state object below is what keeps a scenario from mixing
+// them up.
+//
+// The skeleton only (coding guidelines rule 3): members, pools, and the
+// solve-time constructor. The operations are in spi_c/functions/ and their
+// scenario wrappers in spi_c/actions/.
+import addr_reg_pkg::*;
+import spi_regs_pkg::*;
+import spi_types_pkg::*;
+
+component spi_c {
+
+    // The MMIO bank. A top-level register group: bound once, from the
+    // environment's init exec, by way of initialize() below.
+    spi_regs_c        regs;
+
+    // The controller's current configuration.
+    //
+    // PER CONTROLLER, which is what declaring the pool here rather than in
+    // pss_top buys: two spi_c instances configured differently do not fight
+    // over one state object. A state pool holds exactly one object at a time,
+    // so this is "the mode the device is in", and every transfer action reads
+    // it.
+    pool spi_state_s  state_p;
+    bind state_p *;
+
+    // The shift engine: one, so at most one transfer at a time.
+    //
+    // Size 1 IS the exclusion. Every transfer action locks it, so a programmed
+    // transfer and a DMA transfer on the same controller can never overlap --
+    // and neither can two DMA transfers in opposite directions, even though
+    // they use different DMA channels. That last one is the case a
+    // channel-only model gets wrong.
+    pool [1] spi_engine_s  eng_p;
+    bind eng_p *;
+
+    // Bind the bank to the region the system put this controller in. Called
+    // from the environment's init_down exec: set_handle() is legal only from an
+    // init exec, and component attributes are writable only during elaboration.
+    solve function void initialize(addr_handle_t base) {
+        regs.set_handle(base);
+    }
+}

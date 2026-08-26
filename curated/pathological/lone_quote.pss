@@ -1,0 +1,5 @@
+component c {
+    int x = 'ff;
+    int y = 4';
+    int z = ';
+}

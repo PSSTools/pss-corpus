@@ -1,0 +1,7 @@
+component c {
+    int a = 0xZZ;
+    int b = 4'sq99;
+    string s = "bad escape \q here";
+    @;
+    ...
+}

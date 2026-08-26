@@ -1,0 +1,133 @@
+// constraints.pss
+//
+// Algebraic constraints, defaults, distributions, and procedural randomization.
+//
+// Demonstrates:
+//   - hard constraints (rules) vs default value constraints (preferences)
+//   - implication and if-else, and the fact that BOTH are bidirectional
+//   - foreach and unique constraints
+//   - dist, with := and :/ weights
+//   - inline constraints on a traversal
+//   - pre_solve / post_solve, and procedural randomize
+//
+// See: reference/lang/constraints/01-algebraic-constraints.md
+//      reference/lang/constraints/03-randomization.md
+
+package cst_pkg {
+    enum xfer_mode_e { NARROW, WIDE }
+
+    struct sub_s {
+        rand bit[8] a;
+        rand bit[8] b;
+    }
+
+    struct cfg_s {
+        rand bit[16]      len;
+        rand bit[32]      addr;
+        rand xfer_mode_e  mode;
+        rand bit[8]       chans[4];
+
+        // rand propagates only through fields that are themselves rand.
+        rand sub_s  solved;      // solved.a / solved.b ARE randomized
+        sub_s       fixed;       // fixed.a / fixed.b are NOT
+
+        constraint c_basic {
+            len > 0 && len <= 4096;
+            addr % 4 == 0;
+        }
+
+        // Implication is BIDIRECTIONAL: this also means
+        // len < 512 -> mode != WIDE.
+        constraint c_mode {
+            mode == WIDE -> len >= 512;
+        }
+
+        // if-else in a constraint is likewise bidirectional.
+        constraint c_align {
+            if (len > 1024) {
+                addr % 64 == 0;
+            } else {
+                addr % 4 == 0;
+            }
+        }
+
+        // All four channel values differ.
+        constraint c_unique {
+            unique { chans };
+        }
+
+        // Iterative constraint over a collection.
+        constraint c_each {
+            foreach (chans[i]) {
+                chans[i] < 8;
+            }
+        }
+
+        // A preference, not a rule: overridable with `default disable len`
+        // from a containing type.
+        constraint c_pref {
+            default len == 64;
+        }
+
+        // A soft constraint (3.1) is a preference that is discarded when it
+        // conflicts with a hard constraint or a higher-priority soft one.
+        // A dist directive shapes the value distribution and is itself the
+        // LOWEST-priority soft constraint. Both are legal PSS (LRM 13.1.11,
+        // 13.1.12) but are not accepted by every front end, so they are shown
+        // here rather than compiled:
+        //
+        //     constraint { soft mode == NARROW; }
+        //     constraint {
+        //         dist addr in [0x0000_0000 := 1,               // each value
+        //                       0x8000_0000..0x8FFF_FFFF :/ 8]; // across range
+        //     }
+    }
+}
+
+component dma_c {
+    import cst_pkg::*;
+
+    action xfer {
+        rand cfg_s cfg;
+        bit[32]    computed;      // derived, not solved
+
+        exec pre_solve {
+            // Set non-random inputs the solve will read. Writing a rand
+            // scalar here would simply be overwritten by the solve.
+            computed = 0;
+        }
+
+        exec post_solve {
+            // Compute non-rand fields from solved values.
+            computed = cfg.addr + cfg.len;
+
+            // Procedural randomization: every target is solved together and
+            // is treated as random whether or not it was declared rand.
+            // Non-rand SUB-fields of a struct target are invariants.
+            sub_s  v1;
+            bit[4] v2;
+            v1.b = 100;
+            randomize v1, v2 with { v1.a < v2; };
+        }
+    }
+
+    action test {
+        xfer x1;
+        xfer x2;
+
+        activity {
+            // Inline constraints apply to this traversal only.
+            x1 with { cfg.mode == WIDE; };
+            x2 with { cfg.len == 128; };
+        }
+
+        // Relate two traversals.
+        constraint c_rel {
+            x1.cfg.addr != x2.cfg.addr;
+        }
+    }
+}
+
+component pss_top {
+    dma_c dma;
+}

@@ -1,0 +1,106 @@
+// resource_arbitration.pss
+//
+// requires: a front end that resolves references to lock/share fields
+//   Constraining or reading a resource-reference field (`ch.priority`,
+//   `ch.instance_id`) is legal PSS (LRM 9.4.2, 12.4), but some front ends
+//   resolve `input`/`output` fields and not `lock`/`share` ones. This file is
+//   excluded by name from the parse gate for that reason; the PSS below is
+//   correct as written.
+//
+// Resource objects, lock/share, instance_id, and pool sizing.
+//
+// Demonstrates:
+//   - lock  : exclusive for the claiming action's duration
+//   - share : excludes only concurrent lockers
+//   - an array claim requiring distinct instances
+//   - pool placement deciding what actually contends
+//   - reading instance_id in the realization
+//
+// See: reference/lang/structural/05-resource-objects.md
+//      reference/lang/structural/06-pools-and-binding.md
+
+package arb_pkg {
+    resource dma_channel_s {
+        rand bit[4] priority;
+    }
+
+    resource cpu_core_s {
+        rand bit[2] cluster;
+    }
+}
+
+component dma_c {
+    import arb_pkg::*;
+
+    bit[32] base_addr = 0x1000;
+
+    // Four channels PER dma_c instance: the two DMAs below never contend
+    // with each other for channels.
+    pool [4] dma_channel_s chan_p;
+    bind chan_p *;
+
+    function bit[32] ch_addr(int ch) { return base_addr + ch * 0x20; }
+
+    // Exclusive use of one channel.
+    action xfer {
+        lock dma_channel_s ch;
+
+        // Non-exclusive: only excludes an action that LOCKS the same core.
+        share cpu_core_s core;
+
+        rand bit[16] size;
+        constraint size in [4..4096];
+        constraint ch.priority > 2;
+
+        exec body {
+            // instance_id identifies which pool element was assigned.
+            poke(comp.ch_addr(ch.instance_id), size);
+        }
+    }
+
+    // Two DISTINCT channels: the pool must be at least as large as the array.
+    action two_chan_xfer {
+        lock dma_channel_s chans[2];
+        exec body {
+            poke(comp.ch_addr(chans[0].instance_id), 1);
+            poke(comp.ch_addr(chans[1].instance_id), 1);
+        }
+    }
+
+    // Exclusive use of a core, which DOES exclude the sharers above.
+    action exclusive_op {
+        lock cpu_core_s core;
+    }
+}
+
+// A target-platform primitive, bound to a C function.
+import target C function void poke(bit[32] addr, bit[32] data);
+
+component pss_top {
+    import arb_pkg::*;
+
+    dma_c dma0;
+    dma_c dma1;
+
+    // ONE core for the whole system: declared here, not in dma_c, so that
+    // actions in dma0 and dma1 genuinely contend for it.
+    pool [1] cpu_core_s core_p;
+    bind core_p *;
+
+    exec init_up {
+        dma0.base_addr = 0x1000;
+        dma1.base_addr = 0x2000;
+    }
+
+    action test {
+        activity {
+            // The two xfers may overlap: different channel pools, and both
+            // only SHARE the core. exclusive_op cannot overlap either of them.
+            schedule {
+                do dma_c::xfer;
+                do dma_c::xfer;
+                do dma_c::exclusive_op;
+            }
+        }
+    }
+}

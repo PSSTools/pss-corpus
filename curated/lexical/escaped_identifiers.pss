@@ -1,0 +1,23 @@
+// Clause 4.3 -- escaped identifiers. Every example from the LRM's list, plus
+// the uses that shatter a lexer without the rule.
+//
+// Note: an escaped identifier ends at *white space*, so `\foo;` includes the
+// semicolon. That is the LRM's rule, not a lexer defect -- see
+// reference/deviations.md.
+package escaped_pkg {
+    struct escaped_s {
+        int \busa+index ;
+        int \-clock ;
+        int \***error-condition*** ;
+        int \net1/\net2 ;
+        int \{a,b} ;
+        int \a*(b+c) ;
+        int \cpu3 ;
+    }
+
+    component \top-level_c {
+        action \do-write {
+            constraint \c1 { \busa+index > 0 ; }
+        }
+    }
+}

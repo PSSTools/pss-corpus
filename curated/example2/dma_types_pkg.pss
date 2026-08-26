@@ -1,0 +1,92 @@
+// The DMA engine's shared data: what a channel is, what a transfer is, and
+// which channels are wired to which peripheral request lines.
+//
+// Grouped into one file (coding guidelines rule 1): plain data and the resource
+// object are reached by type name, never included on their own.
+package dma_types_pkg {
+
+    // ---------------------------------------------------------------------
+    // Build-time configuration of the engine
+    // ---------------------------------------------------------------------
+
+    // How many channels the engine has. Sizes both the channel resource pool
+    // (dma_c) and the per-channel register arrays (dma_regs_pkg), which is why
+    // it lives here rather than in either of them.
+    static const int  DMA_NUM_CH    = 8;
+
+    // THE POINT OF THIS MODEL'S CHANNEL RULES.
+    //
+    // A peripheral request line is a wire, so a channel that services the SPI
+    // transmit FIFO is not a channel chosen at run time -- it is the one channel
+    // the SPI's TX request is connected to. Channels 0 .. DMA_SPI_TX_CH-1 have
+    // no peripheral wired to them and can therefore only move memory to memory.
+    //
+    // Modelling this as constants plus a constraint on the claimed channel (see
+    // the actions under dma_c/actions/) rather than as three separate channel
+    // pools is deliberate: it keeps ONE pool, so the solver still sees that a
+    // memory-to-memory copy and a SPI transfer contend for nothing, while an
+    // over-subscribed SPI direction is a resource conflict rather than a silent
+    // reuse of the wrong wire.
+    static const int  DMA_SPI_TX_CH = 6;    // memory -> SPI transmit FIFO
+    static const int  DMA_SPI_RX_CH = 7;    // SPI receive FIFO -> memory
+
+    // ---------------------------------------------------------------------
+    // Data types
+    // ---------------------------------------------------------------------
+
+    // What the channel's address pointers do as the transfer advances.
+    //
+    // A FIFO endpoint must NOT increment -- every word goes to the same data
+    // register -- so this is not a free choice for a peripheral transfer. The
+    // transfer functions derive it from the direction rather than taking it
+    // from the caller; see dma_c/functions/configure_channel.pss.
+    enum dma_addr_mode_e : bit[1] {
+        DMA_ADDR_FIXED = 0,
+        DMA_ADDR_INCR  = 1
+    }
+
+    // Which pair of endpoints a transfer connects. This is a register field
+    // (CH_CSR.dir), so it has a base type and fixed encodings.
+    enum dma_dir_e : bit[2] {
+        DMA_MEM_TO_MEM  = 0,
+        DMA_MEM_TO_PERI = 1,
+        DMA_PERI_TO_MEM = 2
+    }
+
+    // One transfer's worth of channel programming.
+    //
+    // Plain data, not a flow object: it carries no scheduling meaning. It exists
+    // so the configure / start / wait split (dma_c/functions/) has one argument
+    // rather than five, and so a caller can describe a transfer without knowing
+    // the register layout.
+    //
+    // WHAT IS NOT IN IT is deliberate. The pointer modes and the handshake
+    // enable are not free choices -- they follow from `dir`, because a FIFO
+    // endpoint is always fixed and always paced by its request line.
+    // configure_channel() derives them, so a caller cannot get the combination
+    // wrong.
+    //
+    // Addresses are bit[64] because that is what addr_value() returns; the
+    // registers narrow them.
+    struct dma_xfer_s {
+        bit[64]           src;
+        bit[64]           dst;
+        bit[32]           nbytes;
+        dma_dir_e         dir;
+    }
+
+    // A DMA channel.
+    //
+    // A RESOURCE, not a flow object: a transfer does not care what the previous
+    // user of the channel put in it, only that nobody else is using it now
+    // (choosing-constructs, "flow object vs resource"). Every transfer action
+    // `lock`s one, so two transfers can never share a channel, while transfers
+    // on different channels are free to overlap -- which is the whole reason a
+    // multi-channel engine exists.
+    //
+    // No fields: instance_id is the channel number and is all a transfer needs.
+    // The pool that gives it its count lives in dma_c, so each engine instance
+    // has its own set of channels.
+    resource dma_chan_s {
+    }
+}

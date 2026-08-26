@@ -1,0 +1,107 @@
+// The system: a processor's view of memory, a DMA engine, and a SPI controller
+// wired to it.
+//
+// This file is the INTEGRATION, and it is the only file that knows any of the
+// following: where the two devices sit in the address map, how big system RAM
+// is, and which DMA channel endpoints correspond to which peripheral register.
+// Everything under mem_c, dma_c and spi_c is device knowledge and would move to
+// another SoC unchanged.
+//
+// The skeleton only (coding guidelines rule 3): members, pools, and the init
+// exec that builds the address map. The scenarios are in pss_top/actions/.
+import addr_reg_pkg::*;
+import mem_pkg::*;
+import dma_regs_pkg::*;
+import spi_regs_pkg::*;
+import spi_types_pkg::*;
+
+component pss_top {
+
+    // ---------------------------------------------------------------------
+    // Address map
+    // ---------------------------------------------------------------------
+
+    static const bit[64]  SYS_RAM_BASE = 0x80000000;
+    static const bit[64]  SYS_RAM_SIZE = 0x00100000;
+    static const bit[64]  DMA_BASE     = 0x40000000;
+    static const bit[64]  SPI_BASE     = 0x40010000;
+
+    // ---------------------------------------------------------------------
+    // Structure
+    // ---------------------------------------------------------------------
+
+    // ONE space for the whole system, transparent so that regions have known
+    // addresses -- which is what lets a DMA channel be programmed with the
+    // absolute address of the SPI FIFO port below.
+    transparent_addr_space_c<>  sys_mem;
+
+    mem_c   mem;
+    dma_c   dma;
+    spi_c   spi;
+
+    // THE POOLS THAT CROSS DEVICE BOUNDARIES LIVE HERE, and that placement is
+    // the reason the model composes at all:
+    //
+    //   mem_blk_s   is filled by mem_c, copied by dma_c, transmitted by spi_c.
+    //               A pool inside any one of them would make the other two
+    //               unable to see it, and every scenario below unschedulable.
+    //   spi_data_s  couples a dma_c action to a spi_c action, so it can only
+    //               live in an ancestor of both.
+    //
+    // Contrast the pools that did NOT come here: the DMA's channels (dma_c) and
+    // the SPI's shift engine and configuration (spi_c). Those describe one
+    // device's internals, and a second instance of that device should get its
+    // own -- which is exactly what declaring them there gives.
+    pool mem_blk_s   blk_p;
+    bind blk_p *;
+
+    pool spi_data_s  data_p;
+    bind data_p *;
+
+    // ---------------------------------------------------------------------
+    // Elaboration
+    // ---------------------------------------------------------------------
+    //
+    // Regions are added and register banks are bound here because that is the
+    // only place either is legal: add_region() / add_nonallocatable_region() and
+    // set_handle() are solve functions callable from init execs only.
+    exec init_down {
+        transparent_addr_region_s<>  ram;
+        transparent_addr_region_s<>  dma_mmio;
+        transparent_addr_region_s<>  spi_mmio;
+        addr_handle_t                h;
+
+        // System RAM: allocatable, and the only allocatable region, so every
+        // mem_blk_s claim lands here.
+        //
+        // No `tag` is set on any region here, though the LRM gives every region
+        // one (§21.10.3) and get_tag() would be the natural way for a check to
+        // assert it is looking at RAM: the bundled addr_reg_pkg this model is
+        // checked against declares addr_region_base_s without the field. See
+        // README.md -- this is a library gap, not a modelling decision.
+        ram.addr = SYS_RAM_BASE;
+        ram.size = SYS_RAM_SIZE;
+        (void)sys_mem.add_region(ram);
+
+        // The device windows are NON-allocatable. Added with add_region() they
+        // would be handed out as buffers, and the first memory fill would write
+        // over a register bank -- a model that runs and corrupts the DUT.
+        dma_mmio.addr = DMA_BASE;
+        dma_mmio.size = DMA_REG_SPAN;
+        h = sys_mem.add_nonallocatable_region(dma_mmio);
+
+        // Wiring the two devices together. The DMA needs the absolute addresses
+        // of the SPI FIFO ports, because a peripheral-serviced channel is
+        // programmed with the data register as its fixed endpoint. The offsets
+        // come from spi_regs_pkg -- the same constants the register group's
+        // address decode uses -- so the two cannot disagree.
+        dma.initialize(h,
+                       SPI_BASE + SPI_TX_OFF,
+                       SPI_BASE + SPI_RX_OFF);
+
+        spi_mmio.addr = SPI_BASE;
+        spi_mmio.size = SPI_REG_SPAN;
+        h = sys_mem.add_nonallocatable_region(spi_mmio);
+        spi.initialize(h);
+    }
+}

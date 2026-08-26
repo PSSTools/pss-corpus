@@ -1,0 +1,146 @@
+// regs_and_mem.pss
+//
+// The register model and address spaces, end to end.
+//
+// Demonstrates:
+//   - packed_s layout, and sizeof_s
+//   - reg_c with a struct value type and with a bit-vector value type
+//   - reg_group_c with exactly ONE offset scheme
+//   - an MMIO window added as a NON-allocatable region
+//   - allocatable memory, an address claim, and handle arithmetic
+//   - register and memory access from a target exec
+//
+// See: reference/lang/platform/04-registers.md
+//      reference/lang/platform/03-address-spaces.md
+
+package dma_regs_pkg {
+    import addr_reg_pkg::*;
+
+    // A packed struct describes the register's bit layout. The FIRST declared
+    // field is at the lowest address. Only numeric types, bool, based enums,
+    // packed structs and arrays of those are allowed.
+    struct csr_s : packed_s<LITTLE_ENDIAN> {
+        bit     en;
+        bit[7]  rsvd;
+        bit[8]  chan;
+        bit[16] len;
+    }
+
+    // READWRITE and SZ = 8*sizeof_s<csr_s>::nbytes = 32 by default.
+    pure component csr_r : reg_c<csr_s> {}
+
+    // A bit-vector register: read()/read_val() are equivalent here.
+    pure component sts_r : reg_c<bit[32], READONLY> {}
+
+    // A register group supplies the offset of every element it contains,
+    // using EITHER get_offset_of_instance + get_offset_of_instance_array,
+    // OR get_offset_of_path. Implementing all three is an error.
+    pure component ch_regs_c : reg_group_c {
+        csr_r csr;
+        sts_r sts;
+        csr_r aux[4];
+
+        function bit[64] get_offset_of_instance(string name) {
+            match (name) {
+                ["csr"]: return 0x0;
+                ["sts"]: return 0x4;
+                default: return -1;
+            }
+        }
+
+        function bit[64] get_offset_of_instance_array(string name, int index) {
+            match (name) {
+                ["aux"]: return 0x10 + index * 4;
+                default: return -1;
+            }
+        }
+    }
+}
+
+component dma_c {
+    import addr_reg_pkg::*;
+    import dma_regs_pkg::*;
+
+    // The top-level register group: the one that gets set_handle().
+    ch_regs_c regs;
+
+    // A transparent space lets a claim's absolute address be constrained
+    // at solve time.
+    transparent_addr_space_c<> sys_mem;
+
+    exec init_up {
+        // Allocatable memory.
+        transparent_addr_region_s<> dram;
+        addr_handle_t               dram_h;
+        dram.size = 0x1000;
+        dram.addr = 0x8000_0000;
+        // A region may also carry a `tag` string, retrievable at run time with
+        // get_tag(handle) -- `dram.tag = "dram";`
+        dram_h = sys_mem.add_region(dram);
+
+        // The MMIO window must be NON-allocatable, or the allocator will
+        // hand out register addresses as buffers.
+        transparent_addr_region_s<> mmio;
+        addr_handle_t               mmio_h;
+        mmio.size = 1024;
+        mmio.addr = 0xA000_0000;
+        mmio_h = sys_mem.add_nonallocatable_region(mmio);
+
+        // Associated once, on the top-level group only, from an init exec.
+        regs.set_handle(mmio_h);
+    }
+
+    // Register programming. All register access functions are `target`.
+    action configure {
+        rand bit[8]  chan;
+        rand bit[16] len;
+
+        constraint len > 0;
+
+        exec body {
+            // Whole-register write, by value.
+            comp.regs.csr.write_val((len << 16) | (chan << 8));
+
+            // Read-modify-write forms are the better way to say this, but are
+            // not provided by every core-library implementation:
+            //
+            //   comp.regs.csr.write_fields({"chan","len"}, {chan, len});
+            //   comp.regs.csr.write_masked({.en = ~0}, {.en = 1});
+            //
+            // write_field / write_fields take string LITERALS only, name
+            // top-level non-aggregate fields only, and the names must be
+            // unique. In write_masked, `~0` selects every bit of a field and
+            // fields omitted from the literal default to 0, so they are
+            // automatically excluded from the mask.
+        }
+    }
+
+    // A READONLY register may be read but never written.
+    action poll {
+        exec body {
+            bit[32] s;
+            s = comp.regs.sts.read_val();
+        }
+    }
+
+    // Memory allocation and raw access.
+    action fill_buffer {
+        rand transparent_addr_claim_s<> dst;
+
+        constraint dst.size == 256;
+        constraint dst.alignment == 64;
+
+        exec body {
+            addr_handle_t h;
+            addr_handle_t h2;
+            h  = make_handle_from_claim(dst);
+            h2 = make_handle_from_handle(h, 4);
+            write32(h,  0xdead_beef);
+            write32(h2, 0x0000_0000);
+        }
+    }
+}
+
+component pss_top {
+    dma_c dma;
+}

@@ -1,0 +1,29 @@
+// Put the controller into a configuration, and record that it is in it.
+//
+// THE OUTPUT IS THE POINT. Writing the state object is what makes every
+// transfer action's `input spi_state_s` resolvable, so a scenario that traverses
+// a transfer without ever configuring the controller has no legal schedule --
+// and a scenario that switches between programmed and DMA styles is obliged to
+// re-configure in between, because the two constrain `cfg.dma_en` differently.
+//
+// A state pool holds one object at a time and a writer never overlaps a reader,
+// so this also cannot land in the middle of a transfer that is reading the
+// configuration it is about to change.
+import spi_types_pkg::*;
+
+extend component spi_c {
+
+    action configure_a {
+        output spi_state_s  st;
+
+        // Configuring is what makes the controller configured; nothing else
+        // sets this bit.
+        constraint configured_c {
+            st.configured;
+        }
+
+        exec body {
+            comp.configure(st.cfg);
+        }
+    }
+}

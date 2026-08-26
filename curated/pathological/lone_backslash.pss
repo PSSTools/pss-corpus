@@ -1,0 +1,4 @@
+component c {
+    int x = 1;
+    \
+}

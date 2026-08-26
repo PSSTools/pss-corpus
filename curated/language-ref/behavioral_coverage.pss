@@ -1,0 +1,154 @@
+// behavioral_coverage.pss
+//
+// requires: a front end implementing Clause 16 (cover / monitor)
+//   Behavioral coverage is legal PSS 3.1 but is not implemented by every front
+//   end. This file is excluded by name from the parse gate; the PSS below is
+//   correct as written. Data coverage is in coverage.pss.
+//
+// Behavioral coverage: describing a scenario to OBSERVE.
+//
+// The one thing to internalize: a monitor RECOGNIZES a pattern in the executed
+// scenario. It does not cause that pattern to be produced. If you need it
+// produced, that is a constraint or an activity.
+//
+// Demonstrates:
+//   - concat  : immediate consecutive matching
+//   - sequence: consecutive matching with arbitrary gaps
+//   - eventually / overlap / schedule / select
+//   - action handles and constraints, which is what makes a pattern specific
+//   - a covergroup sampled at the first match of a cover statement
+//   - monitor traversal from another monitor
+//
+// See: reference/lang/coverage/02-behavioral-coverage.md
+
+package bcov_pkg {
+    enum lock_mode_e  { LOCKED, UNLOCKED }
+    enum write_mode_e { WRITE_BACK, WRITE_THRU }
+}
+
+component dut_c {
+    import bcov_pkg::*;
+
+    action read  { rand bit[32] addr; rand lock_mode_e  lock_mode;  }
+    action write { rand bit[32] addr; rand write_mode_e write_mode; }
+    action reset { }
+}
+
+package mon_pkg {
+    import bcov_pkg::*;
+
+    // `concat` requires immediate consecutive matching: the read's checkpoint
+    // IS the write's match point.
+    monitor rd_immediately_after_wr {
+        dut_c::write w;
+        dut_c::read  r;
+
+        activity {
+            concat {
+                w;
+                r;
+            }
+        }
+
+        // Without this the pattern matches almost any trace containing both.
+        constraint w.addr == r.addr;
+    }
+
+    // `sequence` allows an arbitrary gap between the subscenarios.
+    monitor rd_sometime_after_wr {
+        dut_c::write w;
+        dut_c::read  r;
+
+        activity {
+            sequence {
+                w;
+                r;
+            }
+        }
+
+        constraint w.addr == r.addr;
+    }
+
+    // `eventually` matches its sub-scenario at any later checkpoint.
+    monitor eventually_locked {
+        dut_c::reset rst;
+        dut_c::read  r;
+
+        activity {
+            sequence {
+                rst;
+                eventually r;
+            }
+        }
+
+        constraint r.lock_mode == LOCKED;
+    }
+
+    // `schedule` -- any order, gaps and overlaps allowed, realizations
+    // pairwise disjoint. `overlap` additionally requires a time instant at
+    // which all members are simultaneously active.
+    monitor two_writes_overlapping {
+        dut_c::write w1;
+        dut_c::write w2;
+
+        activity {
+            overlap {
+                w1;
+                w2;
+            }
+        }
+
+        constraint w1.addr != w2.addr;
+    }
+
+    // `select` -- the realizations are the union of the alternatives'.
+    monitor read_or_reset {
+        activity {
+            select {
+                do dut_c::read;
+                do dut_c::reset;
+            }
+        }
+    }
+
+    // Monitors compose: a monitor may be traversed from another monitor.
+    monitor two_rd_after_wr {
+        activity {
+            schedule {
+                do rd_immediately_after_wr;
+                do rd_immediately_after_wr;
+            }
+        }
+    }
+}
+
+component pss_top {
+    import bcov_pkg::*;
+    import mon_pkg::*;
+
+    dut_c dut;
+
+    // Instantiate an existing monitor type. Cover statements are only active
+    // in component instances actually instantiated from the root component.
+    c1 : cover rd_immediately_after_wr;
+    c2 : cover two_rd_after_wr;
+
+    // Or declare the scenario in place, with a covergroup sampled at the
+    // FIRST MATCH of the cover statement's attempts. Where several first-match
+    // realizations exist, the implementation may pick any of them.
+    c3 : cover {
+        dut_c::write w;
+        dut_c::read  r;
+
+        activity {
+            w;
+            r;
+        }
+
+        covergroup {
+            cpw : coverpoint w.write_mode;
+            cpr : coverpoint r.lock_mode;
+            wXr : cross cpw, cpr;
+        } cg;
+    }
+}

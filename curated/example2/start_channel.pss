@@ -1,0 +1,23 @@
+// Arm a configured channel.
+//
+// completes_when: CHn_CSR.en is set. The transfer is RUNNING, not finished.
+// waits for:      nothing -- this is the arm half; wait_done() is the other.
+//
+// Setting `en` is also what clears the channel's `done` and `err` status
+// (dma_regs_pkg), so a wait that follows this cannot observe the previous
+// transfer's completion. That is the property the arm/wait split depends on,
+// and it is why the model gives the device that behaviour rather than
+// clear-on-read status.
+//
+// write_field() rather than a whole-register write: the configuration this is
+// arming is already in the register and must survive. It is a read-modify-write
+// on the bus (§21.14.1), which is safe here because nothing in this bank is
+// clear-on-read.
+import dma_regs_pkg::*;
+
+extend component dma_c {
+
+    target function void start_channel(int ch) {
+        regs.ch_csr[ch].write_field("en", 1);
+    }
+}

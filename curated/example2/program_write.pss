@@ -1,0 +1,41 @@
+// A PROGRAMMED transmit: the processor moves every word from memory into the
+// transmit FIFO itself.
+//
+// completes_when: nbytes bytes have been shifted out and SPI_STATUS.done is
+//                 set.
+// waits for:      the FIFO to accept each word, then the transfer to finish.
+//
+// This is the style the controller supports without any DMA involvement at all,
+// and it is the reason the model tracks `dma_en` in a state object: with DMA
+// request generation enabled, the DMA would be pulling words out of the FIFO at
+// the same time as these stores are pushing them in. The action that wraps this
+// constrains dma_en false (spi_c/actions/prog_write_a.pss); nothing about the
+// register writes here would fail if it did not, which is precisely why the
+// rule lives in a constraint rather than in a comment.
+//
+// The inner poll has a `yield` for the same reason wait_done() does: on a
+// cooperatively scheduled target, a spin with no yield starves everything else.
+import addr_reg_pkg::*;
+import spi_regs_pkg::*;
+import spi_types_pkg::*;
+
+extend component spi_c {
+
+    target function void program_write(addr_handle_t src, bit[32] nbytes) {
+        int           nwords = nbytes / 4;
+        spi_status_s  status;
+
+        start_transfer(SPI_XFER_WRITE, nbytes);
+
+        repeat (i : nwords) {
+            repeat {
+                yield;
+                status = regs.status.read();
+            } while (status.tx_empty == 0);
+
+            regs.tx.write_val(read32(make_handle_from_handle(src, i * 4)));
+        }
+
+        wait_done();
+    }
+}

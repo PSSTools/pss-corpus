@@ -1,0 +1,124 @@
+// The SPI controller's MMIO register file: one bank of six registers.
+//
+// One file for the bank, its register types and their value structs (coding
+// guidelines rule 5.2). The package needs no directory because that is all
+// there is (rule 2).
+package spi_regs_pkg {
+    import std_pkg::*;
+    import addr_reg_pkg::*;
+    import spi_types_pkg::*;
+
+    // ---------------------------------------------------------------------
+    // Address map
+    // ---------------------------------------------------------------------
+
+    static const bit[64]  SPI_CTRL_OFF   = 0x00;
+    static const bit[64]  SPI_DIV_OFF    = 0x04;
+    static const bit[64]  SPI_STATUS_OFF = 0x08;
+    static const bit[64]  SPI_LEN_OFF    = 0x0c;
+    static const bit[64]  SPI_TX_OFF     = 0x10;
+    static const bit[64]  SPI_RX_OFF     = 0x14;
+    static const bit[64]  SPI_REG_SPAN   = 0x20;
+
+    // The FIFO port offsets are constants rather than literals inside the
+    // offset function below because they have a SECOND reader: a DMA channel
+    // servicing this controller is programmed with the absolute address of
+    // SPI_TX or SPI_RX as its fixed endpoint (see pss_top, which wires the two
+    // devices together). One declaration, so the group and the DMA cannot
+    // disagree about where the FIFO is.
+
+    // ---------------------------------------------------------------------
+    // SPI_CTRL -- control (0x00)
+    // ---------------------------------------------------------------------
+    //
+    // `start` is a write-only pulse: it arms a transfer of SPI_LEN bytes in the
+    // direction `dir` and is read back as zero. Writing it with write_field()
+    // is a read-modify-write of the register (§21.14.1), which is harmless here
+    // -- nothing in this bank is clear-on-read.
+    //
+    // `dma_en` selects who services the FIFOs. Set, the controller raises its
+    // request line and the DMA channel wired to it moves every word; clear, the
+    // processor moves them through SPI_TX / SPI_RX itself. It is the one bit
+    // that decides whether a transfer is programmed or DMA-based, which is why
+    // the model tracks it in a state object (spi_types_pkg::spi_state_s) rather
+    // than only in the device.
+    struct spi_ctrl_s : packed_s<> {
+        rand bit         en;          //  0     RW  controller enable
+        rand bit         start;       //  1     WO  begin a transfer of SPI_LEN bytes
+        rand spi_mode_e  mode;        //  3:2   RW  clock polarity / phase
+        rand bit         lsb_first;   //  4     RW  bit order
+        rand bit[2]      cs;          //  6:5   RW  which slave to select
+        rand spi_dir_e   dir;         //  7     RW  transfer direction
+        rand bit         dma_en;      //  8     RW  service the FIFOs by DMA request
+        rand bit[23]     reserved;    // 31:9   RO
+    }
+
+    pure component spi_ctrl_r : reg_c<spi_ctrl_s, READWRITE, 32> {}
+
+    // ---------------------------------------------------------------------
+    // SPI_DIV -- clock divider (0x04)
+    // ---------------------------------------------------------------------
+    struct spi_div_s : packed_s<> {
+        rand bit[8]      clk_div;     //  7:0   RW  SCLK = PCLK / (2 * (clk_div+1))
+        rand bit[24]     reserved;    // 31:8   RO
+    }
+
+    pure component spi_div_r : reg_c<spi_div_s, READWRITE, 32> {}
+
+    // ---------------------------------------------------------------------
+    // SPI_STATUS -- status (0x08, read-only)
+    // ---------------------------------------------------------------------
+    //
+    // Read-only and free of side effects, so it may be polled. `done` is
+    // cleared by the next SPI_CTRL.start, not by reading it -- see the same
+    // reasoning in dma_regs_pkg for the channel status bits.
+    struct spi_status_s : packed_s<> {
+        rand bit         busy;        //  0     RO  a transfer is in progress
+        rand bit         tx_empty;    //  1     RO  SPI_TX will accept a word
+        rand bit         rx_valid;    //  2     RO  SPI_RX holds a received word
+        rand bit         done;        //  3     RO  SPI_LEN bytes have been transferred
+        rand bit[28]     reserved;    // 31:4   RO
+    }
+
+    pure component spi_status_r : reg_c<spi_status_s, READONLY, 32> {}
+
+    // ---------------------------------------------------------------------
+    // SPI_LEN (0x0c), SPI_TX (0x10), SPI_RX (0x14)
+    // ---------------------------------------------------------------------
+    //
+    // The FIFO ports are single-direction by construction: a read of SPI_TX or
+    // a write of SPI_RX is an error the compiler catches, rather than a bus
+    // access that quietly does the wrong thing.
+    pure component spi_len_r : reg_c<bit[32], READWRITE, 32> {}
+    pure component spi_tx_r  : reg_c<bit[32], WRITEONLY, 32> {}
+    pure component spi_rx_r  : reg_c<bit[32], READONLY,  32> {}
+
+    // ---------------------------------------------------------------------
+    // The bank
+    // ---------------------------------------------------------------------
+
+    pure component spi_regs_c : reg_group_c {
+        spi_ctrl_r    ctrl;      // 0x00
+        spi_div_r     div;       // 0x04
+        spi_status_r  status;    // 0x08  RO
+        spi_len_r     len;       // 0x0c
+        spi_tx_r      tx;        // 0x10  WO
+        spi_rx_r      rx;        // 0x14  RO
+
+        function bit[64] get_offset_of_instance(string name) {
+            match (name) {
+                ["ctrl"]:   return SPI_CTRL_OFF;
+                ["div"]:    return SPI_DIV_OFF;
+                ["status"]: return SPI_STATUS_OFF;
+                ["len"]:    return SPI_LEN_OFF;
+                ["tx"]:     return SPI_TX_OFF;
+                ["rx"]:     return SPI_RX_OFF;
+                default:    return -1;
+            }
+        }
+
+        function bit[64] get_offset_of_instance_array(string name, int index) {
+            return -1;
+        }
+    }
+}

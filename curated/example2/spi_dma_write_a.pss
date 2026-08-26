@@ -1,0 +1,33 @@
+// A DMA-serviced SPI transmit: configure the controller for DMA, fill a block,
+// and let the DMA feed the transmit FIFO while the controller shifts it out.
+//
+// THE `parallel` IS DOCUMENTATION, NOT MECHANISM. The two halves are coupled by
+// a stream, which already requires them to begin together and forbids either
+// from being scheduled alone; writing them in a parallel block only makes that
+// visible to a reader. Replace it with a sequence and the scenario does not
+// serialize -- it becomes unschedulable.
+//
+// The order in which the two halves program their devices is unspecified, and
+// deliberately so: the FIFO request handshake is what synchronizes them. A
+// controller armed before the channel simply asserts its request and waits.
+extend component pss_top {
+
+    action spi_dma_write_a {
+        spi_c::configure_a   cfg;
+        mem_c::fill_a        fill;
+        dma_c::mem2spi_a     dma_half;
+        spi_c::dma_write_a   spi_half;
+
+        activity {
+            bind fill.blk       dma_half.src;
+            bind dma_half.data  spi_half.data;
+
+            cfg;
+            fill;
+            parallel {
+                dma_half;
+                spi_half;
+            }
+        }
+    }
+}

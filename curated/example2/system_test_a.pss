@@ -1,0 +1,29 @@
+// A random mix of everything the system can do.
+//
+// The point of a `select` over the five directed scenarios, rather than a
+// hand-written interleaving, is the transitions BETWEEN them: a DMA-serviced
+// transfer following a programmed one requires the controller to be
+// re-configured, and nothing in this file says so. The state object does
+// (spi_types_pkg::spi_state_s), so every reconfiguration this scenario needs
+// appears because the solver had to put it there.
+//
+// Each branch is a compound action of its own, so its internal ordering,
+// binding and concurrency come with it.
+extend component pss_top {
+
+    action system_test_a {
+
+        activity {
+            repeat (4) {
+                select {
+                    do mem_copy_a;
+                    do spi_prog_write_a;
+                    do spi_prog_read_a;
+                    do spi_dma_write_a;
+                    do spi_dma_read_a;
+                    do concurrent_dma_a;
+                }
+            }
+        }
+    }
+}

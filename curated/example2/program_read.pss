@@ -1,0 +1,38 @@
+// A PROGRAMMED receive: the processor takes every word out of the receive FIFO
+// and stores it to memory itself.
+//
+// completes_when: nbytes bytes have been shifted in, stored to [dst, dst+nbytes)
+//                 and SPI_STATUS.done is set.
+// waits for:      each word to arrive, then the transfer to finish.
+//
+// On a READ the controller shifts out zeros to clock the slave's data in
+// (spi_types_pkg::spi_dir_e), so there is no transmit data to supply and the
+// loop is a mirror image of program_write().
+//
+// What lands in memory came from a device this model does not model, which is
+// why the wrapping action marks the destination block MEM_PATTERN_UNKNOWN
+// (spi_c/actions/prog_read_a.pss).
+import addr_reg_pkg::*;
+import spi_regs_pkg::*;
+import spi_types_pkg::*;
+
+extend component spi_c {
+
+    target function void program_read(addr_handle_t dst, bit[32] nbytes) {
+        int           nwords = nbytes / 4;
+        spi_status_s  status;
+
+        start_transfer(SPI_XFER_READ, nbytes);
+
+        repeat (i : nwords) {
+            repeat {
+                yield;
+                status = regs.status.read();
+            } while (status.rx_valid == 0);
+
+            write32(make_handle_from_handle(dst, i * 4), regs.rx.read_val());
+        }
+
+        wait_done();
+    }
+}

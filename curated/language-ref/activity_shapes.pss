@@ -1,0 +1,135 @@
+// activity_shapes.pss
+//
+// Every activity composition statement, and what each one actually means.
+//
+// Demonstrates:
+//   - sequential / parallel / schedule, and why they differ
+//   - select with guards and weights; if-else; match
+//   - repeat (count and while), foreach, replicate with a label array
+//   - named sub-activities and hierarchical references
+//   - join specifications
+//   - atomic, to keep inference out of a block
+//
+// See: reference/lang/activity/01-activities.md
+//      reference/lang/activity/03-scheduling-semantics.md
+
+package shapes_pkg {
+    enum op_mode_e { FAST, SLOW }
+}
+
+component engine_c {
+    import shapes_pkg::*;
+
+    action step {
+        rand bit[8] id;
+    }
+
+    action fast_step { }
+    action slow_step { }
+
+    action shapes {
+        rand op_mode_e     mode;
+        rand bit[3] in [2..4] n;
+        rand bool          use_dma;
+
+        step s1, s2;
+        step s_arr[4];
+
+        array<bit[8],3> sizes = {1, 2, 3};
+
+        activity {
+            // Sequential: s2 begins after s1 completes.
+            // (`sequence` is optional; a bare block means the same thing.)
+            sequence {
+                s1;
+                s2;
+            }
+
+            // schedule: all of these happen, in any legal order.
+            // This is the right default for "these must all occur".
+            schedule {
+                do step;
+                do step;
+                s_arr;                  // whole-array traversal: no inline
+                                        // constraint or initializer allowed
+            }
+
+            // parallel: all branches BEGIN at the same time. Stronger than
+            // schedule, and only correct when a common start is required.
+            // A labelled block is a named sub-activity, so L.a and L.b can be
+            // referenced from constraints below.
+            L: parallel {
+                a: do step;
+                b: do step;
+            }
+
+            // A join specification changes what the statement AFTER the block
+            // waits for. It is legal PSS (LRM 11.3.6) but is not accepted by
+            // every front end, so it is shown here rather than compiled:
+            //
+            //     L2: parallel {
+            //         p1: do step;
+            //         p2: do step;
+            //     } join_branch(p1)
+            //
+            // join_branch(labels) -- continue after those branches complete
+            // join_select(n)      -- after n randomly selected branches
+            // join_none           -- no scheduling dependency on the block
+            // join_first(n)       -- a RUNTIME dependency only, on the first n
+
+            // Choice made by the tool, with guards and weights.
+            select {
+                (mode == FAST) [3]: do fast_step;
+                               [1]: do slow_step;
+            }
+
+            // Choice made by a solved value.
+            if (use_dma) {
+                do fast_step;
+            } else {
+                do slow_step;
+            }
+
+            match (n) {
+                [2]:    do fast_step;
+                [3..4]: do slow_step;
+            }
+
+            // Counted repetition. `repeat` gives no handles.
+            repeat (4) {
+                do step;
+            }
+            repeat (ri : 4) {
+                do step with { id == ri; };
+            }
+
+            // Collection-driven repetition.
+            // (an index variable may also be declared: `foreach (e : sizes [fi])`)
+            foreach (e : sizes) {
+                do step with { id == e; };
+            }
+
+            // replicate expands IN PLACE -- no extra scheduling layer -- and a
+            // label array makes each expansion individually referenceable
+            // (R[0], R[1], ...). A label inside replicate REQUIRES the array.
+            // An index variable may also be declared -- `replicate (ni : n)` --
+            // and referenced in the replicated statement.
+            replicate (n) R[]: {
+                do step;
+            }
+
+            // atomic keeps inferred actions from interleaving into this block.
+            atomic {
+                do fast_step;
+                do slow_step;
+            }
+        }
+
+        // Hierarchical references into the named sub-activity L.
+        constraint parallel { L.a, L.b };
+    }
+}
+
+component pss_top {
+    engine_c eng;
+}

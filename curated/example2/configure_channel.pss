@@ -1,0 +1,72 @@
+// Program one channel's endpoints, length and mode. Does NOT start it.
+//
+// completes_when: CHn_SRC / CHn_DST / CHn_LEN and the RW fields of CHn_CSR
+//                 describe `xfer`. The channel is not armed.
+// waits for:      nothing. Straight-line stores.
+//
+// THE DERIVED FIELDS. `dir` decides three other bits, and this is the one place
+// that knows how:
+//
+//   MEM_TO_MEM   both pointers increment; no handshake -- the engine moves the
+//                whole block as fast as the bus lets it.
+//   MEM_TO_PERI  the destination is a FIFO port: fixed pointer, and the
+//                transfer advances only when the peripheral asks (hs_en). A
+//                peripheral transfer with an incrementing destination would
+//                walk across the peripheral's register map; one without the
+//                handshake would overrun the FIFO.
+//   PERI_TO_MEM  the mirror image.
+//
+// Deriving them here rather than taking them from the caller is why dma_xfer_s
+// has four fields instead of seven: there is no legal combination the caller
+// could have chosen that this does not produce.
+//
+// The CSR is written WHOLE. Nothing is running on the channel -- `en` is left
+// clear and start_channel() sets it -- so there is no status to preserve and a
+// read-modify-write would buy nothing.
+import dma_regs_pkg::*;
+import dma_types_pkg::*;
+
+extend component dma_c {
+
+    target function void configure_channel(int ch, dma_xfer_s xfer) {
+        dma_ch_csr_s  csr;
+
+        regs.ch_src[ch].write_val((bit[32])xfer.src);
+        regs.ch_dst[ch].write_val((bit[32])xfer.dst);
+        regs.ch_len[ch].write_val(xfer.nbytes);
+
+        csr.en  = 0;
+        csr.dir = xfer.dir;
+
+        match (xfer.dir) {
+            [DMA_MEM_TO_MEM]: {
+                csr.src_mode = DMA_ADDR_INCR;
+                csr.dst_mode = DMA_ADDR_INCR;
+                csr.hs_en    = 0;
+            }
+            [DMA_MEM_TO_PERI]: {
+                csr.src_mode = DMA_ADDR_INCR;
+                csr.dst_mode = DMA_ADDR_FIXED;
+                csr.hs_en    = 1;
+            }
+            [DMA_PERI_TO_MEM]: {
+                csr.src_mode = DMA_ADDR_FIXED;
+                csr.dst_mode = DMA_ADDR_INCR;
+                csr.hs_en    = 1;
+            }
+
+            // dma_dir_e has exactly three values and all three are handled, so
+            // this arm is unreachable -- but a match with no matching arm is a
+            // runtime error nothing checks statically (§20.7.9), and the safe
+            // fallback is the one that cannot walk a pointer across a
+            // peripheral's registers.
+            default: {
+                csr.src_mode = DMA_ADDR_FIXED;
+                csr.dst_mode = DMA_ADDR_FIXED;
+                csr.hs_en    = 0;
+            }
+        }
+
+        regs.ch_csr[ch].write(csr);
+    }
+}

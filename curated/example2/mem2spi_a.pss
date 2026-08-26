@@ -1,0 +1,52 @@
+// Feed a block of memory into the SPI controller's transmit FIFO.
+//
+// THE DMA HALF of a DMA-serviced SPI write. The other half is
+// spi_c::dma_write_a, and the two are coupled by the spi_data_s stream: exactly
+// one producer, exactly one consumer, both starting together (§9.3.2). Neither
+// can be scheduled without the other, which is the correct statement about a
+// transfer that neither side can complete alone.
+//
+// THE CHANNEL IS NOT A CHOICE. The SPI's transmit request is wired to one
+// channel, so this action can only claim that one. Two consequences fall out of
+// the resource model without further ado:
+//
+//   * two concurrent memory-to-SPI transfers are impossible -- there is one
+//     wire and `lock` gives it to one action at a time;
+//   * a memory-to-memory copy and this transfer never contend, because
+//     mem2mem_a is constrained off this channel. They run in parallel, which is
+//     what a multi-channel engine is for.
+import addr_reg_pkg::*;
+import mem_pkg::*;
+import spi_types_pkg::*;
+import dma_types_pkg::*;
+
+extend component dma_c {
+
+    action mem2spi_a {
+        input  mem_blk_s     src;
+        output spi_data_s    data;
+        lock   dma_chan_s    ch;
+
+        // The channel the SPI transmit request line is wired to.
+        constraint channel_c {
+            ch.instance_id == DMA_SPI_TX_CH;
+        }
+
+        // The stream carries the length the controller must be armed with, so
+        // the two halves agree about how much data is in flight.
+        constraint size_c {
+            data.nbytes == src.mem.size;
+        }
+
+        exec body {
+            dma_xfer_s  xfer;
+
+            xfer.src    = addr_value(make_handle_from_claim(src.mem));
+            xfer.dst    = comp.spi_tx_addr;    // the FIFO port: a fixed endpoint
+            xfer.nbytes = (bit[32])src.mem.size;
+            xfer.dir    = DMA_MEM_TO_PERI;
+
+            comp.transfer((int)ch.instance_id, xfer);
+        }
+    }
+}

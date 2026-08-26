@@ -1,0 +1,47 @@
+// Copy one block of memory to another.
+//
+// The SPI controller is not involved, and neither is any peripheral request
+// line, so this is the one transfer kind that may use a general-purpose
+// channel -- and, by the constraint below, may use ONLY one. The SPI channels
+// are wired to the controller and are not available for general copying.
+//
+// WHY THE DESTINATION IS AN OUTPUT BUFFER. A copy produces a block that another
+// action can consume -- check it, transmit it, copy it onward -- and the buffer
+// is what makes that consumer wait until this transfer has COMPLETED. The
+// content constraint is what makes the copy checkable: the destination holds
+// what the source held, which is the entire claim a memory-to-memory DMA makes.
+import addr_reg_pkg::*;
+import mem_pkg::*;
+import dma_types_pkg::*;
+
+extend component dma_c {
+
+    action mem2mem_a {
+        input  mem_blk_s     src;
+        output mem_blk_s     dst;
+        lock   dma_chan_s    ch;
+
+        // A general-purpose channel: no peripheral is wired to it.
+        constraint channel_c {
+            ch.instance_id < DMA_SPI_TX_CH;
+        }
+
+        // A copy is a copy: same length, same contents.
+        constraint copy_c {
+            dst.mem.size == src.mem.size;
+            dst.pattern  == src.pattern;
+            dst.seed     == src.seed;
+        }
+
+        exec body {
+            dma_xfer_s  xfer;
+
+            xfer.src    = addr_value(make_handle_from_claim(src.mem));
+            xfer.dst    = addr_value(make_handle_from_claim(dst.mem));
+            xfer.nbytes = (bit[32])src.mem.size;
+            xfer.dir    = DMA_MEM_TO_MEM;
+
+            comp.transfer((int)ch.instance_id, xfer);
+        }
+    }
+}

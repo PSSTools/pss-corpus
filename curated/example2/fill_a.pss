@@ -1,0 +1,27 @@
+// Produce a block of memory holding known data.
+//
+// This is where a mem_blk_s comes from, and therefore where every data flow in
+// this model starts. The buffer is an OUTPUT, so nothing that consumes a block
+// -- a DMA copy, a SPI transmit -- can be scheduled before this completes. That
+// ordering is stated once, here, and no activity has to repeat it.
+import mem_pkg::*;
+import addr_reg_pkg::*;
+
+extend component mem_c {
+
+    action fill_a {
+        output mem_blk_s  blk;
+
+        // You cannot write a pattern that is defined as unpredictable.
+        constraint pattern_c {
+            blk.pattern != MEM_PATTERN_UNKNOWN;
+        }
+
+        exec body {
+            comp.fill(make_handle_from_claim(blk.mem),
+                      (bit[32])blk.mem.size,
+                      blk.pattern,
+                      blk.seed);
+        }
+    }
+}

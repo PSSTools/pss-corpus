@@ -1,0 +1,17 @@
+// The processor's view of system memory: the agent that puts data into a block
+// and the agent that checks a block's contents.
+//
+// It has no registers and no attributes, because memory is not a device here --
+// it is storage the processor reaches with ordinary loads and stores. The
+// component exists so that filling and checking are ACTIONS, schedulable
+// alongside the transfers that move the data, rather than helper code somebody
+// has to remember to call.
+//
+// The address space this component's actions allocate from is NOT declared
+// here. A claim binds to the nearest matching space going up the component tree
+// (§21.11.7), so system RAM belongs to the system -- see pss_top.
+//
+// The skeleton only (coding guidelines rule 3); the operations are in
+// mem_c/functions/ and their scenario wrappers in mem_c/actions/.
+component mem_c {
+}

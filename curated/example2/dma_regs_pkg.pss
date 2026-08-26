@@ -1,0 +1,108 @@
+// The DMA engine's MMIO register file: an engine-global control register and
+// one bank of four registers per channel.
+//
+// ONE FILE, because a register bank is one artifact with one address decode
+// (coding guidelines rule 5.2): the registers are meaningless apart from the
+// group that maps them, the value structs are meaningless apart from their
+// registers, and nobody includes one of the three without the others. The
+// address-map constants sit here too -- they describe where this file's
+// registers are, relative to the engine's base.
+//
+// All value structs are packed LITTLE_ENDIAN, so the first-declared field is at
+// bit 0 and declaration order IS the bit numbering.
+package dma_regs_pkg {
+    import std_pkg::*;
+    import addr_reg_pkg::*;
+    import dma_types_pkg::*;
+
+    // ---------------------------------------------------------------------
+    // Address map
+    // ---------------------------------------------------------------------
+
+    static const bit[64]  DMA_CH_BASE   = 0x40;      // channel 0's bank
+    static const bit[64]  DMA_CH_STRIDE = 0x20;      // bytes between banks
+    static const bit[64]  DMA_REG_SPAN  =
+        DMA_CH_BASE + DMA_NUM_CH * DMA_CH_STRIDE;
+
+    // ---------------------------------------------------------------------
+    // A plain 32-bit register with no field structure
+    // ---------------------------------------------------------------------
+    //
+    // The address and length registers. With a bit-vector value type,
+    // read()/read_val() and write()/write_val() are equivalent (§21.14.1).
+    pure component dma_word_r : reg_c<bit[32], READWRITE, 32> {}
+
+    // ---------------------------------------------------------------------
+    // DMA_CSR -- engine-global control (offset 0x00)
+    // ---------------------------------------------------------------------
+    struct dma_csr_s : packed_s<> {
+        rand bit      en;            //  0     RW  engine enable
+        rand bit      pause;         //  1     RW  hold off all channel arbitration
+        rand bit[30]  reserved;      // 31:2   RO
+    }
+
+    pure component dma_csr_r : reg_c<dma_csr_s, READWRITE, 32> {}
+
+    // ---------------------------------------------------------------------
+    // CHn_CSR -- per-channel control / status (bank offset 0x00)
+    // ---------------------------------------------------------------------
+    //
+    // WHY THE STATUS BITS ARE PLAIN RO AND NOT CLEAR-ON-READ. A device whose
+    // status read consumes the status forces every operation to read it exactly
+    // once and carry the value, and makes a second reader steal the first one's
+    // completion. This device clears `done` and `err` when the channel is
+    // re-enabled instead, which is what makes wait_done()'s polling loop
+    // (dma_c/functions/wait_done.pss) safe to write as a loop at all.
+    //
+    // `busy` means the arbiter is currently servicing this channel -- not that
+    // the channel is armed. It is not a completion indicator.
+    struct dma_ch_csr_s : packed_s<> {
+        rand bit               en;         //  0     RW  arm / start; cleared by hardware on done
+        rand dma_dir_e         dir;        //  2:1   RW  which endpoints
+        rand dma_addr_mode_e   src_mode;   //  3     RW  source pointer: fixed or incrementing
+        rand dma_addr_mode_e   dst_mode;   //  4     RW  destination pointer
+        rand bit               hs_en;      //  5     RW  advance on the peripheral request line
+        rand bit               busy;       //  6     RO  currently being serviced
+        rand bit               done;       //  7     RO  transfer complete
+        rand bit               err;        //  8     RO  bus error during transfer
+        rand bit[23]           reserved;   // 31:9   RO
+    }
+
+    pure component dma_ch_csr_r : reg_c<dma_ch_csr_s, READWRITE, 32> {}
+
+    // ---------------------------------------------------------------------
+    // The bank
+    // ---------------------------------------------------------------------
+    //
+    // ONE group for the whole engine, with the per-channel registers as arrays,
+    // rather than one group per channel bound to its own region. The engine's
+    // operations take a channel number (a claimed dma_chan_s instance_id), so
+    // indexed access -- `regs.ch_csr[ch]` -- is what the caller already has;
+    // per-channel groups would buy index-free access at the cost of turning
+    // every operation into a component-array lookup on a solved value.
+    pure component dma_regs_c : reg_group_c {
+        dma_csr_r      csr;                       // 0x00  engine control
+
+        dma_ch_csr_r   ch_csr[dma_types_pkg::DMA_NUM_CH];        // bank + 0x00
+        dma_word_r     ch_src[dma_types_pkg::DMA_NUM_CH];        // bank + 0x04  source address
+        dma_word_r     ch_dst[dma_types_pkg::DMA_NUM_CH];        // bank + 0x08  destination address
+        dma_word_r     ch_len[dma_types_pkg::DMA_NUM_CH];        // bank + 0x0c  length in bytes
+
+        function bit[64] get_offset_of_instance(string name) {
+            match (name) {
+                ["csr"]: return 0x00;
+                default: return -1;
+            }
+        }
+
+        function bit[64] get_offset_of_instance_array(string name, int index) {
+            match (name) {
+                ["ch_csr"]: return DMA_CH_BASE + index * DMA_CH_STRIDE + 0x00;
+                ["ch_src"]: return DMA_CH_BASE + index * DMA_CH_STRIDE + 0x04;
+                ["ch_dst"]: return DMA_CH_BASE + index * DMA_CH_STRIDE + 0x08;
+                ["ch_len"]: return DMA_CH_BASE + index * DMA_CH_STRIDE + 0x0c;
+                default:    return -1;
+            }
+        }
+    }
+}

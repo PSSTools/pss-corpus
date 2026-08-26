@@ -1,0 +1,27 @@
+// Block until the armed transfer has moved all SPI_LEN bytes.
+//
+// completes_when: SPI_STATUS.done is set.
+// waits for:      the transfer, however it is being serviced -- by this
+//                 processor through the FIFO registers, or by a DMA channel.
+//
+// A POLLING LOOP WITH A yield. Without it, a target platform that schedules
+// execs cooperatively would spin here forever and never let the concurrent
+// half of a DMA transfer run -- and a DMA-serviced transfer is exactly the
+// case where something else must run for this condition to ever become true.
+//
+// SPI_STATUS is READONLY and has no read side effects (spi_regs_pkg), which is
+// what makes a re-read loop safe: `done` survives being observed and is cleared
+// by the next start pulse.
+import spi_regs_pkg::*;
+
+extend component spi_c {
+
+    target function void wait_done() {
+        spi_status_s  status;
+
+        repeat {
+            yield;
+            status = regs.status.read();
+        } while (status.done == 0);
+    }
+}

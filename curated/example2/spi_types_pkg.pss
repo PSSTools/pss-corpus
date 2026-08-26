@@ -1,0 +1,111 @@
+// The SPI controller's shared data: its configuration, the state object that
+// says the controller is currently in that configuration, the stream that
+// couples a DMA-serviced transfer's two halves, and the shift engine itself.
+package spi_types_pkg {
+
+    // The controller drives four chip selects, which is the width of the `cs`
+    // field below and of SPI_CTRL.cs -- there is no separate count constant,
+    // because a constant that only ever restates a field width is a second
+    // place to be wrong.
+
+    // Clock polarity / phase, in the usual numbering. A register field, so it
+    // has a base type.
+    enum spi_mode_e : bit[2] {
+        SPI_MODE_0 = 0,
+        SPI_MODE_1 = 1,
+        SPI_MODE_2 = 2,
+        SPI_MODE_3 = 3
+    }
+
+    // Which way the data of a transfer moves, from the CONTROLLER's point of
+    // view: WRITE shifts memory data out to the slave, READ shifts slave data
+    // in. A register field (SPI_CTRL.dir), so it has a base type.
+    //
+    // SPI is full duplex on the wire, and this field does not pretend
+    // otherwise -- it selects which direction the controller sources and sinks
+    // data for. On a READ the controller shifts out zeros, so a transfer needs
+    // no transmit data to clock the slave's data in.
+    enum spi_dir_e : bit[1] {
+        SPI_XFER_WRITE = 0,
+        SPI_XFER_READ  = 1
+    }
+
+    // Everything one `configure` writes into the controller.
+    //
+    // Plain data, so it can be a function argument -- a state object cannot be
+    // (a flow-object instance field is only legal inside another flow object).
+    // The state object below carries one of these; the operation takes it.
+    struct spi_cfg_s {
+        rand spi_mode_e  mode;
+        rand bit[8]      clk_div;        // SCLK = PCLK / (2 * (clk_div+1))
+        rand bit[2]      cs;             // which slave this configuration talks to
+        rand bool        lsb_first;
+        rand bool        dma_en;         // service the FIFOs by DMA request
+    }
+
+    // The configuration the controller IS in.
+    //
+    // A `state` object: a state pool holds exactly one at a time, a writer never
+    // overlaps a reader, and every reader sees the last value written. That is
+    // what makes "programmed transfers require dma_en == false, DMA transfers
+    // require dma_en == true" schedule a re-configuration when a scenario mixes
+    // the two styles -- instead of leaving it to the person writing the
+    // activity to remember.
+    //
+    // `configured` is not a register bit; it is how the model says "reset does
+    // not count as a configuration". Without it the initial object would be a
+    // usable configuration and a transfer could be the first thing a scenario
+    // does, which no real driver may assume.
+    state spi_state_s {
+        rand bool        configured;
+        rand spi_cfg_s   cfg;
+
+        // Out of reset: not configured, DMA off, slowest clock. `initial` is
+        // true only for the object present before anything has written the
+        // pool, so this constrains reset state and nothing else.
+        constraint initial_c {
+            initial -> (!configured && !cfg.dma_en && cfg.clk_div == 0);
+        }
+    }
+
+    // The data of one DMA-serviced SPI transfer, in flight.
+    //
+    // A `stream`, and the kind choice is the model's claim about what a
+    // DMA-serviced transfer IS: exactly one producer and one consumer, both
+    // starting together (§9.3.2). A DMA channel feeding the SPI transmit FIFO
+    // and the SPI transfer it feeds are not two things in sequence -- they are
+    // one thing with two halves, and neither can make progress without the
+    // other.
+    //
+    // Two consequences worth having:
+    //
+    //   * an unpaired half is UNSCHEDULABLE. dma_c::mem2spi_a cannot appear in
+    //     a scenario without spi_c::dma_write_a, because a stream with no
+    //     consumer cannot bind.
+    //   * `parallel` in the scenarios below is documentation, not mechanism.
+    //     The stream already requires the concurrent start.
+    //
+    // Had this been a buffer, the SPI half would have waited for the DMA half
+    // to COMPLETE -- a deadlock dressed up as a model, since the DMA half only
+    // completes when the FIFO drains.
+    stream spi_data_s {
+        rand bit[32]     nbytes;
+
+        constraint size_c {
+            nbytes in [4..4096];
+            nbytes % 4 == 0;
+        }
+    }
+
+    // The shift engine.
+    //
+    // One controller has one shifter, so a transfer of any style occupies the
+    // whole controller for its duration. A pool of size 1 in spi_c plus a `lock`
+    // on every transfer action is what says so, and it is what keeps a
+    // programmed transfer from being scheduled alongside a DMA one.
+    //
+    // This is also why there is no chip-select resource: with one shifter there
+    // is never a second transfer to conflict with, whatever slave it addresses.
+    resource spi_engine_s {
+    }
+}

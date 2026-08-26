@@ -1,0 +1,37 @@
+// The data model shared by fill() and check(): word i of a block.
+//
+// ONE function, called by both, is the whole point -- a filler and a checker
+// that each compute the expected data separately are two chances to be wrong
+// about the same thing, and they drift.
+//
+// `pure`: no side effects, non-void, no output parameters, and the result
+// depends only on the arguments. A tool is allowed to cache it, which is
+// correct here (§20.2.1.4).
+//
+// Unqualified rather than `target`: nothing in it touches the device, so it is
+// callable from a solve exec too if a scenario ever wants to predict a word at
+// generation time.
+import mem_pkg::*;
+
+extend component mem_c {
+
+    pure function bit[32] pattern_word(mem_pattern_e pattern, bit[32] seed, int idx) {
+        match (pattern) {
+            [MEM_PATTERN_ZERO]:  return 0;
+            [MEM_PATTERN_INCR]:  return seed + idx;
+
+            // A cheap reproducible scramble -- Knuth's multiplicative constant.
+            // Reproducible is the requirement: check() has to be able to
+            // recompute it, so urandom() would be exactly wrong here.
+            [MEM_PATTERN_PRAND]: return (seed + idx) * 0x9e3779b9;
+
+            // MEM_PATTERN_UNKNOWN. There is no expected value -- that is what
+            // the pattern means -- and callers are constrained never to ask
+            // (see mem_c/actions/check_a.pss). Returning zero rather than
+            // leaving the match arm out keeps the runtime error a caller would
+            // otherwise hit from being the FIRST report of the mistake; the
+            // constraint is.
+            default:             return 0;
+        }
+    }
+}

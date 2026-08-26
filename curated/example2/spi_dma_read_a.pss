@@ -1,0 +1,24 @@
+// A DMA-serviced SPI receive: the controller clocks the slave's data in while
+// the DMA drains the receive FIFO into memory.
+//
+// The mirror image of spi_dma_write_a, on the other peripheral channel
+// (dma_types_pkg::DMA_SPI_RX_CH) -- and the reason the engine's SPI channels are
+// two rather than one.
+extend component pss_top {
+
+    action spi_dma_read_a {
+        spi_c::configure_a  cfg;
+        spi_c::dma_read_a   spi_half;
+        dma_c::spi2mem_a    dma_half;
+
+        activity {
+            bind spi_half.data dma_half.data;
+
+            cfg;
+            parallel {
+                spi_half;
+                dma_half;
+            }
+        }
+    }
+}

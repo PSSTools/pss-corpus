@@ -1,0 +1,23 @@
+// Enable the engine.
+//
+// completes_when: DMA_CSR.en is set.
+// waits for:      nothing.
+//
+// IDEMPOTENT, AND CALLED ON EVERY TRANSFER. The engine has no per-transfer
+// state in this register -- `en` is a master enable and `pause` is not touched
+// here -- so setting it again costs one bus write and removes a whole class of
+// scenario bug: a test whose first transfer silently does nothing because no
+// step in the activity enabled the engine.
+//
+// See dma_c.pss for why this is not a component `exec run_start`.
+//
+// write_field() rather than a whole-register write, because `pause` belongs to
+// whoever set it and this operation has no opinion about it.
+import dma_regs_pkg::*;
+
+extend component dma_c {
+
+    target function void enable() {
+        regs.csr.write_field("en", 1);
+    }
+}

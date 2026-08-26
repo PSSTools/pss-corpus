@@ -1,0 +1,57 @@
+// A memory-to-memory copy running at the same time as a DMA-serviced SPI
+// transmit.
+//
+// THE SCENARIO THE RESOURCE MODEL EXISTS TO MAKE POSSIBLE. Nothing here asserts
+// that the two transfers may overlap; the model already implies it, and this
+// scenario is what makes the implication observable:
+//
+//   * the copy claims a general-purpose channel and the SPI transmit claims the
+//     one wired to the controller, so the two `lock`s never contend;
+//   * the SPI shift engine is claimed by one of them only, so it is not a
+//     bottleneck either;
+//   * the memory blocks are distinct claims, so the allocator is required to
+//     keep them apart -- two claims that may overlap in time shall resolve to
+//     mutually exclusive addresses (§21.11.6).
+//
+// Change any one of those decisions and this scenario stops solving, which is
+// what makes it worth having as a scenario rather than as a paragraph.
+//
+// THE THREE-BRANCH `parallel` is not an accident of formatting. The two halves
+// of the SPI transfer must begin together (their stream requires it), and the
+// copy must begin with them for the overlap to be real; nesting the SPI halves
+// inside one branch as a sequence would break the stream.
+extend component pss_top {
+
+    action concurrent_dma_a {
+        mem_c::fill_a        fill_copy;
+        mem_c::fill_a        fill_spi;
+        spi_c::configure_a   cfg;
+
+        dma_c::mem2mem_a     copy;
+        mem_c::check_a       chk;
+
+        dma_c::mem2spi_a     dma_half;
+        spi_c::dma_write_a   spi_half;
+
+        activity {
+            bind fill_copy.blk  copy.src;
+            bind copy.dst       chk.blk;
+            bind fill_spi.blk   dma_half.src;
+            bind dma_half.data  spi_half.data;
+
+            // The setup all has to happen; the order among the three is the
+            // solver's business, because there is no dependency between them.
+            schedule {
+                fill_copy;
+                fill_spi;
+                cfg;
+            }
+
+            parallel {
+                { copy; chk; }
+                dma_half;
+                spi_half;
+            }
+        }
+    }
+}

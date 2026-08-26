@@ -1,0 +1,32 @@
+// Verify that a block of memory holds what it claims to hold.
+//
+// The input is a buffer, so this cannot run until the action that produced the
+// block has COMPLETED -- which is the whole reason a memory block is a buffer
+// rather than a struct passed around by hand.
+//
+// A block may have several checkers: a buffer permits any number of consumers.
+import mem_pkg::*;
+import addr_reg_pkg::*;
+
+extend component mem_c {
+
+    action check_a {
+        input mem_blk_s  blk;
+
+        // The model's honesty constraint. Data that came off the SPI wire is
+        // MEM_PATTERN_UNKNOWN (see dma_c/actions/spi2mem_a.pss), and there is
+        // no slave model here to predict it, so a scenario that tries to check
+        // received data has no solution rather than a check that passes by
+        // accident.
+        constraint checkable_c {
+            blk.pattern != MEM_PATTERN_UNKNOWN;
+        }
+
+        exec body {
+            comp.check(make_handle_from_claim(blk.mem),
+                       (bit[32])blk.mem.size,
+                       blk.pattern,
+                       blk.seed);
+        }
+    }
+}

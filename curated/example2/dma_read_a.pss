@@ -1,0 +1,24 @@
+// The controller's half of a SPI-to-memory transfer serviced by the DMA.
+//
+// It produces the stream that dma_c::spi2mem_a consumes: this side clocks the
+// slave's data into the receive FIFO, the DMA side drains it into memory, and
+// the two run together for the same reason as the transmit pair above.
+import spi_types_pkg::*;
+
+extend component spi_c {
+
+    action dma_read_a {
+        output spi_data_s     data;
+        input  spi_state_s    st;
+        lock   spi_engine_s   eng;
+
+        constraint style_c {
+            st.configured;
+            st.cfg.dma_en;
+        }
+
+        exec body {
+            comp.dma_transfer(SPI_XFER_READ, data.nbytes);
+        }
+    }
+}

@@ -1,0 +1,70 @@
+// The DMA engine.
+//
+// It moves data between two endpoints without the processor in the loop. Which
+// two endpoints a channel may connect is not a run-time choice: a peripheral
+// request line is a wire, so the channels wired to the SPI controller are the
+// only ones that can service it, and the rest can only move memory to memory
+// (dma_types_pkg).
+//
+// The skeleton only (coding guidelines rule 3): members, the channel pool, and
+// the solve-time constructor. Operations are in dma_c/functions/, their
+// scenario wrappers in dma_c/actions/.
+import addr_reg_pkg::*;
+import dma_regs_pkg::*;
+import dma_types_pkg::*;
+
+component dma_c {
+
+    // The MMIO bank: one engine-global register plus four per channel.
+    dma_regs_c        regs;
+
+    // The channels.
+    //
+    // PER ENGINE, because that is where channels are. Declaring the pool here
+    // rather than in pss_top is what makes two dma_c instances independent --
+    // and what makes the eight channels of THIS engine the eight things that
+    // contend. The size is the real count (dma_types_pkg::DMA_NUM_CH), which is
+    // what a `lock` needs to be meaningful.
+    pool [dma_types_pkg::DMA_NUM_CH] dma_chan_s  chan_p;
+    bind chan_p *;
+
+    // Where the peripheral FIFO ports are, in absolute system addresses.
+    //
+    // A DMA channel servicing a peripheral is programmed with the address of
+    // that peripheral's data register as its fixed endpoint, so the engine has
+    // to know where the SPI controller landed in the address map. That is
+    // SYSTEM INTEGRATION knowledge, not device knowledge -- the engine has no
+    // way to derive it -- so it arrives through initialize(), from the component
+    // that owns both devices (pss_top).
+    //
+    // Component attributes are writable during elaboration and read-only
+    // afterwards (§9.1.6), which is exactly the lifetime this wants.
+    bit[64]           spi_tx_addr;
+    bit[64]           spi_rx_addr;
+
+    // Bind the register bank and record the peripheral wiring. Called from the
+    // environment's init_down exec: set_handle() is legal only from an init
+    // exec, and so is writing the attributes above.
+    solve function void initialize(
+        addr_handle_t  base,
+        bit[64]        tx_addr,
+        bit[64]        rx_addr) {
+        regs.set_handle(base);
+        spi_tx_addr = tx_addr;
+        spi_rx_addr = rx_addr;
+    }
+
+    // WHERE THE ENGINE GETS ENABLED, and why it is not here. A disabled engine
+    // ignores every channel it arms, so DMA_CSR.en has to be set before the first
+    // transfer -- once, ideally, with no scenario obliged to remember it.
+    //
+    // A component-scope `exec run_start` would be exactly that, and PSS does not
+    // have one: run_start is legal on actions, flow and resource objects, and
+    // structs, not on components (§20.1.2). So the engine enable lives in
+    // dma_c/functions/enable.pss and every transfer calls it. It is idempotent and
+    // it is one register write, which is a small price for an engine that cannot be
+    // left off by an activity that forgot a setup step.
+    //
+    // (This model's tool accepts a component `exec run_start` without complaint --
+    // a tier-2 gap, see README.md. It is not used.)
+}

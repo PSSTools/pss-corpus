@@ -1,0 +1,49 @@
+// Drain the SPI controller's receive FIFO into a block of memory.
+//
+// THE DMA HALF of a DMA-serviced SPI read; spi_c::dma_read_a is the other, and
+// the spi_data_s stream couples them exactly as in mem2spi_a.
+//
+// A different channel from the transmit one, because a different request line
+// is wired to it. That is what makes a simultaneous DMA transmit and DMA receive
+// a question about the SPI shift engine (one, so no) rather than about DMA
+// channels (two, so yes) -- see spi_c's engine pool.
+import addr_reg_pkg::*;
+import mem_pkg::*;
+import spi_types_pkg::*;
+import dma_types_pkg::*;
+
+extend component dma_c {
+
+    action spi2mem_a {
+        input  spi_data_s    data;
+        output mem_blk_s     dst;
+        lock   dma_chan_s    ch;
+
+        // The channel the SPI receive request line is wired to.
+        constraint channel_c {
+            ch.instance_id == DMA_SPI_RX_CH;
+        }
+
+        constraint size_c {
+            dst.mem.size == data.nbytes;
+        }
+
+        // What arrives came from a slave this model does not model, so it is
+        // not predictable. See mem_pkg::mem_pattern_e -- this is the constraint
+        // that makes MEM_PATTERN_UNKNOWN worth having.
+        constraint content_c {
+            dst.pattern == MEM_PATTERN_UNKNOWN;
+        }
+
+        exec body {
+            dma_xfer_s  xfer;
+
+            xfer.src    = comp.spi_rx_addr;    // the FIFO port: a fixed endpoint
+            xfer.dst    = addr_value(make_handle_from_claim(dst.mem));
+            xfer.nbytes = data.nbytes;
+            xfer.dir    = DMA_PERI_TO_MEM;
+
+            comp.transfer((int)ch.instance_id, xfer);
+        }
+    }
+}
