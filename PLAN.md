@@ -34,11 +34,15 @@ corpus found), `formatter.md` §7.8
 > `pssfmt` remains uncommitted, but that predates this work and nothing here
 > depends on it.
 >
-> **Blocked on you:** the GitHub mirror (`C-2a`) still returns *repository not
-> found*, so `ivpm update` cannot resolve the corpus in `pssfmt`, whose
-> `ivpm.yaml` names the mirror by convention. Nothing is broken today — the
-> working copy was placed by hand — but a fresh checkout of `pssfmt` cannot
-> currently get a corpus.
+> **`C-2a` closed 2026-08-26.** `github.com/psstools/pss-corpus` is live and
+> anonymously cloneable — 92 files at `2f3dc5e`. Every URL in this project now
+> resolves as written, in both `ivpm.yaml` files and all three CI workflows.
+>
+> It had never been failing. `git-sync` had the repo in scope and correctly
+> classified it Forgejo-only, waiting behind `on_new_repo = "propose"` — a
+> confirmation prompt, not a fault. Two sessions of workflow comments were
+> written to route around it. **Before designing around a dependency that does
+> not exist, find out what it is waiting for.**
 
 ---
 
@@ -337,15 +341,40 @@ corpus that the source does not state.
       differently than framed — see §2. Not "write it once" but "write it once
       per repo": both forges serve the other deps, so this is convention, and
       the two repos already have opposite, defensible conventions.*
-- [~] **`C-2a`** — *(new)* Confirm `https://github.com/psstools/pss-corpus.git`
+- [x] **`C-2a`** — *(new)* Confirm `https://github.com/psstools/pss-corpus.git`
       resolves once the Forgejo→GitHub mirror lands, then run a **clean**
       `ivpm update` — not one in this working copy, whose `packages/pss-corpus`
       was placed by hand and would mask a broken URL entirely.
-      *Checked 2026-08-26: still `repository not found`. The upstream is live
-      and anonymously cloneable (`git clone https://git.dvkit.org/…` returns 92
-      files at `8bc3403`), so this is purely the mirror. Blocked, not failing:
-      the consequence is that a fresh `pssfmt` checkout cannot resolve a corpus,
-      which `C-9a` now makes say so in as many words.*
+      **Closed 2026-08-26.** `github.com/psstools/pss-corpus` exists, and an
+      anonymous clone returns 92 `.pss` files at `2f3dc5e`, matching Forgejo.
+      *It was never a fault, which is why it stayed open for two sessions
+      looking like one. `git-sync` had the repo in scope and correctly paired
+      as **Forgejo-only**; it was parked behind `on_new_repo = "propose"`, a
+      deliberate valve that requires a human to run
+      `git-sync repo <slug> --create`. Three CI workflows were written to route
+      around a blocker that was a confirmation prompt.*
+      *The lesson is worth more than the item: **before designing around a
+      dependency that "does not exist", find out what it is waiting for.**
+      Cheap to check, and the answer here changed a workflow comment into a
+      one-line command. It also turned into the auto-create work below.*
+      *The residual — a **clean** `ivpm update` in a fresh checkout, which is
+      the part this working copy cannot prove — is still unrun. Not blocked
+      any more, just not done.*
+- [x] **`C-2b`** — *(new, out of this plan's scope but caused by it)* Teach
+      `git-sync` to create Forgejo-only repos on GitHub unattended, gated.
+      *`on_new_repo` turned out to be read-only decoration: `cmd_cycle` never
+      looked at `fj_only`, and `Policy.on_new_repo()` read only `[default]`.
+      Now scoped repo > org > default, with `psstools` the first org opted in.*
+      *What makes it safe is not that creating a repo is harmless. It is that
+      the thing a human does first — open the workflows and look for an armed
+      publisher — now runs mechanically, by pointing the **existing** inbound
+      preflight gate (`publish_risk()`) at the outbound tree. Verified by
+      checking it against the four `psstools` repos excluded by hand: it blocks
+      all four, including one whose publisher the design doc's own scan pattern
+      is documented as missing.*
+      *`pssfmt` is deliberately held back at `propose`. It passes the gate
+      cleanly, but whether a work-in-progress formatter should exist on GitHub
+      is the judgment the gate explicitly cannot make.*
 - [x] **`C-9a`** — *(new, found while committing)* Answer the CI consequence of
       `C-8` in both consumers. Fail-rather-than-skip is only half a design: the
       other half is that every runner which was quietly getting away with no
@@ -442,8 +471,8 @@ corpus that the source does not state.
 **Exit:** `pss-corpus` holds 92 files with recorded provenance, and
 `git status` in a fresh clone is clean.
 
-> **Met 2026-08-26**, except that `C-2a` cannot be checked until the mirror
-> lands. Nothing downstream waits on it: Phase C2 works against the checkout.
+> **Met 2026-08-26**, `C-2a` included — the mirror landed the same day, once
+> someone looked at why it had not.
 
 ### Phase C2 — Adopt `pssfmt`  (~1 hour)  ✅ 2026-08-26
 
