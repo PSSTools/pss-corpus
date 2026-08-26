@@ -1,17 +1,32 @@
 # `pss-corpus` — Collection and Adoption Plan
 
-**Status:** Phases C1–C3 complete (2026-08-26) — seeded; `pssfmt` and
-`pygments-pss` both adopted it, and the donor's copy is gone
+**Status:** Phases C1–C4 complete (2026-08-26) — seeded; all three consumers
+adopted it, and the parser sweep found a defect on its first run
 **Date:** 2026-08-26
 **Repository:** `psstools/pss-corpus`
 **Closes:** `pssfmt/PLAN.md` `Q-3`; unblocks `T-4`, `T-5`, milestone **M3**
 **Related:** `pssfmt/PLAN.md` `R8` (corpus drift), `U-8` (parser gaps this
 corpus found), `formatter.md` §7.8
 
-> **Next:** Phase C4 (`C-17`–`C-20`) — the `pssparser` corpus sweep. This is
-> where the value is: it moves `U-8`-class discovery into the repo that owns
-> the fix, instead of leaving it to be found by accident downstream. Expect it
-> red on arrival; that is the point. `CQ-3` is still formally open.
+> **Phase C4 done, and it paid for the project on its first run.** The sweep
+> landed red, as predicted — but not on the five `U-8` gaps it was built to
+> pin. Those it reproduced exactly, all six files, same causes. The unexpected
+> failure was `pathological/lone_backslash.pss`, which `pssparser` **accepts**:
+> the lexer reports `token recognition error` on stderr and the process still
+> exits 0 with "0 errors". Recorded as **`U-9`** (§6, `C-19`). Exit status is
+> the whole interface for an editor, a pre-commit hook or `pssfmt --check`, so
+> a file containing untokenizable bytes is currently indistinguishable from a
+> clean one to every caller that does not scrape stderr.
+>
+> That is the argument for this project, made concretely: the defect had been
+> reachable from a corpus file for as long as the file has existed, and no
+> consumer found it, because every *other* `pathological/` file also trips a
+> parse error and so exits 1 regardless. `lone_backslash.pss` is the only one
+> with no second error to mask the first.
+>
+> **Next:** Phase C5 (`C-21`–`C-23`), breadth — unsequenced and unowned, and
+> genuinely optional. The higher-value follow-on is `U-9` itself, which is a
+> `pssparser` fix and not a corpus item.
 >
 > **Durability: resolved 2026-08-26.** This repo is committed and pushed
 > (`8bc3403`), and `pygments-pss` with it (`cbc1964`). The window where C3 had
@@ -354,6 +369,28 @@ corpus that the source does not state.
       *Also dropped `--depth 1`: the transport in front of `git.dvkit.org` can
       fall back to dumb http, which has no shallow capability and errors out
       rather than degrading. Whole history is 324K.*
+- [x] **`C-9b`** — *(new, found during `C-18`)* Two more instances of the same
+      lesson, which is now the most productive single idea in this plan: **a
+      check that passes only because its input is missing is not a check.**
+      *`pssparser`'s CI — third repo, third shape. Both workflows run
+      `ivpm update` against the `default` set, and `C-17` deliberately puts the
+      corpus in `default-dev`, so neither would have fetched it. Direct clone
+      again, placed after the dependency step so a corpus under `packages/`
+      cannot be mistaken for a dependency by that job's origin check. Both
+      workflows clone `git.dvkit.org`, including the GitHub one — between
+      depending on a public forge that works today and a mirror that 404s
+      (`C-2a`), the choice is not close. One-line switch when the mirror lands;
+      `ivpm.yaml` already names it.*
+      *`pssfmt`'s `tomllib` import — the sharper one, and self-inflicted.
+      `tests/support.py` reads `manifest.toml` with `tomllib`, which is stdlib
+      only from 3.11; `pssfmt` supports 3.9 and its CI matrix runs 3.9 and
+      3.10. Those legs passed because `CORPUS_REPO` was `None` with no corpus,
+      so the import was never reached — meaning `C-9a`, the fix that made CI
+      fetch the corpus, is what would have turned them red. The same shape as
+      the skip `C-8` removed, one level down: correct-looking behaviour resting
+      on an absence. Fixed with a `tomli` fallback and a marked test extra;
+      marker evaluated for 3.9–3.12 and the fallback branch exercised directly
+      by hiding `tomllib` from the import system.*
 - [x] **`C-3`** — Replace `.gitignore` with something a data repo wants — `.DS_Store`,
       `__pycache__/`, editor droppings. Nothing that ignores a directory by a
       name a PSS bucket might use. Verify with
@@ -512,20 +549,51 @@ corpus-absent is a hard error in both.
 
 The point of the exercise. New capability, not a migration.
 
-- [ ] **`C-17`** — Add `pss-corpus` to `pssparser/ivpm.yaml` under
+- [x] **`C-17`** — Add `pss-corpus` to `pssparser/ivpm.yaml` under
       `default-dev` only. No cycle: the corpus depends on nothing.
-- [ ] **`C-18`** — A corpus sweep in `pssparser/tests/`: every `curated/` file
+      **Done** — `type: raw`, `default-dev` only, verified absent from
+      `default`. Resolves `CQ-3` as recommended: pssparser depends on the
+      corpus the way it depends on gtest, as a developer and never as a
+      package. URL names the GitHub mirror, matching every other source
+      dependency in that file; the Forgejo CI remaps `psstools/` already.
+- [x] **`C-18`** — A corpus sweep in `pssparser/tests/`: every `curated/` file
       outside `pathological/` parses with zero syntax errors; every
       `pathological/` file fails to parse *without crashing*. Expect it to be
       **red on arrival** — the five `U-8` gaps are exactly what it will find.
-- [ ] **`C-19`** — Mark the `U-8` failures `xfail(strict=True)` with the same
+      **Done** — `tests/python/corpus/test_pss_corpus.py`, 104 cases, ~7s.
+      97 passed / 7 xfailed. Two decisions worth recording:
+      - **`--syntax-only`.** Linking the corpus fails on 53 of 92 files, all
+        of it unresolved-name noise: most of the corpus is single files lifted
+        out of multi-file models, and `example2/` is one model in 35 pieces.
+        The sweep asks whether the parser can *read* PSS 3.1 surface. Whole-
+        model linking is already covered by the neighbouring `test_corpus.py`.
+      - **Crash-freedom is asserted in its own unmarked test**, split out from
+        the rejection check. Folding them together would have put crash-
+        freedom under `U-9`'s xfail — no recorded defect is a reason to accept
+        a signal.
+- [x] **`C-19`** — Mark the `U-8` failures `xfail(strict=True)` with the same
       cause strings `pssfmt` uses, so one fix flips both repos' markers and
       neither can drift green unnoticed.
-- [ ] **`C-20`** — Cross-reference: `pssfmt`'s `tests/corpus/test_parser_gaps.py`
+      **Done**, and the sweep reproduced `pssfmt`'s `KNOWN_UNPARSEABLE`
+      exactly — same six files, same five identifiers, independently derived.
+      It also needed a *second* table, `KNOWN_ACCEPTED`, for the inverse
+      defect: **`U-9`**, broken input the front end accepts. See the header
+      note. `U-9` is minted here rather than folded into `U-8` because the two
+      fail opposite promises — `U-8` is a grammar too narrow, `U-9` is a front
+      end that is unsound — and a fix for one says nothing about the other.
+- [x] **`C-20`** — Cross-reference: `pssfmt`'s `tests/corpus/test_parser_gaps.py`
       and `pssparser`'s new sweep must name the same `U-8a`…`U-8e` identifiers.
+      **Done**, three tests in `pssfmt` (which is the only repo that can see
+      both). Vocabulary in each direction, plus the stronger check: the two
+      file→cause tables must be *equal*, not merely compatible. Read out of
+      the source with `ast`, not imported — importing would run pssparser's
+      corpus discovery inside pssfmt's process to compare two dicts of
+      strings. Mutation-checked: changing one cause string in `pssparser`
+      turns the pssfmt test red, naming the file.
 
 **Exit:** a `pssparser` grammar change that breaks PSS 3.1 surface fails a
-`pssparser` test, in `pssparser`, before it reaches a consumer.
+`pssparser` test, in `pssparser`, before it reaches a consumer. **Met
+2026-08-26**, in both CI workflows.
 
 ### Phase C5 — Breadth  (unsequenced, unowned)
 
@@ -574,11 +642,17 @@ The point of the exercise. New capability, not a migration.
   > is internal. Deliverable is the license column in `C-5`. Blocks:
   > publishing, not `C-4`.
 
-- [ ] **`CQ-3` — Does `pssparser` take a dependency on test data at all?**
-  `C-17` adds a dev dependency to the lowest repo in the stack. The alternative
-  is that `pssfmt` keeps being the only place PSS 3.1 surface is exercised,
-  which is how `U-8` went unnoticed. **Recommendation: yes** — `default-dev`
-  only, `type: raw`, so no released artefact carries it.
+- [x] **`CQ-3` — Does `pssparser` take a dependency on test data at all?**
+  **Resolved 2026-08-26:** yes, as recommended — `default-dev` only,
+  `type: raw`, verified absent from `default`, so no released wheel carries it.
+  The case for it stopped being hypothetical within an hour: the sweep found
+  `U-9`, a defect no consumer had found in the time the corpus has existed.
+  Original text follows.
+
+  > `C-17` adds a dev dependency to the lowest repo in the stack. The
+  > alternative is that `pssfmt` keeps being the only place PSS 3.1 surface is
+  > exercised, which is how `U-8` went unnoticed. **Recommendation: yes** —
+  > `default-dev` only, `type: raw`, so no released artefact carries it.
 
 - [ ] **`CQ-4` — Who owns re-vendoring?**
   `PROVENANCE.md` records commits, so the corpus can go stale against its
@@ -611,13 +685,17 @@ The point of the exercise. New capability, not a migration.
 | CM1 | ✅ **Seeded** *(2026-08-26)* | `pss-corpus` holds 92 files with provenance; fresh clone is clean | `C-1`–`C-6` |
 | CM2 | 🔶 **M3 real** *(2026-08-26)* | `pssfmt`'s corpus gate runs against the dependency and *fails* when it is absent — both true; still skips in CI for want of `pssparser` (`pssfmt` `Q-9`), which is not a corpus problem | `C-7`–`C-11` |
 | CM3 | ✅ **One copy** *(2026-08-26)* | `pygments-pss/tests/corpus/` deleted; suite green on the same file set — 378 IDs, unchanged | `C-12`–`C-16` |
-| CM4 | **Parser guarded** | `pssparser` has a corpus sweep; `U-8` is red-by-marker in the repo that owns the fix | `C-17`–`C-20` |
+| CM4 | ✅ **Parser guarded** *(2026-08-26)* | `pssparser` sweeps the corpus in both CI workflows — 104 cases, 97 passed / 7 xfailed; `U-8` is red-by-marker in the repo that owns the fix, and the sweep found `U-9` | `C-17`–`C-20` |
 | CM5 | Breadth | `breadth/` triaged and opt-in | `C-21`–`C-23` |
 
 **CM2 is the one with a deadline attached**, because `pssfmt`'s M3 is blocked
 on it and M3 is the milestone after which style work becomes reversible.
-CM3 and CM4 have no deadline and lose nothing by waiting — but CM4 is where the
-value is, so it should not wait indefinitely on that account.
+
+CM4 was written as "no deadline, but where the value is, so do not let it wait
+indefinitely." It found a live soundness defect on its first run. Read that as
+evidence about the *class* rather than about `U-9`: the gates worth building
+are the ones that ask a question nothing else in the stack asks, and their
+value shows up immediately or not at all.
 
 ---
 
@@ -630,6 +708,7 @@ value is, so it should not wait indefinitely on that account.
 | `T-5` — corpus gate in CI | `C-8`, `C-10` |
 | `R8` — corpus drift | `CR1`, `CR4`, `CR5` |
 | `U-8` — pssparser gaps | `C-18`–`C-20`; the reason Phase C4 exists |
+| `U-9` — lexical errors miss the exit status | found by `C-18`; recorded in both repos, fixed in neither |
 | `M3` — proof of safety | `CM2` |
 | `X-5` — dogfooding | `CR5` |
 | `formatter.md` §7.8 | §3.2, `C-21`, `CQ-4` |
