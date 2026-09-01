@@ -1,54 +1,60 @@
 /*
  * PSS 3.1 behavioral coverage: monitors, cover statements, and the activity
  * forms that only appear inside them (Clause 16, Syntax 73).
+ *
+ * The actions and monitors are declared inside `component pss_top` because
+ * `package_body_item` (B.1) admits only `abstract_action_declaration` -- a bare
+ * `action` at package scope is a syntax error.  See PROVENANCE.md, "Completing
+ * LRM examples".
  */
 package coverage_pkg {
 
-    action write_a { rand int size; }
-    action read_a  { rand int size; }
-    action idle_a  { }
-
-    monitor write_then_read_m {
-        write_a w;
-        read_a  r;
-
-        constraint same_size { w.size == r.size; }
-
-        activity {
-            sequence {
-                w;
-                eventually r;
-            }
-        }
-    }
-
-    abstract monitor base_m {
-        activity { }
-    }
-
-    monitor overlapping_m : base_m {
-        write_a w;
-        read_a  r;
-
-        activity {
-            overlap {
-                w;
-                r;
-            }
-        }
-    }
-
-    monitor concat_m {
-        write_a a1, a2;
-        activity {
-            concat {
-                a1;
-                a2;
-            }
-        }
-    }
-
     component pss_top {
+
+        action write_a { rand int size; }
+        action read_a  { rand int size; }
+        action idle_a  { }
+
+        monitor write_then_read_m {
+            write_a w;
+            read_a  r;
+
+            constraint same_size { w.size == r.size; }
+
+            activity {
+                sequence {
+                    w;
+                    eventually r;
+                }
+            }
+        }
+
+        abstract monitor base_m {
+            activity { }
+        }
+
+        monitor overlapping_m : base_m {
+            write_a w;
+            read_a  r;
+
+            activity {
+                overlap {
+                    w;
+                    r;
+                }
+            }
+        }
+
+        monitor concat_m {
+            write_a a1, a2;
+            activity {
+                concat {
+                    a1;
+                    a2;
+                }
+            }
+        }
+
         // Cover an existing monitor type.
         cover write_then_read_m;
 

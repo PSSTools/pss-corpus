@@ -1,6 +1,11 @@
 /*
  * PSS 3.1 annotations -- declaration, element application, standalone.
  * Annex B.6 / clause 7 (Mantis8360).
+ *
+ * The actions are declared inside `component pss_top` because
+ * `package_body_item` (B.1) admits only `abstract_action_declaration` -- a bare
+ * `action` at package scope is a syntax error.  See PROVENANCE.md, "Completing
+ * LRM examples".
  */
 package annotation_pkg {
 
@@ -14,27 +19,33 @@ package annotation_pkg {
         string team;
     }
 
+    /// Applied bare, with no parameters, below.
+    annotation deprecated { }
+
     @desc_c {.text = "a buffer of bytes", .priority = 3}
     buffer data_b {
         rand bit[7:0] payload[16];
     }
 
-    @owner_c {.text = "top-level entry", .priority = 1, .team = "dv"}
-    action entry_a {
-        // Element annotation, no semicolon.
-        @desc_c {.text = "the interesting field"}
-        rand int size;
+    component pss_top {
 
-        // Bare application, no parameters.
-        @deprecated
-        rand bool legacy;
+        @owner_c {.text = "top-level entry", .priority = 1, .team = "dv"}
+        action entry_a {
+            // Element annotation, no semicolon.
+            @desc_c {.text = "the interesting field"}
+            rand int size;
 
-        activity {
-            // Standalone annotation, with a semicolon.
-            @desc_c {.text = "the write leg"};
-            do write_a;
+            // Bare application, no parameters.
+            @deprecated
+            rand bool legacy;
+
+            activity {
+                // Standalone annotation, with a semicolon.
+                @desc_c {.text = "the write leg"};
+                do write_a;
+            }
         }
-    }
 
-    action write_a { }
+        action write_a { }
+    }
 }
