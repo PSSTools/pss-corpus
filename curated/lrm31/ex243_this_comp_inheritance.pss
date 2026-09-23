@@ -1,0 +1,43 @@
+// ex243_this_comp_inheritance.pss
+//
+// `comp` and `this.comp` with component inheritance (LRM 9.1.5, 13.1.4),
+// modelled on PSS 3.1 Example 243 and completed to a whole model.
+//
+// Demonstrates:
+//   - an action inherited by a derived component, traversed as
+//     dma_der_c::xfer_a
+//   - the static type of the sub-action's `comp` is the base component, so
+//     the derived component's field `j` is reached through the containing
+//     action's `this.comp.dma1` instead
+
+component dma_base_c {
+    action xfer_a {
+        rand int i;
+    }
+}
+
+component dma_der_c : dma_base_c {
+    int j;
+
+    action mult_xfer_a {
+        activity {
+            repeat (3) {
+                do xfer_a;              // dma_base_c::xfer_a
+            }
+        }
+    }
+}
+
+component pss_top {
+    dma_der_c dma1, dma2;
+
+    action test_a {
+        activity {
+            do dma_base_c::xfer_a;
+            do dma_der_c::xfer_a with {
+                comp == this.comp.dma1;
+                (this.comp.dma1.j < 8) -> i > 4;
+            };
+        }
+    }
+}

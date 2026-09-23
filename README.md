@@ -5,14 +5,15 @@ A shared corpus of PSS source files, used as test input by several projects.
 There is nothing to build and nothing to install. This repository is data.
 
 ```
-curated/        92 files in 7 buckets, each with recorded provenance
+curated/        94 files in 8 buckets, each with recorded provenance
 ├── example2/       39  hand-written idiomatic PSS
 ├── peakrdl/        25  machine-generated register-model idioms
 ├── language-ref/    9  feature-targeted, written against the LRM
 ├── pathological/    7  deliberately broken input
 ├── stdlib/          5  the PSS core library
 ├── lexical/         4  Clause 4 lexical torture
-└── pss31/           3  PSS 3.1-only surface
+├── pss31/           3  PSS 3.1-only surface
+└── lrm31/           2  PSS 3.1 LRM examples, completed to whole models
 ```
 
 `PROVENANCE.md` records where each bucket came from and under what licence.

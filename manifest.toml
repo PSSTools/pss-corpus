@@ -38,6 +38,10 @@ description = "Feature-targeted examples written against the LRM"
 parses = true
 description = "PSS 3.1-only surface"
 
+[bucket.lrm31]
+parses = true
+description = "PSS 3.1 LRM examples, completed to whole models"
+
 [bucket.lexical]
 parses = true
 description = "Clause 4 lexical torture"

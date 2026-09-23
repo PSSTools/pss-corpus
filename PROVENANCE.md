@@ -46,6 +46,7 @@ not exist today.
 | `curated/peakrdl/` | `psstools/peakrdl-pss` — `tests/golden/expect/` | `f351df80bfe9b7a9ddaa0491310886eabb21bf23` | Apache-2.0 ✓ | Machine-generated, register-model idioms — a different style from anything hand-written. |
 | `curated/language-ref/` | `psstools/pss-skills` — `skills/pss-language-ref/examples/` | `f1ed60279e4b3c7fa961e398b505563c101865f9` | Apache-2.0 † | Feature-targeted examples written against the LRM. |
 | `curated/pss31/` | authored here | — | Apache-2.0 ✓ | PSS 3.1-only surface. |
+| `curated/lrm31/` | authored here | — | Apache-2.0 ✓ | Modelled on PSS 3.1 LRM examples, one file per example, each completed to a whole model (enclosing component added, elisions expanded, every referenced type declared) rather than transcribed. The example number is in the file name and header. |
 | `curated/lexical/` | authored here | — | Apache-2.0 ✓ | Clause 4 lexical torture. |
 | `curated/pathological/` | authored here | — | Apache-2.0 ✓ | Deliberately broken input. Excluded from the no-`Error` rule and from any "parses cleanly" sweep — see `manifest.toml`. |
 

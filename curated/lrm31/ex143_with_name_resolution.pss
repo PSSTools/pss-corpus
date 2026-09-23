@@ -1,0 +1,36 @@
+// ex143_with_name_resolution.pss
+//
+// Name resolution inside an inline `with` constraint block (LRM 13.1.4),
+// modelled on PSS 3.1 Example 143 and completed to a whole model.
+//
+// Demonstrates:
+//   - unqualified names search the traversed sub-action first, then the
+//     containing action
+//   - `this` is the containing action, reaching a field the sub-action's
+//     field of the same name shadows
+//   - `this.comp` is the containing action's component
+
+component subc {
+    action A {
+        rand int f;
+        rand int g;
+    }
+}
+
+component pss_top {
+    subc sub1, sub2;
+
+    action B {
+        rand int f;
+        rand int h;
+        subc::A a;
+
+        activity {
+            a with {
+                f < h;                  // sub-action's f, containing action's h
+                g == this.f;            // sub-action's g, containing action's f
+                comp == this.comp.sub1; // sub-action runs in sub1
+            };
+        }
+    }
+}
