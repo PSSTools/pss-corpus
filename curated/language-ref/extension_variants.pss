@@ -39,6 +39,7 @@ package base_pkg {
 component dma_c {
     import base_pkg::*;
     import config_pkg::*;
+    import std_pkg::*;   // for message()
 
     // Inheritance: a NEW type that a traversal site must name explicitly.
     action xfer : base_xfer {

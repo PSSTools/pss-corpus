@@ -15,6 +15,9 @@
 
 package dma_regs_pkg {
     import addr_reg_pkg::*;
+    // packed_s and sizeof_s are std_pkg declarations (Annex C.1); import is
+    // not re-export, so importing addr_reg_pkg alone does not bring them in.
+    import std_pkg::*;
 
     // A packed struct describes the register's bit layout. The FIRST declared
     // field is at the lowest address. Only numeric types, bool, based enums,
