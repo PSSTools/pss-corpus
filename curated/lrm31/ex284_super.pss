@@ -1,0 +1,61 @@
+// ex284_super.pss
+//
+// `super` in derived types (LRM 17.1 Table 27, 20.1.4), modelled on PSS 3.1
+// Example 284 and completed to a whole model.
+//
+// Demonstrates:
+//   - `super;` in a derived action's exec body, before and after the
+//     derived type's own statements
+//   - `super.<name>` reaching a base field the derived type shadows, in a
+//     constraint and in an exec block
+//   - `super.<name>(args)` calling a base component's instance function
+//     that the derived component shadows with a different signature
+
+import std_pkg::*;
+
+component base_c {
+    function int scale(int v) { return v * 2; }
+}
+
+component der_c : base_c {
+    function int scale() { return super.scale(4) + 1; }
+
+    action A {
+        int a;
+
+        exec pre_solve {
+            a = 1;
+        }
+        exec body {
+            message(LOW, "Hello from A %d", a);
+        }
+    }
+
+    action A1 : A {
+        exec body {
+            super;
+            message(LOW, "Hello from A1 %d", a);
+        }
+    }
+
+    action A2 : A {
+        rand int a;                     // shadows A::a
+        constraint a > super.a;
+
+        exec body {
+            message(LOW, "Hello from A2 %d %d", a, super.a);
+            super;
+        }
+    }
+}
+
+component pss_top {
+    der_c d;
+
+    action test_a {
+        activity {
+            do der_c::A1;
+            do der_c::A2;
+        }
+    }
+}
