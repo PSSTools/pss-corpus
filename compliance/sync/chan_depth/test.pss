@@ -1,0 +1,31 @@
+import std_pkg::*;
+import sync_pkg::*;
+
+component pss_top {
+  channel_c<int, 3> q;
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      bool p1 = comp.q.try_put(10);
+      bool p2 = comp.q.try_put(-20);
+      bool p3 = comp.q.try_put(30);
+      bool p4 = comp.q.try_put(40);
+      message(NONE, "@@PSS-TRACE chk cp p1=%n p2=%n p3=%n p4=%n", p1, p2, p3, p4);
+
+      int v = comp.q.get();
+      int x = 7;
+      comp.q.put(x);
+      x = 8;
+      int a;
+      int b;
+      int c;
+      bool g1 = comp.q.try_get(a);
+      bool g2 = comp.q.try_get(b);
+      bool g3 = comp.q.try_get(c);
+      message(NONE, "@@PSS-TRACE chk cg v=%d a=%d b=%d c=%d g=%n", v, a, b, c, g1 && g2 && g3);
+      bool g4 = comp.q.try_get(a);
+      message(NONE, "@@PSS-TRACE chk cz g4=%n", g4);
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.struct.return.001",
+  "rev": 1,
+  "title": "A function returns a struct by value, with its fields' initializers applied",
+  "level": "L1",
+  "lrm": [
+    "20.7.5",
+    "7.8"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "proc.func.return.aggregate"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "sr",
+            "eq": {
+              "adr0": 128,
+              "tot": 12,
+              "prio": 5,
+              "r2": 1
+            }
+          }
+        ]
+      }
+    }
+  }
+}

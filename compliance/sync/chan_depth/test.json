@@ -1,0 +1,78 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "sync.channel.depth.001",
+  "rev": 1,
+  "title": "A depth-3 channel keeps FIFO order, refuses a fourth item, and copies values in",
+  "level": "L1",
+  "pss": "3.1",
+  "lrm": [
+    "21.9.1",
+    "21.9.1.1",
+    "21.9.1.2"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "sync.channel.depth",
+      "sync.channel.get_put"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "component.comp_ref"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "cp",
+            "eq": {
+              "p1": true,
+              "p2": true,
+              "p3": true,
+              "p4": false
+            }
+          },
+          {
+            "chk": "cg",
+            "eq": {
+              "v": 10,
+              "a": -20,
+              "b": 30,
+              "c": 7,
+              "g": true
+            }
+          },
+          {
+            "chk": "cz",
+            "eq": {
+              "g4": false
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "get()/put() do not block here: the channel is non-empty / not full. 21.9.1 c): data is copied in by value, so x = 8 after put(x) does not change the stored 7."
+}

@@ -1,0 +1,37 @@
+import std_pkg::*;
+
+enum status_e { DONE, ERROR, PENDING }
+enum mode_e   { SW = 5, HW = 2 }
+
+component pss_top {
+  function status_e classify(int v) {
+    if (v < 0) {
+      return ERROR;
+    }
+    if (v == 0) {
+      return DONE;
+    }
+    return PENDING;
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      status_e s;
+      mode_e   m;
+      message(NONE, "@@PSS-TRACE chk ed s=%d m=%d", (int)s, (int)m);
+
+      s = comp.classify(-3);
+      bool b1 = (s == ERROR);
+      bool b2 = (s != PENDING);
+      message(NONE, "@@PSS-TRACE chk ec s=%d p=%d d=%d b1=%n b2=%n",
+              (int)s, (int)comp.classify(9), (int)comp.classify(0), b1, b2);
+
+      mode_e  hw = HW;
+      bit     bs = (bit)m;
+      bit     bh = (bit)hw;
+      bit[8]  w  = (bit[8])mode_e::HW;
+      message(NONE, "@@PSS-TRACE chk eb bs=%u bh=%u w=%u", bs, bh, w);
+    }
+  }
+}

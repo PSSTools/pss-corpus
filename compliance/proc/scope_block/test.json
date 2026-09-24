@@ -1,0 +1,58 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.scope.block.001",
+  "rev": 1,
+  "title": "A stand-alone scoped block executes in place",
+  "level": "L1",
+  "lrm": [
+    "20.7.1"
+  ],
+  "features": {
+    "tests": [
+      "proc.scope.block"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "inner",
+            "eq": {
+              "x": 3,
+              "y": 2
+            }
+          },
+          {
+            "chk": "outer",
+            "eq": {
+              "x": 3
+            }
+          }
+        ]
+      }
+    }
+  }
+}

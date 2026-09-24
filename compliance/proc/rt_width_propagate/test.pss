@@ -1,0 +1,13 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      bit[8]  x = 0xF0;
+      bit[12] y = 0xFF0;
+      bit[16] z = x + y;
+      message(NONE, "@@PSS-TRACE chk wprop z=%u s=%u", z, x + y);
+    }
+  }
+}

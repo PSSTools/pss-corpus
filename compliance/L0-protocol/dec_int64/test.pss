@@ -1,0 +1,12 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int[64] a = 9223372036854775807;
+      int[64] b = -9223372036854775807 - 1;
+      message(NONE, "@@PSS-TRACE chk dec64 a=%d b=%d", a, b);
+    }
+  }
+}

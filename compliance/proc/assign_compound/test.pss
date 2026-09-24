@@ -1,0 +1,22 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int x = 10;
+      x += 5;
+      message(NONE, "@@PSS-TRACE chk ca.add x=%d", x);
+      x -= 3;
+      message(NONE, "@@PSS-TRACE chk ca.sub x=%d", x);
+      x <<= 2;
+      message(NONE, "@@PSS-TRACE chk ca.shl x=%d", x);
+      x >>= 1;
+      message(NONE, "@@PSS-TRACE chk ca.shr x=%d", x);
+      x |= 3;
+      message(NONE, "@@PSS-TRACE chk ca.or x=%d", x);
+      x &= 25;
+      message(NONE, "@@PSS-TRACE chk ca.and x=%d", x);
+    }
+  }
+}

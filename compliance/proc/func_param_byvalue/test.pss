@@ -1,0 +1,17 @@
+import std_pkg::*;
+
+function int inc(int x) {
+  x += 1;
+  return x;
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int a = 5;
+      int b = inc(a);
+      message(NONE, "@@PSS-TRACE chk pbv a=%d b=%d", a, b);
+    }
+  }
+}

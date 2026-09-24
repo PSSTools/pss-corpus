@@ -1,0 +1,11 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int e = 1, f = e + 1, g;
+      message(NONE, "@@PSS-TRACE chk multi e=%d f=%d g=%d", e, f, g);
+    }
+  }
+}

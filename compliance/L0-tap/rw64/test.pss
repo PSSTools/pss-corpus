@@ -1,0 +1,29 @@
+import std_pkg::*;
+import addr_reg_pkg::*;
+import executor_pkg::*;
+
+// L0-P (COMPLIANCE-DESIGN.md §4.12): one bit[64] read and one write through
+// the executor tap. The read returns F8 of bytes 0xa0000018..0xa000001f; the
+// write stores that value plus one.
+component pss_top {
+  pct_tap_executor_c         tap;
+  transparent_addr_space_c<> sys_mem;
+  addr_handle_t              ram;
+
+  exec init_down {
+    set_executor(tap);
+    transparent_addr_region_s<> r;
+    r.size = 0x1000;
+    r.addr = 0xa0000000;
+    ram = sys_mem.add_region(r);
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      addr_handle_t h = make_handle_from_handle(comp.ram, 0x18);
+      bit[64] v = read64(h);
+      write64(h, v + 1);
+    }
+  }
+}

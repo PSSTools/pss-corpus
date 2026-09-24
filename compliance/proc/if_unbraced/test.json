@@ -1,0 +1,51 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.if.unbraced.001",
+  "rev": 1,
+  "title": "if/else branches that are single statements rather than blocks",
+  "level": "L1",
+  "lrm": [
+    "20.7.9"
+  ],
+  "features": {
+    "tests": [
+      "proc.if.unbraced"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "ub.then",
+            "eq": {
+              "x": 10
+            }
+          }
+        ]
+      }
+    }
+  }
+}

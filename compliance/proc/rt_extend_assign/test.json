@@ -1,0 +1,59 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.rt.extend.assign.001",
+  "rev": 1,
+  "title": "Widening assignment extends by the SOURCE type's signedness",
+  "level": "L2",
+  "lrm": [
+    "8.7.2"
+  ],
+  "features": {
+    "tests": [
+      "rt.assign.extend"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "ext",
+            "eq": {
+              "b": -3,
+              "d": 253,
+              "f": 65533
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": [
+    "8.7.2: when the target is wider, sign-extend if the source type is signed, zero-extend if unsigned.",
+    "b: int[8] -3 sign-extended to 32 bits -> -3.",
+    "d: bit[8] 253 zero-extended -> 253.",
+    "f: int[8] -3 (0xFD) sign-extended to 16 bits -> 0xFFFD = 65533; the target's own signedness does not matter."
+  ]
+}

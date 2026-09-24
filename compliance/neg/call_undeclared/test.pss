@@ -1,0 +1,9 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      int x = no_such_fn(3);
+    }
+  }
+}

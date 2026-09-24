@@ -1,0 +1,15 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int x;
+      x = 5;
+      int y;
+      y = x * 3 - 2;
+      x = y;
+      message(NONE, "@@PSS-TRACE chk asg x=%d y=%d", x, y);
+    }
+  }
+}

@@ -1,0 +1,21 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int x = 5;
+      if (x > 3) {
+        message(NONE, "@@PSS-TRACE chk if.then x=%d", x);
+      }
+      if (x > 10) {
+        message(NONE, "@@PSS-TRACE chk if.wrong x=%d", x);
+      }
+      if (x < 3) {
+        message(NONE, "@@PSS-TRACE chk if.wrong x=%d", x);
+      } else {
+        message(NONE, "@@PSS-TRACE chk if.else x=%d", x);
+      }
+    }
+  }
+}

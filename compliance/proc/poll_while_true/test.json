@@ -1,0 +1,106 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.poll.while_true.001",
+  "rev": 1,
+  "title": "Polling: while (true) with break on a status, and return from inside the loop",
+  "level": "L1",
+  "lrm": [
+    "20.7.7",
+    "20.7.11",
+    "20.7.5"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "proc.poll.while_true"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "proc.while",
+      "proc.break"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "probe",
+            "eq": {
+              "n": 0
+            }
+          },
+          {
+            "chk": "probe",
+            "eq": {
+              "n": 1
+            }
+          },
+          {
+            "chk": "probe",
+            "eq": {
+              "n": 2
+            }
+          },
+          {
+            "chk": "w",
+            "eq": {
+              "a": 2
+            }
+          },
+          {
+            "chk": "probe",
+            "eq": {
+              "n": 0
+            }
+          },
+          {
+            "chk": "w",
+            "eq": {
+              "b": 0
+            }
+          },
+          {
+            "chk": "probe",
+            "eq": {
+              "n": 0
+            }
+          },
+          {
+            "chk": "probe",
+            "eq": {
+              "n": 1
+            }
+          },
+          {
+            "chk": "f",
+            "eq": {
+              "c": 100
+            }
+          }
+        ]
+      }
+    }
+  }
+}

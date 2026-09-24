@@ -1,0 +1,59 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.scope.shadow.001",
+  "rev": 1,
+  "title": "A declaration in a nested block shadows the outer variable only inside it",
+  "level": "L2",
+  "lrm": [
+    "20.7.1",
+    "20.7.2"
+  ],
+  "features": {
+    "tests": [
+      "proc.scope.shadow"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.scope.block",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "inner",
+            "eq": {
+              "x": 6
+            }
+          },
+          {
+            "chk": "outer",
+            "eq": {
+              "x": 1
+            }
+          }
+        ]
+      }
+    }
+  }
+}

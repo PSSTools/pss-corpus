@@ -1,0 +1,17 @@
+import std_pkg::*;
+
+function int fact(int n) {
+  if (n <= 1) {
+    return 1;
+  }
+  return n * fact(n - 1);
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk fact f1=%d f5=%d", fact(1), fact(5));
+    }
+  }
+}

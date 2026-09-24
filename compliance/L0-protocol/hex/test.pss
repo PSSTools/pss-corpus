@@ -1,0 +1,13 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      bit[32] a = 0xdeadbeef;
+      bit[64] b = 0x0123456789abcdef;
+      bit[8]  c = 0;
+      message(NONE, "@@PSS-TRACE chk hex a=0x%x b=0x%x c=0x%x", a, b, c);
+    }
+  }
+}

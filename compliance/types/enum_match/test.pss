@@ -1,0 +1,25 @@
+import std_pkg::*;
+
+enum bank_e { A_BANK, B_BANK, C_BANK, D_BANK, E_BANK }
+
+component pss_top {
+  function int route(bank_e b) {
+    int r = -1;
+    match (b) {
+      [A_BANK]:         r = 10;
+      [B_BANK, D_BANK]: r = 20;
+      [bank_e::C_BANK]: r = 30;
+      default:          r = 40;
+    }
+    return r;
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk em a=%d b=%d c=%d d=%d e=%d",
+              comp.route(A_BANK), comp.route(B_BANK), comp.route(C_BANK),
+              comp.route(D_BANK), comp.route(E_BANK));
+    }
+  }
+}

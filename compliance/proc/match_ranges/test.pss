@@ -1,0 +1,23 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int a;
+      int res;
+      a = 0;
+      match (a) { [0..3]: res = 1; [4..7]: res = 2; [8..15]: res = 3; default: res = 4; }
+      message(NONE, "@@PSS-TRACE chk mr a=%d res=%d", a, res);
+      a = 7;
+      match (a) { [0..3]: res = 1; [4..7]: res = 2; [8..15]: res = 3; default: res = 4; }
+      message(NONE, "@@PSS-TRACE chk mr a=%d res=%d", a, res);
+      a = 8;
+      match (a) { [0..3]: res = 1; [4..7]: res = 2; [8..15]: res = 3; default: res = 4; }
+      message(NONE, "@@PSS-TRACE chk mr a=%d res=%d", a, res);
+      a = 16;
+      match (a) { [0..3]: res = 1; [4..7]: res = 2; [8..15]: res = 3; default: res = 4; }
+      message(NONE, "@@PSS-TRACE chk mr a=%d res=%d", a, res);
+    }
+  }
+}

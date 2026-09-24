@@ -1,0 +1,15 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int x = 3;
+      bool t = true;
+      bool f = false;
+      message(NONE, "@@PSS-TRACE chk logic and=%n or=%n not=%n", t && f, t || f, !t);
+      message(NONE, "@@PSS-TRACE chk rel eq=%n ne=%n lt=%n le=%n gt=%n ge=%n",
+              x == 3, x != 3, x < 4, x <= 3, x > 3, x >= 3);
+    }
+  }
+}

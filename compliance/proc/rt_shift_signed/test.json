@@ -1,0 +1,57 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.rt.shift.signed.001",
+  "rev": 1,
+  "title": "Right shift fills with ones only for a negative signed left operand",
+  "level": "L2",
+  "lrm": [
+    "8.5.7"
+  ],
+  "features": {
+    "tests": [
+      "rt.shift.arithmetic"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "shr",
+            "eq": {
+              "a": -4,
+              "b": 60
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": [
+    "8.5.7: vacated bits are ones if the left operand is signed and negative, zeros otherwise.",
+    "a: -16 >> 2 = -4.",
+    "b: 0xF0 >> 2 = 0x3C = 60."
+  ]
+}

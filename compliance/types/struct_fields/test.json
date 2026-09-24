@@ -1,0 +1,70 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.struct.fields.001",
+  "rev": 1,
+  "title": "Nested struct fields: initializers, defaults, writes, and truncation on field assignment",
+  "level": "L1",
+  "lrm": [
+    "7.8",
+    "8.7.2"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "types.struct.fields",
+      "types.struct.nested"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "sd0",
+            "eq": {
+              "prio": 5,
+              "adr0": 160,
+              "tot": 0,
+              "eol": 0,
+              "next": 0
+            }
+          },
+          {
+            "chk": "sd1",
+            "eq": {
+              "tot": 2748,
+              "prio": 1,
+              "eol": 1,
+              "adr0": 160,
+              "next": 4277006349
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "8.7.2: assignment truncates to the target size: 0x1abc to 12 bits is 0xabc, 9 to 3 bits is 1."
+}

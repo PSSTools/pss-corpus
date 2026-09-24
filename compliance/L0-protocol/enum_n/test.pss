@@ -1,0 +1,14 @@
+import std_pkg::*;
+
+enum color_e { RED, GREEN = 5, BLUE };
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      color_e c = GREEN;
+      color_e d = BLUE;
+      message(NONE, "@@PSS-TRACE chk enum c=%d d=%d n=%n", (int)c, (int)d, c);
+    }
+  }
+}

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pss-corpus"
+version = "0.1.0"
+description = "Checker for the executable (compliance) tier of the PSS corpus"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.9"
+dependencies = ["z3-solver"]
+
+[project.scripts]
+pss-corpus = "pss_corpus.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,90 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "comp.func.calls.001",
+  "rev": 1,
+  "title": "Target functions call siblings unqualified, a package function, and return early on an attribute",
+  "level": "L1",
+  "lrm": [
+    "20.2",
+    "20.7.4",
+    "20.7.5"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "comp.func.sibling_call",
+      "comp.func.early_return"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "component.comp_ref",
+      "comp.attr.init_down"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "cfg",
+            "eq": {
+              "v": 4
+            }
+          },
+          {
+            "chk": "start",
+            "eq": {
+              "v": 3
+            }
+          },
+          {
+            "chk": "ars",
+            "eq": {
+              "v": 6
+            }
+          },
+          {
+            "chk": "cfg",
+            "eq": {
+              "v": 5
+            }
+          },
+          {
+            "chk": "start",
+            "eq": {
+              "v": 4
+            }
+          },
+          {
+            "chk": "done",
+            "eq": {
+              "r1": 30,
+              "r2": 40
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.yield.single.001",
+  "rev": 1,
+  "title": "yield with nothing else to run returns and execution continues",
+  "level": "L1",
+  "lrm": [
+    "20.7.14"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "exec.yield.single"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "proc.while"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "y",
+            "eq": {
+              "n": 1
+            }
+          },
+          {
+            "chk": "y",
+            "eq": {
+              "n": 2
+            }
+          },
+          {
+            "chk": "y",
+            "eq": {
+              "n": 3
+            }
+          }
+        ]
+      }
+    }
+  }
+}

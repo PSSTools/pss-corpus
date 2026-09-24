@@ -1,0 +1,15 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      repeat (i : 5) {
+        if (i % 2 == 0) {
+          continue;
+        }
+        message(NONE, "@@PSS-TRACE chk co i=%d", i);
+      }
+    }
+  }
+}

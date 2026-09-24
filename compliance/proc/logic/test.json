@@ -1,0 +1,68 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.expr.logic.001",
+  "rev": 1,
+  "title": "Logical, equality and relational operators yield bool",
+  "level": "L1",
+  "lrm": [
+    "8.5.2",
+    "8.5.3",
+    "8.5.4"
+  ],
+  "features": {
+    "tests": [
+      "expr.logic.runtime",
+      "expr.relational.runtime"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init",
+      "type.bool"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "logic",
+            "eq": {
+              "and": false,
+              "or": true,
+              "not": false
+            }
+          },
+          {
+            "chk": "rel",
+            "eq": {
+              "eq": true,
+              "ne": false,
+              "lt": true,
+              "le": true,
+              "gt": false,
+              "ge": true
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      repeat (i : 5) {
+        message(NONE, "@@PSS-TRACE chk ri i=%d sq=%d", i, i * i);
+      }
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.if.elseif.001",
+  "rev": 1,
+  "title": "An else-if chain takes the first true condition",
+  "level": "L1",
+  "lrm": [
+    "20.7.9"
+  ],
+  "features": {
+    "tests": [
+      "proc.if.elseif"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "ei",
+            "eq": {
+              "v": -1,
+              "r": 1
+            }
+          },
+          {
+            "chk": "ei",
+            "eq": {
+              "v": 0,
+              "r": 2
+            }
+          },
+          {
+            "chk": "ei",
+            "eq": {
+              "v": 5,
+              "r": 3
+            }
+          },
+          {
+            "chk": "ei",
+            "eq": {
+              "v": 50,
+              "r": 4
+            }
+          }
+        ]
+      }
+    }
+  }
+}

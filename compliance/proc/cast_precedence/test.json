@@ -1,0 +1,52 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.expr.cast.precedence.001",
+  "rev": 1,
+  "title": "A cast binds tighter than a binary operator",
+  "level": "L1",
+  "lrm": [
+    "8.4.1",
+    "7.12"
+  ],
+  "features": {
+    "tests": [
+      "expr.cast.precedence"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "castp",
+            "eq": {
+              "x": 108
+            }
+          }
+        ]
+      }
+    }
+  }
+}

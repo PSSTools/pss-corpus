@@ -1,0 +1,32 @@
+import std_pkg::*;
+
+component ch_c {
+  int     chan;
+  bit[32] tag  = 0x11;
+  bit[16] keep = 0x2222;
+
+  solve function void initialize(int id, bit[32] t) {
+    chan = id;
+    tag  = t;
+  }
+
+  target function int get_chan() {
+    return chan;
+  }
+}
+
+component pss_top {
+  ch_c ch;
+
+  exec init_down {
+    ch.initialize(-7, 0xdeadbeef);
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk ci chan=%d tag=0x%x keep=0x%x f=%d",
+              comp.ch.chan, comp.ch.tag, comp.ch.keep, comp.ch.get_chan());
+    }
+  }
+}

@@ -1,0 +1,12 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      bool t = true;
+      bool f = false;
+      message(NONE, "@@PSS-TRACE chk bool t=%n f=%n", t, f);
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.assign.basic.001",
+  "rev": 1,
+  "title": "Plain assignment to locals",
+  "level": "L1",
+  "lrm": [
+    "20.7.3",
+    "8.3"
+  ],
+  "features": {
+    "tests": [
+      "proc.assign"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init",
+      "expr.arith"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "asg",
+            "eq": {
+              "x": 13,
+              "y": 13
+            }
+          }
+        ]
+      }
+    }
+  }
+}

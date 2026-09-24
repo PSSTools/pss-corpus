@@ -1,0 +1,72 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "L0.func.recursive.001",
+  "rev": 1,
+  "title": "message() from a recursive function emits in call order",
+  "level": "L0",
+  "lrm": [
+    "21.1.3",
+    "20.2"
+  ],
+  "features": {
+    "tests": [
+      "std.message.from_recursion"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "proc.func.recursion",
+      "proc.if"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "down",
+            "eq": {
+              "n": 3
+            }
+          },
+          {
+            "chk": "down",
+            "eq": {
+              "n": 2
+            }
+          },
+          {
+            "chk": "down",
+            "eq": {
+              "n": 1
+            }
+          },
+          {
+            "chk": "down",
+            "eq": {
+              "n": 0
+            }
+          }
+        ]
+      }
+    }
+  }
+}

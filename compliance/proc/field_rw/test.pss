@@ -1,0 +1,14 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    int r;
+    bit[8] w;
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      r = 7;
+      w = r + 1;
+      message(NONE, "@@PSS-TRACE chk fld r=%d w=%d", r, w);
+    }
+  }
+}

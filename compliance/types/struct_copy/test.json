@@ -1,0 +1,70 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.struct.copy.001",
+  "rev": 1,
+  "title": "Struct assignment copies deeply; aggregate == compares by value",
+  "level": "L1",
+  "lrm": [
+    "8.3",
+    "8.5.3",
+    "7.8"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "types.struct.copy",
+      "types.struct.equality"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "sc",
+            "eq": {
+              "an": 51,
+              "at": 7,
+              "dn": 0,
+              "dt": 9,
+              "da": 17
+            }
+          },
+          {
+            "chk": "sq",
+            "eq": {
+              "a0": 17,
+              "e0": 68,
+              "eq1": true,
+              "eq2": false,
+              "ne": true
+            }
+          }
+        ]
+      }
+    }
+  }
+}

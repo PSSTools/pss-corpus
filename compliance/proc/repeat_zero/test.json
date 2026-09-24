@@ -1,0 +1,51 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.repeat.zero.001",
+  "rev": 1,
+  "title": "repeat with a zero count does not evaluate its body",
+  "level": "L1",
+  "lrm": [
+    "20.7.6"
+  ],
+  "features": {
+    "tests": [
+      "proc.repeat.zero"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "rz.after",
+            "eq": {
+              "n": 0
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "L0.diag.location.001",
+  "rev": 1,
+  "title": "An unresolved type name is reported as compile_error, at the line that names it",
+  "level": "L0",
+  "lrm": [
+    "18.3"
+  ],
+  "features": {
+    "tests": [
+      "diag.location"
+    ],
+    "uses": []
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "compile_error",
+    "diagnostics": [
+      {
+        "file": "test.pss",
+        "line": 5
+      }
+    ],
+    "note": "The error-marker half of the protocol (\u00a74.6). The file parses; no_such_t on line 5 resolves to no type (18.3), so the tool must reject it there. Any tool rejects it; what is checked is that the adapter reports where"
+  },
+  "types": {}
+}

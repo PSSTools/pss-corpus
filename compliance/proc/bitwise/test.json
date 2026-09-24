@@ -1,0 +1,58 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.expr.bitwise.001",
+  "rev": 1,
+  "title": "Bitwise and shift operators on int at run time",
+  "level": "L1",
+  "lrm": [
+    "8.5.5",
+    "8.5.7"
+  ],
+  "features": {
+    "tests": [
+      "expr.bitwise.runtime",
+      "expr.shift.runtime"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "bits",
+            "eq": {
+              "and": 8,
+              "or": 14,
+              "xor": 6,
+              "shl": 48,
+              "shr": 3,
+              "inv": -13
+            }
+          }
+        ]
+      }
+    }
+  }
+}

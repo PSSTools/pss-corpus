@@ -1,0 +1,12 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int a = -16;
+      bit[8] b = 0xF0;
+      message(NONE, "@@PSS-TRACE chk shr a=%d b=%u", a >> 2, b >> 2);
+    }
+  }
+}

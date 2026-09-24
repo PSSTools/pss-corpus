@@ -1,0 +1,60 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.rt.div.mod.001",
+  "rev": 1,
+  "title": "Integer division truncates toward zero; % takes the sign of the first operand",
+  "level": "L2",
+  "lrm": [
+    "8.5.1"
+  ],
+  "features": {
+    "tests": [
+      "rt.div.truncate",
+      "rt.mod.sign"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "divmod",
+            "eq": {
+              "q1": -3,
+              "r1": -1,
+              "q2": -3,
+              "r2": 1
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": [
+    "8.5.1: division truncates the fractional part toward zero; the modulus takes the sign of the first operand.",
+    "-7 / 2 = -3.5 -> -3; -7 % 2 = -1.",
+    "7 / -2 = -3.5 -> -3; 7 % -2 = 1."
+  ]
+}

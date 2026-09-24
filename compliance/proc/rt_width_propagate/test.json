@@ -1,0 +1,59 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.rt.width.propagate.001",
+  "rev": 1,
+  "title": "Bit size propagates from the assignment target, not into a self-determined vararg (Example 42, rewritten)",
+  "level": "L2",
+  "lrm": [
+    "8.7.1",
+    "8.7.2",
+    "21.1.1"
+  ],
+  "features": {
+    "tests": [
+      "rt.width.propagation"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "wprop",
+            "eq": {
+              "z": 4320,
+              "s": 224
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": [
+    "Table 22: + has the larger operand size; 8.7.2: an assignment target wider than that propagates its size.",
+    "z: evaluated at 16 bits: 0xF0 + 0xFF0 = 0x10E0 = 4320.",
+    "s: a generic vararg is self-determined (Table 23 note), so x + y is 12 bits: 0x10E0 & 0xFFF = 0x0E0 = 224."
+  ]
+}

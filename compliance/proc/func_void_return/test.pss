@@ -1,0 +1,18 @@
+import std_pkg::*;
+
+function void report(int k) {
+  if (k < 0) {
+    return;
+  }
+  message(NONE, "@@PSS-TRACE chk rep k=%d", k);
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      report(-1);
+      report(2);
+    }
+  }
+}

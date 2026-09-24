@@ -1,0 +1,43 @@
+import std_pkg::*;
+
+struct caps_s {
+  bool   present = true;
+  bool   ars     = true;
+  bit[4] n       = 3;
+  int    neg;
+}
+
+component dev_c {
+  caps_s caps;
+
+  target function int score() {
+    int s = 0;
+    if (caps.present) {
+      s += 1;
+    }
+    if (!caps.ars) {
+      s += 10;
+    }
+    s += caps.n * 100;
+    return s + caps.neg;
+  }
+}
+
+component pss_top {
+  dev_c d0;
+  dev_c d1;
+
+  exec init_down {
+    d1.caps.ars = false;
+    d1.caps.n   = 12;
+    d1.caps.neg = -1000;
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk sa s0=%d s1=%d a0=%n a1=%n",
+              comp.d0.score(), comp.d1.score(), comp.d0.caps.ars, comp.d1.caps.ars);
+    }
+  }
+}

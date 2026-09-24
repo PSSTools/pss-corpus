@@ -1,0 +1,71 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.struct.param.001",
+  "rev": 1,
+  "title": "Struct parameters are handles to the caller's instance; scalars are copies (Example 298)",
+  "level": "L1",
+  "lrm": [
+    "20.3.2"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "proc.func.param.aggregate"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "component.comp_ref"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "sp0",
+            "eq": {
+              "px": 10,
+              "py": 7,
+              "a": 10
+            }
+          },
+          {
+            "chk": "sp1",
+            "eq": {
+              "px": -4,
+              "py": 7
+            }
+          },
+          {
+            "chk": "sp2",
+            "eq": {
+              "px": -4,
+              "py": 77
+            }
+          }
+        ]
+      }
+    }
+  }
+}

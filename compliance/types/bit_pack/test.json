@@ -1,0 +1,69 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.bitpack.001",
+  "rev": 1,
+  "title": "Packing fields into a word with casts and shifts, with and without a cast, and unpacking by narrowing",
+  "level": "L1",
+  "lrm": [
+    "7.12",
+    "8.7",
+    "8.7.2"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "types.cast.widen",
+      "types.cast.narrow",
+      "expr.shift.context"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "bp",
+            "eq": {
+              "w": 1903292,
+              "u": 1048576,
+              "v": 524288
+            }
+          },
+          {
+            "chk": "bu",
+            "eq": {
+              "res": 2748,
+              "nib": 13,
+              "b17": 0,
+              "b18": 1
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "w = 0xabc | 1<<16 | 1<<18 | 1<<19 | 1<<20 = 0x1d0abc. Table 22/23: in `u = d.eol << 20` the 32-bit target size propagates to the shift and then to its left-hand side, so u = 0x100000, not 0 (a tool that shifts at 1 bit gets 0). Likewise v. Unpacking: (w >> 16) = 0x1d, 4 bits 0xd; (w >> 17) = 0xe, bit 0; (w >> 18) = 7, bit 1."
+}

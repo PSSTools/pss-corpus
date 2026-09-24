@@ -1,0 +1,17 @@
+import std_pkg::*;
+
+function int max2(int a, int b) {
+  if (a > b) {
+    return a;
+  }
+  return b;
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk max a=%d b=%d c=%d", max2(3, 9), max2(9, 3), max2(-4, -7));
+    }
+  }
+}

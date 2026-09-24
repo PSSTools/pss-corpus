@@ -1,0 +1,73 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "L0P.tap.rw64.001",
+  "rev": 1,
+  "title": "A bit[64] read and write reach the executor tap",
+  "level": "L0",
+  "lrm": [
+    "21.7.2.6",
+    "21.10.3.3",
+    "21.13.9.1",
+    "21.13.9.2",
+    "21.13.9.5"
+  ],
+  "features": {
+    "tests": [
+      "mem.read64",
+      "mem.write64",
+      "executor.delegate"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "executor.set_executor",
+      "addr.region.transparent",
+      "addr.make_handle_from_handle",
+      "comp.attr.init_down",
+      "component.comp_ref"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "libs": [
+    "pct_tap"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "derivation": "read64 at 0xa0000018: bytes F8(0xa0000018..0xa000001f), first in [7:0] (21.13.9.1) = 0xe5e4e7e6e1e0e3e2; the write is that plus one, modulo 2**64 = 0xe5e4e7e6e1e0e3e3",
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "acc": "r64",
+            "eq": {
+              "addr": 2684354584,
+              "data": 16565620308193633250
+            }
+          },
+          {
+            "acc": "w64",
+            "eq": {
+              "addr": 2684354584,
+              "data": 16565620308193633251
+            }
+          }
+        ]
+      }
+    }
+  }
+}

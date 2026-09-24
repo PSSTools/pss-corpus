@@ -1,0 +1,57 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "L0.enum.n.001",
+  "rev": 1,
+  "title": "%n prints an enum item name; (int) gives its value",
+  "level": "L0",
+  "lrm": [
+    "21.1.1",
+    "7.5",
+    "7.12"
+  ],
+  "features": {
+    "tests": [
+      "std.message.fmt.n.enum"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init",
+      "type.enum",
+      "expr.cast.enum_int"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "enum",
+            "eq": {
+              "c": 5,
+              "d": 6,
+              "n": "GREEN"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

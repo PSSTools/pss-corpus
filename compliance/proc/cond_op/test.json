@@ -1,0 +1,52 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.expr.cond.001",
+  "rev": 1,
+  "title": "The conditional operator selects one operand",
+  "level": "L1",
+  "lrm": [
+    "8.5.8"
+  ],
+  "features": {
+    "tests": [
+      "expr.cond.runtime"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "cond",
+            "eq": {
+              "a": 10,
+              "b": 20
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.while.001",
+  "rev": 1,
+  "title": "while samples its condition before each iteration (parity loop)",
+  "level": "L1",
+  "lrm": [
+    "20.7.7"
+  ],
+  "features": {
+    "tests": [
+      "proc.while"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init",
+      "expr.logic.runtime"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "wh",
+            "eq": {
+              "n": 10,
+              "p": true
+            }
+          },
+          {
+            "chk": "wh",
+            "eq": {
+              "n": 8,
+              "p": false
+            }
+          },
+          {
+            "chk": "wh",
+            "eq": {
+              "n": 0,
+              "p": true
+            }
+          },
+          {
+            "chk": "wh.done",
+            "eq": {
+              "p": true
+            }
+          }
+        ]
+      }
+    }
+  }
+}

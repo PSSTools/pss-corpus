@@ -1,0 +1,59 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.match.values.001",
+  "rev": 1,
+  "title": "match on value lists, no default, every input matched",
+  "level": "L1",
+  "lrm": [
+    "20.7.10",
+    "8.5.9.1"
+  ],
+  "features": {
+    "tests": [
+      "proc.match",
+      "proc.match.valuelist"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "mv.odd",
+            "eq": {
+              "a": 3
+            }
+          },
+          {
+            "chk": "mv.even",
+            "eq": {
+              "a": 4
+            }
+          }
+        ]
+      }
+    }
+  }
+}
