@@ -1,0 +1,50 @@
+// ex262_263_declaration_order.pss
+//
+// Declaration order (LRM 18.2), modelled on PSS 3.1 Examples 262 and 263 and
+// completed to a whole model.
+//
+// Demonstrates:
+//   - a type member referenced before its declaration: legal, because order
+//     does not matter in a type scope (Example 262, 18.2)
+//   - a local variable referenced after its declaration in an exec block
+//     (Example 263, 18.2a)
+//   - an action handle referenced after its declaration in an activity block
+//     (18.2b)
+//   - a use of `val` in an exec block before a local `val` is declared there:
+//     the local is not yet in scope, so the use is the action's field
+
+function int get_val();
+
+component pss_top {
+    action entry {
+        constraint val_c {
+            val < 10;
+        }
+
+        rand bit[4] val;
+
+        exec post_solve {
+            int last;
+            last = val;
+            val = 1;
+            int val;
+            val = last + get_val();
+        }
+    }
+
+    action run_twice {
+        activity {
+            entry e1;
+            e1;
+            sequence {
+                entry e2;
+                e2 with { val == e1.val; };
+            }
+        }
+    }
+
+    exec init_up {
+        int val;
+        val = get_val();
+    }
+}

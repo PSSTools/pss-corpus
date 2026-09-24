@@ -1,0 +1,51 @@
+// ex289_reactive_control_flow.pss
+//
+// Reactive control flow on a value returned by a target function (LRM 20.2.1),
+// modelled on PSS 3.1 Example 289 as corrected by Mantis, and completed to a
+// whole model.
+//
+// The public-review draft imports the function inside `my_ip_c` without
+// `static`, which makes it an instance function (20.2), and instance functions
+// cannot be imported (20.4); it then calls it through `comp.`. The correction
+// imports it at global scope, where every function is static (20.2), and calls
+// it unqualified: `comp.` reaches only the component's own members, and
+// 9.1.4.1 f forbids reaching a static member through it anyway.
+//
+// Demonstrates:
+//   - a global one-step import of a target function
+//   - calling it unqualified from an action's exec body
+//   - repeat-while and if/else steered by the traversed action's field
+
+import target C function int sample_DUT_state();
+    // specify mapping to target C function by that same name
+
+component my_ip_c {
+    action check_state {
+        int curr_val;
+        exec body {
+            curr_val = sample_DUT_state();
+                // value only known during execution on target platform
+        }
+    };
+
+    action A { };
+    action B { };
+
+    action my_test {
+        check_state cs;
+        activity {
+            repeat {
+                cs;
+                if (cs.curr_val % 2 == 0) {
+                    do A;
+                } else {
+                    do B;
+                }
+            } while (cs.curr_val < 10);
+        }
+    };
+};
+
+component pss_top {
+    my_ip_c ip;
+}

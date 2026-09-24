@@ -1,0 +1,131 @@
+// ex247_248_extensions_in_packages.pss
+//
+// Type and enum extensions written in packages (LRM 17.2.3, 17.2.4, 17.3),
+// modelled on PSS 3.1 Examples 247 and 248 and completed to a whole model.
+//
+// Demonstrates:
+//   - an action defined in a component and extended in a separate package,
+//     adding a field and constraints (Example 247)
+//   - a component that wildcard-imports that package and constrains the
+//     field the extension introduced
+//   - an enum declared empty and extended in two independent packages, each
+//     adding distinct items (Example 248)
+//   - two packages each adding a field of the same name to one type, which
+//     17.2.3 allows ("same field name or type name ... from two or more
+//     separate packages"); pss_top imports only soc_config_pkg, so its
+//     `ta_width` is that package's
+//   - a function declared in a component and defined in an extension of it
+//   - an `extend action` nested in `extend component`, for an action the
+//     component declares (17.3)
+
+component mem_ops_c {
+    enum mem_block_tag_e {SYS_MEM, A_MEM, B_MEM, DDR};
+
+    buffer mem_buff_s {
+        rand mem_block_tag_e mem_block;
+    }
+
+    pool mem_buff_s mem;
+    bind mem *;
+
+    action memcpy {
+        input mem_buff_s src_buff;
+        output mem_buff_s dst_buff;
+    }
+
+    function int width_of(int n);
+}
+
+package soc_config_pkg {
+    extend action mem_ops_c::memcpy {
+        rand int in [1, 2, 4, 8] ta_width; // introducing new attribute
+
+        constraint { // layering additional constraint
+            src_buff.mem_block in [SYS_MEM, A_MEM, DDR];
+            dst_buff.mem_block in [SYS_MEM, A_MEM, DDR];
+            ta_width < 4 -> dst_buff.mem_block != A_MEM;
+        }
+    }
+}
+
+// The same field name from another package.
+package trace_pkg {
+    extend action mem_ops_c::memcpy {
+        rand bit[8] ta_width;
+    }
+}
+
+extend component mem_ops_c {
+    function int width_of(int n) { return n * 8; }
+
+    extend action memcpy {
+        rand bit[4] burst;
+    }
+}
+
+package mem_defs_pkg { // reusable definitions
+    enum mem_block_tag_e {}; // initially empty
+
+    buffer mem_buff_s {
+        rand mem_block_tag_e mem_block;
+    }
+}
+
+package AB_subsystem_pkg {
+    import mem_defs_pkg::*;
+
+    extend enum mem_block_tag_e {A_MEM, B_MEM};
+}
+
+package soc_config_enum_pkg {
+    import mem_defs_pkg::*;
+
+    extend enum mem_block_tag_e {SYS_MEM, DDR};
+}
+
+component dma_c {
+    import mem_defs_pkg::*;
+    import AB_subsystem_pkg::*; // wildcard-importing the package
+    import soc_config_enum_pkg::*; // grants access to enum items
+
+    pool mem_buff_s mem;
+    bind mem *;
+
+    action mem2mem_xfer {
+        input mem_buff_s src_buff;
+        output mem_buff_s dst_buff;
+    }
+
+    action dma_test {
+        activity {
+            do mem2mem_xfer with {
+                src_buff.mem_block == A_MEM;
+                dst_buff.mem_block == DDR;
+            };
+        }
+    }
+}
+
+component pss_top {
+    import soc_config_pkg::*; // explicitly importing the package grants
+                              // access to types and type members
+    mem_ops_c mem_ops;
+    dma_c dma;
+
+    action test {
+        mem_ops_c::memcpy cpy1, cpy2;
+        constraint cpy1.ta_width == cpy2.ta_width;// constraining an
+                                // attribute introduced in an extension
+        constraint cpy1.burst == cpy2.burst;
+        activity {
+            repeat (3) {
+                parallel { cpy1; cpy2; };
+            }
+        }
+    }
+
+    exec init_up {
+        int w;
+        w = mem_ops.width_of(2);
+    }
+}

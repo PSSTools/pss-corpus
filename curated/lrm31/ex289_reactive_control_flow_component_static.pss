@@ -1,0 +1,66 @@
+// ex289_reactive_control_flow_component_static.pss
+//
+// Reactive control flow on a value returned by a target function (LRM 20.2.1),
+// modelled on PSS 3.1 Example 289 and completed to a whole model. A variant of
+// ex289_reactive_control_flow.pss: the imported function stays in `my_ip_c`,
+// declared `static`, rather than moving to global scope.
+//
+// The public-review draft imports it in the component without `static`, which
+// makes it an instance function (20.2), and instance functions cannot be
+// imported (20.4). With `static` the import is legal: a static component
+// function may be imported in its own component type (20.4.1), and the import
+// prototype must say `static` (20.4.1.1 b.1). The prototype form declares the
+// function too, since there is no separate declaration (20.4.1.1 b).
+//
+// The call still cannot be `comp.sample_DUT_state()`: 9.1.4.1 f forbids
+// reaching a static component member through `comp`. Static functions are
+// called unqualified or with a type qualifier (20.2.1.1 c); both appear below.
+//
+// Demonstrates:
+//   - a component-local static one-step import of a target function
+//   - calling it from an action nested in the component, unqualified and
+//     through the component type
+//   - repeat-while and if/else steered by the traversed action's field
+
+component my_ip_c {
+    import target C static function int sample_DUT_state();
+        // specify mapping to target C function by that same name
+
+    action check_state {
+        int curr_val;
+        exec body {
+            curr_val = sample_DUT_state();
+                // value only known during execution on target platform
+        }
+    };
+
+    action check_state_qualified {
+        int curr_val;
+        exec body {
+            curr_val = my_ip_c::sample_DUT_state();
+        }
+    };
+
+    action A { };
+    action B { };
+
+    action my_test {
+        check_state cs;
+        check_state_qualified csq;
+        activity {
+            repeat {
+                cs;
+                if (cs.curr_val % 2 == 0) {
+                    do A;
+                } else {
+                    do B;
+                }
+            } while (cs.curr_val < 10);
+            csq;
+        }
+    };
+};
+
+component pss_top {
+    my_ip_c ip;
+}
