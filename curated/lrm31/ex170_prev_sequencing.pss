@@ -1,0 +1,58 @@
+// ex170_prev_sequencing.pss
+//
+// Sequencing constraints on state objects through `prev` (LRM 9.3.3.1g,
+// 13.3), modelled on PSS 3.1 Example 170 and completed to a whole model.
+//
+// Demonstrates:
+//   - `prev.<field>` in a state type's constraints, relating this state to
+//     the previous one in the pool
+//   - `prev` in an extension of the state type, which is also allowed
+//   - two actions outputting the state, one constraining the next state
+//   - `uid`, the built-in bit[32] identifier of every modeling element, on
+//     an action handle and on `comp`
+
+state power_state_s {
+    rand int in [0..3] domain_A, domain_B, domain_C;
+
+    constraint domain_B in { prev.domain_B - 1,
+                             prev.domain_B,
+                             prev.domain_B + 1 };
+
+    constraint prev.domain_C == 0 -> domain_C in [0, 1] || domain_B == 0;
+}
+
+extend state power_state_s {
+    constraint domain_A != prev.domain_A -> domain_C == prev.domain_C;
+}
+
+component power_ctrl_c {
+    pool power_state_s psvar;
+    bind psvar *;
+
+    action power_trans1 {
+        output power_state_s next_state;
+    }
+
+    action power_trans2 {
+        output power_state_s next_state;
+        constraint next_state.domain_C == 0;
+    }
+}
+
+component pss_top {
+    power_ctrl_c ctrl;
+
+    action test_a {
+        power_ctrl_c::power_trans1 t1;
+        power_ctrl_c::power_trans2 t2;
+        rand bit[32] tag;
+
+        constraint tag != t1.uid;
+        constraint tag != comp.uid;
+
+        activity {
+            t1;
+            t2;
+        }
+    }
+}
