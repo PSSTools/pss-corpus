@@ -1,0 +1,69 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.repeat.index.001",
+  "rev": 1,
+  "title": "repeat (i : count) binds i to 0 .. count-1, in order",
+  "level": "L1",
+  "lrm": [
+    "20.7.6"
+  ],
+  "features": {
+    "tests": [
+      "proc.repeat.index"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "repeat": {
+              "count": 5,
+              "index": "k"
+            },
+            "body": {
+              "chk": "ri",
+              "fields": {
+                "i": "s32",
+                "sq": "s32"
+              },
+              "where": [
+                {
+                  "pss": "i == $k",
+                  "smt": "(= i $k)",
+                  "smt_source": "hand"
+                },
+                {
+                  "pss": "sq == $k * $k",
+                  "smt": "(= sq (bvmul $k $k))",
+                  "smt_source": "hand"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

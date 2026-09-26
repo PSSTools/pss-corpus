@@ -1,0 +1,52 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.func.nested.001",
+  "rev": 1,
+  "title": "Calls nest: a call as an argument, and a function that calls another",
+  "level": "L1",
+  "lrm": [
+    "20.2"
+  ],
+  "features": {
+    "tests": [
+      "proc.func.nested"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "nest",
+            "eq": {
+              "a": 16,
+              "b": 25
+            }
+          }
+        ]
+      }
+    }
+  }
+}

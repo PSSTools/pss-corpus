@@ -1,0 +1,13 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      bit[8] b = 200;
+      int c = 100;
+      int x = (bit[4])b + c;
+      message(NONE, "@@PSS-TRACE chk castp x=%d", x);
+    }
+  }
+}

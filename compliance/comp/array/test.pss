@@ -1,0 +1,49 @@
+import std_pkg::*;
+
+package cfg_pkg {
+  static const int     N      = 4;
+  static const bit[32] STRIDE = 0x20;
+}
+
+component ch_c {
+  int     id;
+  bit[32] off;
+
+  solve function void initialize(int i, bit[32] o) {
+    id  = i;
+    off = o;
+  }
+
+  target function bit[32] key() {
+    return off + id;
+  }
+}
+
+component pss_top {
+  ch_c ch[cfg_pkg::N];
+  int  n = cfg_pkg::N;
+
+  exec init_down {
+    foreach (ch[i]) {
+      ch[i].initialize(i * 3, 0x100 + i * cfg_pkg::STRIDE);
+    }
+  }
+
+  // Order-sensitive: foreach visits index 0 to N-1, in that order (20.7.8 d.1).
+  target function bit[32] mix() {
+    bit[32] s = 0;
+    foreach (ch[i]) {
+      s = (s << 8) ^ ch[i].key();
+    }
+    return s;
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int j = 1;
+      message(NONE, "@@PSS-TRACE chk ca n=%d id3=%d idj=%d k2=0x%x mix=0x%x",
+              comp.n, comp.ch[3].id, comp.ch[j].id, comp.ch[2].key(), comp.mix());
+    }
+  }
+}

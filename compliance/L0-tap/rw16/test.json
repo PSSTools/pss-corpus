@@ -1,0 +1,73 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "L0P.tap.rw16.001",
+  "rev": 1,
+  "title": "A bit[16] read and write reach the executor tap",
+  "level": "L0",
+  "lrm": [
+    "21.7.2.6",
+    "21.10.3.3",
+    "21.13.9.1",
+    "21.13.9.2",
+    "21.13.9.5"
+  ],
+  "features": {
+    "tests": [
+      "mem.read16",
+      "mem.write16",
+      "executor.delegate"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "executor.set_executor",
+      "addr.region.transparent",
+      "addr.make_handle_from_handle",
+      "comp.attr.init_down",
+      "component.comp_ref"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "libs": [
+    "pct_tap"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "derivation": "read16 at 0xa0000012: bytes F8(0xa0000012..0xa0000013), first in [7:0] (21.13.9.1) = 0xe9e8; the write is that plus one, modulo 2**16 = 0xe9e9",
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "acc": "r16",
+            "eq": {
+              "addr": 2684354578,
+              "data": 59880
+            }
+          },
+          {
+            "acc": "w16",
+            "eq": {
+              "addr": 2684354578,
+              "data": 59881
+            }
+          }
+        ]
+      }
+    }
+  }
+}

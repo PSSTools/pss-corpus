@@ -1,0 +1,14 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      bit[32] x = 1;
+      int y = -10;
+      int a = 1;
+      int b = -10;
+      message(NONE, "@@PSS-TRACE chk scmp mixed=%n signed=%n", x < y, a < b);
+    }
+  }
+}

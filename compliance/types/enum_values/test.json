@@ -1,0 +1,76 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.enum.values.001",
+  "rev": 1,
+  "title": "Enum defaults to its first item, implicit and explicit values, casts to int and to bit",
+  "level": "L1",
+  "lrm": [
+    "7.5",
+    "7.12"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "types.enum.default",
+      "types.enum.cast"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "ed",
+            "eq": {
+              "s": 0,
+              "m": 5
+            }
+          },
+          {
+            "chk": "ec",
+            "eq": {
+              "s": 1,
+              "p": 2,
+              "d": 0,
+              "b1": true,
+              "b2": true
+            }
+          },
+          {
+            "chk": "eb",
+            "eq": {
+              "bs": 1,
+              "bh": 0,
+              "w": 2
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "7.5 k): the default is the FIRST item (m = SW = 5, not the minimum HW = 2). (bit)SW truncates 5 to 1; (bit)HW truncates 2 to 0."
+}

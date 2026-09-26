@@ -1,0 +1,16 @@
+import std_pkg::*;
+
+function void emit(int k) {
+  message(NONE, "@@PSS-TRACE chk emit k=%d", k);
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      emit(1);
+      emit(2);
+      message(NONE, "@@PSS-TRACE chk after k=%d", 3);
+    }
+  }
+}

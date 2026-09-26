@@ -1,0 +1,16 @@
+import std_pkg::*;
+
+function int noisy(int k) {
+  message(NONE, "@@PSS-TRACE chk noisy k=%d", k);
+  return k;
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      (void)noisy(1);
+      noisy(2);
+    }
+  }
+}

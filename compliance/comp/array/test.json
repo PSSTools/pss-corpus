@@ -1,0 +1,63 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "comp.array.001",
+  "rev": 1,
+  "title": "A component array sized by a package constant, initialized and iterated with foreach",
+  "level": "L1",
+  "lrm": [
+    "9.1.4",
+    "20.7.8"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "comp.array",
+      "comp.array.foreach"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "component.comp_ref",
+      "pkg.static_const"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "ca",
+            "eq": {
+              "n": 4,
+              "id3": 9,
+              "idj": 3,
+              "k2": 326,
+              "mix": 19023721
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "key(i) = 0x100 + 0x20*i + 3*i; mix folds s = (s<<8) ^ key(i) at 32 bits for i=0..3."
+}

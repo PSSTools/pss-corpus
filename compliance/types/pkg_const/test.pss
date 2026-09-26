@@ -1,0 +1,27 @@
+import std_pkg::*;
+
+package cfg_pkg {
+  static const int     MAX_CH   = 4;
+  static const bit[64] REG_SPAN = 0x20 + MAX_CH * 0x20;
+  static const bit[64] NEXT_OFF = 12;
+  static const bool    HAS_X    = true;
+}
+
+package use_pkg {
+  import cfg_pkg::*;
+  static const int TWICE = MAX_CH * 2;
+}
+
+import cfg_pkg::*;
+
+component pss_top {
+  static const int LOCAL = cfg_pkg::MAX_CH + 1;
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk pc max=%d span=0x%x off=%d twice=%d local=%d x=%n",
+              MAX_CH, cfg_pkg::REG_SPAN, NEXT_OFF, use_pkg::TWICE, pss_top::LOCAL, HAS_X);
+    }
+  }
+}

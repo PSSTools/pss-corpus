@@ -1,0 +1,52 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.func.param.default.001",
+  "rev": 1,
+  "title": "A parameter default is used when its argument is omitted",
+  "level": "L2",
+  "lrm": [
+    "20.2.4"
+  ],
+  "features": {
+    "tests": [
+      "proc.func.param.default"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "dflt",
+            "eq": {
+              "a": 30,
+              "b": 6
+            }
+          }
+        ]
+      }
+    }
+  }
+}

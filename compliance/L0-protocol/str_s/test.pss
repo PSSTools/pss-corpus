@@ -1,0 +1,11 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      string s = "tok_1";
+      message(NONE, "@@PSS-TRACE chk str s=%s lit=%s", s, "abc");
+    }
+  }
+}

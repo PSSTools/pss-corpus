@@ -1,0 +1,54 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.break.while.001",
+  "rev": 1,
+  "title": "break terminates an unbounded while loop",
+  "level": "L1",
+  "lrm": [
+    "20.7.11",
+    "20.7.7"
+  ],
+  "features": {
+    "tests": [
+      "proc.break"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.while",
+      "proc.if",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "bw",
+            "eq": {
+              "x": 3
+            }
+          }
+        ]
+      }
+    }
+  }
+}

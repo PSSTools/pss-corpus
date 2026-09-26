@@ -1,0 +1,16 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int x = 1;
+      {
+        int y = 2;
+        x = x + y;
+        message(NONE, "@@PSS-TRACE chk inner x=%d y=%d", x, y);
+      }
+      message(NONE, "@@PSS-TRACE chk outer x=%d", x);
+    }
+  }
+}

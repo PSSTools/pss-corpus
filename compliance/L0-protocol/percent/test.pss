@@ -1,0 +1,10 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk pct v=100%% w=%d", 3);
+    }
+  }
+}

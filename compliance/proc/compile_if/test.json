@@ -1,0 +1,65 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.compile_if.001",
+  "rev": 1,
+  "title": "compile if / compile has select package constants, component functions and statements",
+  "level": "L1",
+  "lrm": [
+    "19.1",
+    "19.3",
+    "20.7"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "compile.if.package",
+      "compile.if.component",
+      "compile.if.procedural",
+      "compile.has"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "component.comp_ref",
+      "pkg.static_const"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "ci",
+            "eq": {
+              "w": false,
+              "v": 2,
+              "mode": 2,
+              "hint": 20
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "tgt_pkg::HAVE_WAIT exists (19.3), so HAS_WAIT takes its value, false. tgt_pkg::NOT_DECLARED does not, so V = 2."
+}

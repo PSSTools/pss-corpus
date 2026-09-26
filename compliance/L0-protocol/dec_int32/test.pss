@@ -1,0 +1,15 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int a = 0;
+      int b = 7;
+      int c = -1;
+      int d = 2147483647;
+      int e = -2147483648;
+      message(NONE, "@@PSS-TRACE chk dec a=%d b=%d c=%d d=%d e=%d", a, b, c, d, e);
+    }
+  }
+}

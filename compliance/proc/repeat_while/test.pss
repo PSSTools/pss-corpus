@@ -1,0 +1,18 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int x = 0;
+      repeat {
+        x += 1;
+        message(NONE, "@@PSS-TRACE chk rw x=%d", x);
+      } while (x < 3);
+      int y = 100;
+      repeat {
+        message(NONE, "@@PSS-TRACE chk rw.once y=%d", y);
+      } while (y < 3);
+    }
+  }
+}

@@ -1,0 +1,18 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      repeat (i : 3) {
+        repeat (j : 3) {
+          if (j == 1) {
+            break;
+          }
+          message(NONE, "@@PSS-TRACE chk bn.in i=%d j=%d", i, j);
+        }
+        message(NONE, "@@PSS-TRACE chk bn.out i=%d", i);
+      }
+    }
+  }
+}

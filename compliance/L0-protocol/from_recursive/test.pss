@@ -1,0 +1,17 @@
+import std_pkg::*;
+
+function void down(int n) {
+  message(NONE, "@@PSS-TRACE chk down n=%d", n);
+  if (n > 0) {
+    down(n - 1);
+  }
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      down(3);
+    }
+  }
+}

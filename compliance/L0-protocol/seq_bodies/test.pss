@@ -1,0 +1,23 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk a k=%d", 1);
+    }
+  }
+  action B {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::B");
+      message(NONE, "@@PSS-TRACE chk b k=%d", 2);
+    }
+  }
+  action T {
+    activity {
+      do A;
+      do B;
+      do A;
+    }
+  }
+}

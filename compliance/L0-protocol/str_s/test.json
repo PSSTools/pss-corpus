@@ -1,0 +1,54 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "L0.str.s.001",
+  "rev": 1,
+  "title": "%s prints a string value and a string literal",
+  "level": "L0",
+  "lrm": [
+    "21.1.1",
+    "7.6"
+  ],
+  "features": {
+    "tests": [
+      "std.message.fmt.s"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init",
+      "type.string"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "str",
+            "eq": {
+              "s": "tok_1",
+              "lit": "abc"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

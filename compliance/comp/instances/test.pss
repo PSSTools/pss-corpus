@@ -1,0 +1,42 @@
+import std_pkg::*;
+
+component sub_c {
+  int k;
+
+  target function int kk() {
+    return k * 2;
+  }
+}
+
+component dev_c {
+  bit[32] base;
+  sub_c   sub;
+
+  target function bit[32] reg_addr(bit[32] off) {
+    return base + off;
+  }
+
+  target function int sub_k() {
+    return sub.kk() + 1;
+  }
+}
+
+component pss_top {
+  dev_c a;
+  dev_c b;
+
+  exec init_down {
+    a.base  = 0x1000;
+    a.sub.k = 5;
+    b.base  = 0x2000;
+    b.sub.k = 9;
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk mi a=0x%x b=0x%x ak=%d bk=%d",
+              comp.a.reg_addr(4), comp.b.reg_addr(8), comp.a.sub_k(), comp.b.sub_k());
+    }
+  }
+}

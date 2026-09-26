@@ -1,0 +1,52 @@
+import std_pkg::*;
+
+enum st_e { DONE, ERROR, PENDING }
+
+function st_e probe(int n, int ready_at) {
+  message(NONE, "@@PSS-TRACE chk probe n=%d", n);
+  if (n == ready_at) {
+    return DONE;
+  }
+  if (n > ready_at) {
+    return ERROR;
+  }
+  return PENDING;
+}
+
+function int wait_done(int ready_at) {
+  int  n = 0;
+  st_e s;
+  while (true) {
+    s = probe(n, ready_at);
+    if (s != PENDING) {
+      break;
+    }
+    n += 1;
+  }
+  return n;
+}
+
+function int first_ready(int ready_at) {
+  int n = 0;
+  while (true) {
+    if (probe(n, ready_at) == DONE) {
+      return n * 100;
+    }
+    n += 1;
+  }
+  return -1;
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int a = wait_done(2);
+      message(NONE, "@@PSS-TRACE chk w a=%d", a);
+      int b = wait_done(0);
+      message(NONE, "@@PSS-TRACE chk w b=%d", b);
+      int c = first_ready(1);
+      message(NONE, "@@PSS-TRACE chk f c=%d", c);
+    }
+  }
+}

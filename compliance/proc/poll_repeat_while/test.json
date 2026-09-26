@@ -1,0 +1,111 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.poll.repeat_while.001",
+  "rev": 1,
+  "title": "The blocking-operation shape: start, bail out on error, then repeat { check } while pending",
+  "level": "L1",
+  "lrm": [
+    "20.7.6",
+    "20.7.5"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "proc.poll.repeat_while"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "proc.repeat_while"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "start",
+            "eq": {
+              "fail": false
+            }
+          },
+          {
+            "chk": "check",
+            "eq": {
+              "n": 0
+            }
+          },
+          {
+            "chk": "check",
+            "eq": {
+              "n": 1
+            }
+          },
+          {
+            "chk": "check",
+            "eq": {
+              "n": 2
+            }
+          },
+          {
+            "chk": "r",
+            "eq": {
+              "r": 0
+            }
+          },
+          {
+            "chk": "start",
+            "eq": {
+              "fail": true
+            }
+          },
+          {
+            "chk": "r",
+            "eq": {
+              "r": 1
+            }
+          },
+          {
+            "chk": "start",
+            "eq": {
+              "fail": false
+            }
+          },
+          {
+            "chk": "check",
+            "eq": {
+              "n": 0
+            }
+          },
+          {
+            "chk": "r",
+            "eq": {
+              "r": 0
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "repeat-while runs its body before the first test (20.7.6), so xfer(false, 0) still checks once."
+}

@@ -1,0 +1,20 @@
+import std_pkg::*;
+
+component pss_top {
+  action leaf_a {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::leaf_a");
+      message(NONE, "@@PSS-TRACE chk leaf k=%d", 7);
+    }
+  }
+  action mid {
+    activity {
+      do leaf_a;
+    }
+  }
+  action T {
+    activity {
+      do mid;
+    }
+  }
+}

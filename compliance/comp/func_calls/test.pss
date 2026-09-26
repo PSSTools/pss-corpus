@@ -1,0 +1,49 @@
+import std_pkg::*;
+
+function int twice(int x) {
+  return 2 * x;
+}
+
+component eng_c {
+  bool ars = true;
+
+  target function void cfg(int v) {
+    message(NONE, "@@PSS-TRACE chk cfg v=%d", v);
+  }
+
+  target function void start(int v) {
+    cfg(v + 1);
+    message(NONE, "@@PSS-TRACE chk start v=%d", v);
+  }
+
+  target function void set_ars(int v) {
+    if (!ars) {
+      return;
+    }
+    message(NONE, "@@PSS-TRACE chk ars v=%d", v);
+  }
+
+  target function int run(int v) {
+    start(v);
+    set_ars(twice(v));
+    return v * 10;
+  }
+}
+
+component pss_top {
+  eng_c e_on;
+  eng_c e_off;
+
+  exec init_down {
+    e_off.ars = false;
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int r1 = comp.e_on.run(3);
+      int r2 = comp.e_off.run(4);
+      message(NONE, "@@PSS-TRACE chk done r1=%d r2=%d", r1, r2);
+    }
+  }
+}

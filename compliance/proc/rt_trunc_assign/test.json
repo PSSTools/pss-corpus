@@ -1,0 +1,60 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.rt.trunc.assign.001",
+  "rev": 1,
+  "title": "Assignment truncates to the target width",
+  "level": "L2",
+  "lrm": [
+    "8.7.2",
+    "8.5.1.1"
+  ],
+  "features": {
+    "tests": [
+      "rt.assign.truncate"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "trunc",
+            "eq": {
+              "x": 44,
+              "y": 15,
+              "z": -56
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": [
+    "8.7.2: the source value is truncated to the target's bit size.",
+    "x: 300 = 0x12C -> low 8 bits 0x2C = 44.",
+    "y: 31 = 0x1F -> low 4 bits 0xF = 15.",
+    "z: 200 = 0xC8 -> 8 bits 0xC8; int[8] is signed two's complement (8.5.1.1) -> -56."
+  ]
+}

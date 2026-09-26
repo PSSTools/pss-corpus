@@ -1,0 +1,94 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.rand.input.001",
+  "rev": 1,
+  "title": "Procedural results as functions of a random action attribute (the \u00a74.8 example)",
+  "level": "L1",
+  "lrm": [
+    "20.7.6",
+    "20.1",
+    "13.3"
+  ],
+  "features": {
+    "tests": [
+      "proc.input.rand"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "proc.repeat.index",
+      "proc.assign.compound",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "n": "u4"
+      },
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "repeat": {
+              "count": {
+                "pss": "n",
+                "smt": "((_ zero_extend 28) n)",
+                "smt_source": "hand"
+              },
+              "index": "k"
+            },
+            "body": {
+              "chk": "sum_to.step",
+              "fields": {
+                "i": "s32",
+                "acc": "s32"
+              },
+              "where": [
+                {
+                  "pss": "i == $k",
+                  "smt": "(= i $k)",
+                  "smt_source": "hand"
+                },
+                {
+                  "pss": "acc == $k * ($k + 1) / 2",
+                  "smt": "(= acc (bvsdiv (bvmul $k (bvadd $k #x00000001)) #x00000002))",
+                  "smt_source": "hand"
+                }
+              ]
+            }
+          },
+          {
+            "chk": "result",
+            "fields": {
+              "r": "s32"
+            },
+            "where": [
+              {
+                "pss": "r == n * (n - 1) / 2",
+                "smt": "(= r (bvudiv (bvmul ((_ zero_extend 28) n) (bvsub ((_ zero_extend 28) n) #x00000001)) #x00000002))",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

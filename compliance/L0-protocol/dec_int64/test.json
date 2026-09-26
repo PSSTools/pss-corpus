@@ -1,0 +1,53 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "L0.dec.int64.001",
+  "rev": 1,
+  "title": "%d prints 64-bit signed extremes",
+  "level": "L0",
+  "lrm": [
+    "21.1.1",
+    "7.2"
+  ],
+  "features": {
+    "tests": [
+      "std.message.fmt.d"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "dec64",
+            "eq": {
+              "a": 9223372036854775807,
+              "b": -9223372036854775808
+            }
+          }
+        ]
+      }
+    }
+  }
+}

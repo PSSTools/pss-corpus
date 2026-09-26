@@ -1,0 +1,68 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "L0.nested.001",
+  "rev": 1,
+  "title": "A message from an atomic action two compound levels down",
+  "level": "L0",
+  "lrm": [
+    "11.3",
+    "21.1.3"
+  ],
+  "features": {
+    "tests": [
+      "std.message.nested_action"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::leaf_a": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "body": {
+        "seq": [
+          {
+            "chk": "leaf",
+            "eq": {
+              "k": 7
+            }
+          }
+        ]
+      }
+    },
+    "pss_top::mid": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "activity": {
+        "do": "pss_top::leaf_a"
+      }
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "activity": {
+        "do": "pss_top::mid"
+      }
+    }
+  }
+}

@@ -1,0 +1,35 @@
+import std_pkg::*;
+
+function bit[64] neg1() {
+  return -1;
+}
+
+function bit[12] low12(bit[32] v) {
+  return v;
+}
+
+function bit[12] low12c(bit[32] v) {
+  return (bit[12])v;
+}
+
+function int from_u8(bit[8] b) {
+  return b;
+}
+
+function int[8] to_s8(int v) {
+  return v;
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      bit[64] m  = neg1();
+      bit[12] t  = low12(0x12345);
+      bit[12] tc = low12c(0x12345);
+      int     z  = from_u8(0xff);
+      int     s  = to_s8(0x1ff);
+      message(NONE, "@@PSS-TRACE chk rc m=0x%x t=0x%x tc=0x%x z=%d s=%d", m, t, tc, z, s);
+    }
+  }
+}

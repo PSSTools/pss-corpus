@@ -1,0 +1,46 @@
+import std_pkg::*;
+
+struct dcsr_s {
+  bit[12] tot_sz;
+  bit     dst_sel;
+  bit     src_sel;
+  bit     inc_dst;
+  bit     inc_src;
+  bit     eol;
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      dcsr_s d;
+      d.tot_sz  = 0xabc;
+      d.dst_sel = 1;
+      d.src_sel = 0;
+      d.inc_dst = 1;
+      d.inc_src = 1;
+      d.eol     = 1;
+
+      bit[32] w;
+      w  = (bit[32])d.tot_sz;
+      w |= ((bit[32])d.dst_sel) << 16;
+      w |= ((bit[32])d.src_sel) << 17;
+      w |= ((bit[32])d.inc_dst) << 18;
+      w |= ((bit[32])d.inc_src) << 19;
+      w |= ((bit[32])d.eol)     << 20;
+
+      // No cast: the 32-bit target size propagates to the shift's left operand.
+      bit[32] u = d.eol << 20;
+      bit[32] v = 0;
+      v |= d.inc_src << 19;
+
+      message(NONE, "@@PSS-TRACE chk bp w=0x%x u=0x%x v=0x%x", w, u, v);
+
+      bit[12] res = (bit[12])w;
+      bit[4]  nib = (bit[4])(w >> 16);
+      bit     b17 = (bit)(w >> 17);
+      bit     b18 = (bit)(w >> 18);
+      message(NONE, "@@PSS-TRACE chk bu res=0x%x nib=0x%x b17=%u b18=%u", res, nib, b17, b18);
+    }
+  }
+}

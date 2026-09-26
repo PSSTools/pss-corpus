@@ -1,0 +1,20 @@
+import std_pkg::*;
+
+function void hint() {
+  yield;
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int n = 0;
+      while (n < 3) {
+        yield;
+        n += 1;
+        hint();
+        message(NONE, "@@PSS-TRACE chk y n=%d", n);
+      }
+    }
+  }
+}

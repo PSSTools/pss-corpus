@@ -1,0 +1,82 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.assign.compound.001",
+  "rev": 1,
+  "title": "Each compound assignment operator (+= -= <<= >>= |= &=)",
+  "level": "L1",
+  "lrm": [
+    "8.3",
+    "20.7.3"
+  ],
+  "features": {
+    "tests": [
+      "proc.assign.compound"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "ca.add",
+            "eq": {
+              "x": 15
+            }
+          },
+          {
+            "chk": "ca.sub",
+            "eq": {
+              "x": 12
+            }
+          },
+          {
+            "chk": "ca.shl",
+            "eq": {
+              "x": 48
+            }
+          },
+          {
+            "chk": "ca.shr",
+            "eq": {
+              "x": 24
+            }
+          },
+          {
+            "chk": "ca.or",
+            "eq": {
+              "x": 27
+            }
+          },
+          {
+            "chk": "ca.and",
+            "eq": {
+              "x": 25
+            }
+          }
+        ]
+      }
+    }
+  }
+}

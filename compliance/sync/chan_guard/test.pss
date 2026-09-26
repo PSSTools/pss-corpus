@@ -1,0 +1,55 @@
+import std_pkg::*;
+import sync_pkg::*;
+
+component ch_c {
+  channel_c<bit, 1> inflight;
+
+  target function bool start() {
+    if (!inflight.try_put(1)) {
+      message(NONE, "@@PSS-TRACE chk start busy=%n", true);
+      return false;
+    }
+    message(NONE, "@@PSS-TRACE chk start busy=%n", false);
+    return true;
+  }
+
+  target function int check(bool pending) {
+    bit tok;
+    if (!inflight.try_get(tok)) {
+      return -1;
+    }
+    if (pending) {
+      inflight.try_put(tok);
+      return 0;
+    }
+    return 1;
+  }
+}
+
+component pss_top {
+  ch_c ch[2];
+
+  target function void notify() {
+    foreach (ch[i]) {
+      ch[i].inflight.try_put(1);
+    }
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      bool s1 = comp.ch[0].start();
+      bool s2 = comp.ch[0].start();
+      int  c1 = comp.ch[0].check(true);
+      int  c2 = comp.ch[0].check(false);
+      int  c3 = comp.ch[0].check(false);
+      int  c4 = comp.ch[1].check(false);
+      message(NONE, "@@PSS-TRACE chk g1 s1=%n s2=%n c1=%d c2=%d c3=%d c4=%d",
+              s1, s2, c1, c2, c3, c4);
+      comp.notify();
+      int  c5 = comp.ch[1].check(false);
+      bool s3 = comp.ch[0].start();
+      message(NONE, "@@PSS-TRACE chk g2 c5=%d s3=%n", c5, s3);
+    }
+  }
+}

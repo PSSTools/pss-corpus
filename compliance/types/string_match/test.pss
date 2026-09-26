@@ -1,0 +1,32 @@
+import std_pkg::*;
+
+component grp_c {
+  function bit[64] get_offset_of_instance(string name) {
+    match (name) {
+      ["csr"]:  return 0x0;
+      ["sz"]:   return 0x4;
+      ["adr0"]: return 0x8;
+      default:  return -1;
+    }
+  }
+
+  function bool is_sz(string name) {
+    return name == "sz";
+  }
+}
+
+component pss_top {
+  grp_c g;
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk sm csr=%d sz=%d adr0=%d",
+              comp.g.get_offset_of_instance("csr"), comp.g.get_offset_of_instance("sz"),
+              comp.g.get_offset_of_instance("adr0"));
+      message(NONE, "@@PSS-TRACE chk sd pre=0x%x case=0x%x z1=%n z2=%n",
+              comp.g.get_offset_of_instance("adr"), comp.g.get_offset_of_instance("ADR0"),
+              comp.g.is_sz("sz"), comp.g.is_sz("s"));
+    }
+  }
+}

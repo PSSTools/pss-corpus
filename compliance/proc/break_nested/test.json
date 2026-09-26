@@ -1,0 +1,85 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.break.nested.001",
+  "rev": 1,
+  "title": "break inside a nested loop affects only the inner loop",
+  "level": "L1",
+  "lrm": [
+    "20.7.11"
+  ],
+  "features": {
+    "tests": [
+      "proc.break.nested"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.repeat.index",
+      "proc.if"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "bn.in",
+            "eq": {
+              "i": 0,
+              "j": 0
+            }
+          },
+          {
+            "chk": "bn.out",
+            "eq": {
+              "i": 0
+            }
+          },
+          {
+            "chk": "bn.in",
+            "eq": {
+              "i": 1,
+              "j": 0
+            }
+          },
+          {
+            "chk": "bn.out",
+            "eq": {
+              "i": 1
+            }
+          },
+          {
+            "chk": "bn.in",
+            "eq": {
+              "i": 2,
+              "j": 0
+            }
+          },
+          {
+            "chk": "bn.out",
+            "eq": {
+              "i": 2
+            }
+          }
+        ]
+      }
+    }
+  }
+}

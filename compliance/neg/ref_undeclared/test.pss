@@ -1,0 +1,10 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      int x = 1;
+      y = x + 1;
+    }
+  }
+}

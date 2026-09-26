@@ -1,0 +1,60 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "comp.init.order.001",
+  "rev": 1,
+  "title": "init_down runs top-down and init_up bottom-up; the last writer wins (Example 280)",
+  "level": "L1",
+  "lrm": [
+    "9.1.4.1",
+    "20.1.2",
+    "20.1.3"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "comp.attr.init_order"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "component.comp_ref"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "io",
+            "eq": {
+              "a": 10,
+              "b": 200,
+              "c": 30,
+              "t": 31
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "pss_top.init_down (a=1,b=2), then s.init_down (a=10,b=20), then s.init_up (c=30), then pss_top.init_up (b=200, t=31). Each other order changes a value."
+}

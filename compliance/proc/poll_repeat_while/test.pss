@@ -1,0 +1,46 @@
+import std_pkg::*;
+
+enum st_e { DONE, ERROR, PENDING }
+
+function st_e xfer_start(bool fail) {
+  message(NONE, "@@PSS-TRACE chk start fail=%n", fail);
+  if (fail) {
+    return ERROR;
+  }
+  return PENDING;
+}
+
+function st_e xfer_check(int n, int done_at) {
+  message(NONE, "@@PSS-TRACE chk check n=%d", n);
+  if (n < done_at) {
+    return PENDING;
+  }
+  return DONE;
+}
+
+function st_e xfer(bool fail, int done_at) {
+  st_e ret = xfer_start(fail);
+  if (ret == ERROR) {
+    return ret;
+  }
+  int n = 0;
+  repeat {
+    ret = xfer_check(n, done_at);
+    n += 1;
+  } while (ret == PENDING);
+  return ret;
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      st_e r1 = xfer(false, 2);
+      message(NONE, "@@PSS-TRACE chk r r=%d", (int)r1);
+      st_e r2 = xfer(true, 2);
+      message(NONE, "@@PSS-TRACE chk r r=%d", (int)r2);
+      st_e r3 = xfer(false, 0);
+      message(NONE, "@@PSS-TRACE chk r r=%d", (int)r3);
+    }
+  }
+}

@@ -1,0 +1,23 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int v;
+      int r;
+      v = -1;
+      if (v < 0) { r = 1; } else if (v == 0) { r = 2; } else if (v < 10) { r = 3; } else { r = 4; }
+      message(NONE, "@@PSS-TRACE chk ei v=%d r=%d", v, r);
+      v = 0;
+      if (v < 0) { r = 1; } else if (v == 0) { r = 2; } else if (v < 10) { r = 3; } else { r = 4; }
+      message(NONE, "@@PSS-TRACE chk ei v=%d r=%d", v, r);
+      v = 5;
+      if (v < 0) { r = 1; } else if (v == 0) { r = 2; } else if (v < 10) { r = 3; } else { r = 4; }
+      message(NONE, "@@PSS-TRACE chk ei v=%d r=%d", v, r);
+      v = 50;
+      if (v < 0) { r = 1; } else if (v == 0) { r = 2; } else if (v < 10) { r = 3; } else { r = 4; }
+      message(NONE, "@@PSS-TRACE chk ei v=%d r=%d", v, r);
+    }
+  }
+}

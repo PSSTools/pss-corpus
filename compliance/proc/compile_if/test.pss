@@ -1,0 +1,49 @@
+import std_pkg::*;
+
+package tgt_pkg {
+  static const bool HAVE_WAIT = false;
+}
+
+package cfg_pkg {
+  compile if (compile has(tgt_pkg::HAVE_WAIT)) {
+    static const bool HAS_WAIT = tgt_pkg::HAVE_WAIT;
+  } else {
+    static const bool HAS_WAIT = true;
+  }
+
+  compile if (compile has(tgt_pkg::NOT_DECLARED)) {
+    static const int V = 1;
+  } else {
+    static const int V = 2;
+  }
+}
+
+component pss_top {
+  compile if (cfg_pkg::HAS_WAIT) {
+    function int mode() {
+      return 1;
+    }
+  } else {
+    function int mode() {
+      return 2;
+    }
+  }
+
+  function int hint() {
+    int r = 0;
+    compile if (cfg_pkg::HAS_WAIT) {
+      r = 10;
+    } else {
+      r = 20;
+    }
+    return r;
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk ci w=%n v=%d mode=%d hint=%d",
+              cfg_pkg::HAS_WAIT, cfg_pkg::V, comp.mode(), comp.hint());
+    }
+  }
+}

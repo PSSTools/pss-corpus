@@ -1,0 +1,43 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "L0.act.single.001",
+  "rev": 1,
+  "title": "An atomic exec body emits exactly one act record",
+  "level": "L0",
+  "lrm": [
+    "20.1",
+    "21.1.3"
+  ],
+  "features": {
+    "tests": [
+      "std.message.emit"
+    ],
+    "uses": [
+      "exec.body"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": []
+      }
+    }
+  }
+}

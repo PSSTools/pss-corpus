@@ -1,0 +1,13 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int x = 4;
+      int a = (x > 3) ? 10 : 20;
+      int b = (x > 5) ? 10 : 20;
+      message(NONE, "@@PSS-TRACE chk cond a=%d b=%d", a, b);
+    }
+  }
+}

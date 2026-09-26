@@ -1,0 +1,17 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int x = 0;
+      while (true) {
+        x += 1;
+        if (x == 3) {
+          break;
+        }
+      }
+      message(NONE, "@@PSS-TRACE chk bw x=%d", x);
+    }
+  }
+}

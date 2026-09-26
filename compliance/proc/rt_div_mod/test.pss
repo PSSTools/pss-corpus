@@ -1,0 +1,14 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int a = -7;
+      int b = 2;
+      int c = 7;
+      int d = -2;
+      message(NONE, "@@PSS-TRACE chk divmod q1=%d r1=%d q2=%d r2=%d", a / b, a % b, c / d, c % d);
+    }
+  }
+}

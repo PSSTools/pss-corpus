@@ -1,0 +1,7 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    no_such_t f;
+  }
+}

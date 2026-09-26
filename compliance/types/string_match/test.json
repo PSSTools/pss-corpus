@@ -1,0 +1,70 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.string.match.001",
+  "rev": 1,
+  "title": "match on a string parameter against literals, with default; -1 returned as bit[64]",
+  "level": "L1",
+  "lrm": [
+    "20.7.10",
+    "7.6",
+    "8.7.2"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "proc.match.string",
+      "types.string.param"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "component.comp_ref"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "sm",
+            "eq": {
+              "csr": 0,
+              "sz": 4,
+              "adr0": 8
+            }
+          },
+          {
+            "chk": "sd",
+            "eq": {
+              "pre": 18446744073709551615,
+              "case": 18446744073709551615,
+              "z1": true,
+              "z2": false
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "`return -1` in a bit[64] function: 8.7.2 truncates/extends to the return type; -1 (int, signed) sign-extends to 64 bits, all ones."
+}

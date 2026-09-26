@@ -1,0 +1,13 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      bit[8] x = 300;
+      bit[4] y = 31;
+      int[8] z = 200;
+      message(NONE, "@@PSS-TRACE chk trunc x=%u y=%u z=%d", x, y, z);
+    }
+  }
+}

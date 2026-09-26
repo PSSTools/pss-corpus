@@ -1,0 +1,53 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.local.multi.001",
+  "rev": 1,
+  "title": "One declaration statement with several instantiations",
+  "level": "L1",
+  "lrm": [
+    "20.7.2"
+  ],
+  "features": {
+    "tests": [
+      "proc.local.decl.multi"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "multi",
+            "eq": {
+              "e": 1,
+              "f": 2,
+              "g": 0
+            }
+          }
+        ]
+      }
+    }
+  }
+}

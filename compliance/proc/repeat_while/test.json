@@ -1,0 +1,70 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.repeat_while.001",
+  "rev": 1,
+  "title": "repeat-while samples its condition after the body: it runs at least once",
+  "level": "L1",
+  "lrm": [
+    "20.7.7"
+  ],
+  "features": {
+    "tests": [
+      "proc.repeat_while"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init",
+      "proc.assign.compound"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "rw",
+            "eq": {
+              "x": 1
+            }
+          },
+          {
+            "chk": "rw",
+            "eq": {
+              "x": 2
+            }
+          },
+          {
+            "chk": "rw",
+            "eq": {
+              "x": 3
+            }
+          },
+          {
+            "chk": "rw.once",
+            "eq": {
+              "y": 100
+            }
+          }
+        ]
+      }
+    }
+  }
+}

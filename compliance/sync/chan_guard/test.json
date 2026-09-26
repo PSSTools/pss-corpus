@@ -1,0 +1,91 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "sync.channel.guard.001",
+  "rev": 1,
+  "title": "An in-flight guard built on a depth-1 channel, per instance, across component functions",
+  "level": "L1",
+  "pss": "3.1",
+  "lrm": [
+    "21.9.1.3",
+    "21.9.1.4",
+    "20.7.4"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "sync.channel.guard",
+      "sync.channel.per_instance"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "component.comp_ref",
+      "comp.array",
+      "proc.func.call"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "start",
+            "eq": {
+              "busy": false
+            }
+          },
+          {
+            "chk": "start",
+            "eq": {
+              "busy": true
+            }
+          },
+          {
+            "chk": "g1",
+            "eq": {
+              "s1": true,
+              "s2": false,
+              "c1": 0,
+              "c2": 1,
+              "c3": -1,
+              "c4": -1
+            }
+          },
+          {
+            "chk": "start",
+            "eq": {
+              "busy": true
+            }
+          },
+          {
+            "chk": "g2",
+            "eq": {
+              "c5": 1,
+              "s3": false
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "try_put's result is discarded without a (void) cast, which 20.7.4 makes legal. notify() leaves a token in both channels, so ch[0].start() then finds it busy."
+}

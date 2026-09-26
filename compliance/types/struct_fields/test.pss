@@ -1,0 +1,33 @@
+import std_pkg::*;
+
+struct csr_s {
+  bit[12] tot_sz;
+  bit     eol;
+  bit[3]  prio = 5;
+}
+
+struct desc_s {
+  csr_s   csr;
+  bit[32] adr0 = 0xa0;
+  bit[32] next;
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      desc_s d;
+      message(NONE, "@@PSS-TRACE chk sd0 prio=%u adr0=0x%x tot=%u eol=%u next=%u",
+              d.csr.prio, d.adr0, d.csr.tot_sz, d.csr.eol, d.next);
+
+      bit[16] w = 0x1abc;
+      bit[8]  p = 9;
+      d.csr.tot_sz = w;
+      d.csr.prio   = p;
+      d.csr.eol    = 1;
+      d.next       = 0xfeedf00d;
+      message(NONE, "@@PSS-TRACE chk sd1 tot=0x%x prio=%u eol=%u adr0=0x%x next=0x%x",
+              d.csr.tot_sz, d.csr.prio, d.csr.eol, d.adr0, d.next);
+    }
+  }
+}

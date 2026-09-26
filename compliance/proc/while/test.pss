@@ -1,0 +1,17 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int n = 11;
+      bool parity = false;
+      while (n != 0) {
+        parity = !parity;
+        n = n & (n - 1);
+        message(NONE, "@@PSS-TRACE chk wh n=%d p=%n", n, parity);
+      }
+      message(NONE, "@@PSS-TRACE chk wh.done p=%n", parity);
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "comp.init.solve_fn.001",
+  "rev": 1,
+  "title": "A solve function called from init_down sets component attributes; a declaration initializer survives",
+  "level": "L1",
+  "lrm": [
+    "9.1.4.1",
+    "20.1.2"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "comp.attr.init_down",
+      "comp.func.solve"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "component.comp_ref"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "ci",
+            "eq": {
+              "chan": -7,
+              "tag": 3735928559,
+              "keep": 8738,
+              "f": -7
+            }
+          }
+        ]
+      }
+    }
+  }
+}

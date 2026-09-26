@@ -1,0 +1,15 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      int n = 0;
+      while (n > 0) {
+        message(NONE, "@@PSS-TRACE chk wz.wrong n=%d", n);
+        n -= 1;
+      }
+      message(NONE, "@@PSS-TRACE chk wz.after n=%d", n);
+    }
+  }
+}

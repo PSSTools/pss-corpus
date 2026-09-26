@@ -1,0 +1,13 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      bit[8]  a = 255;
+      bit[32] b = 4294967295;
+      bit[64] c = 18446744073709551615;
+      message(NONE, "@@PSS-TRACE chk udec a=%u b=%u c=%u", a, b, c);
+    }
+  }
+}

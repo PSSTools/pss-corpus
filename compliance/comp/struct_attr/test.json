@@ -1,0 +1,60 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "comp.attr.struct.001",
+  "rev": 1,
+  "title": "A struct component attribute takes its field initializers, and per-instance overrides in init_down",
+  "level": "L1",
+  "lrm": [
+    "7.8",
+    "9.1.4.1"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "comp.attr.struct"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "component.comp_ref"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "sa",
+            "eq": {
+              "s0": 301,
+              "s1": 211,
+              "a0": true,
+              "a1": false
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "d0: 1 + 3*100 + 0 = 301. d1: 1 + 10 + 12*100 - 1000 = 211."
+}

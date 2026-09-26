@@ -1,0 +1,39 @@
+import std_pkg::*;
+
+component sub_c {
+  int a = 1000;
+  int b;
+  int c;
+
+  exec init_down {
+    a = 10;
+    b = 20;
+  }
+
+  exec init_up {
+    c = a + b;
+  }
+}
+
+component pss_top {
+  sub_c s;
+  int   t;
+
+  exec init_down {
+    s.a = 1;
+    s.b = 2;
+  }
+
+  exec init_up {
+    s.b = 200;
+    t = s.c + 1;
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk io a=%d b=%d c=%d t=%d",
+              comp.s.a, comp.s.b, comp.s.c, comp.t);
+    }
+  }
+}

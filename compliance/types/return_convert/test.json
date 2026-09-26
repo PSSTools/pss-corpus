@@ -1,0 +1,60 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.return.convert.001",
+  "rev": 1,
+  "title": "return converts to the function's return type: sign/zero extension and truncation",
+  "level": "L1",
+  "lrm": [
+    "20.7.5",
+    "8.7.2"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "proc.func.return.convert"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "rc",
+            "eq": {
+              "m": 18446744073709551615,
+              "t": 837,
+              "tc": 837,
+              "z": 255,
+              "s": -1
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "neg1: int -1 sign-extends to 64 bits. from_u8: bit[8] 0xff zero-extends (unsigned source) to 255. to_s8: 0x1ff truncates to int[8] 0xff = -1, which then sign-extends to int in the assignment to s."
+}

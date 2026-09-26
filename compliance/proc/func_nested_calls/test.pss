@@ -1,0 +1,22 @@
+import std_pkg::*;
+
+function int add1(int x) {
+  return x + 1;
+}
+
+function int sq(int x) {
+  return x * x;
+}
+
+function int sq_of_next(int x) {
+  return sq(add1(x));
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk nest a=%d b=%d", sq(add1(3)), sq_of_next(4));
+    }
+  }
+}

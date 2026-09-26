@@ -1,0 +1,14 @@
+import std_pkg::*;
+
+function int scale(int x, int k = 10) {
+  return x * k;
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk dflt a=%d b=%d", scale(3), scale(3, 2));
+    }
+  }
+}

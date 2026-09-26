@@ -1,0 +1,51 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "L0.percent.001",
+  "rev": 1,
+  "title": "%% is a literal percent sign",
+  "level": "L0",
+  "lrm": [
+    "21.1.1"
+  ],
+  "features": {
+    "tests": [
+      "std.message.fmt.percent"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "pct",
+            "eq": {
+              "v": "100%",
+              "w": 3
+            }
+          }
+        ]
+      }
+    }
+  }
+}

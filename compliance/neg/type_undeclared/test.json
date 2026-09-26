@@ -1,0 +1,38 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "neg.type.undeclared.001",
+  "rev": 1,
+  "title": "Declaring a local of a type that is declared nowhere is an error",
+  "level": "L1",
+  "lrm": [
+    "18.3",
+    "20.7.2"
+  ],
+  "features": {
+    "tests": [
+      "diag.type.unresolved"
+    ],
+    "uses": [
+      "exec.body"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "compile_error",
+    "diagnostics": [
+      {
+        "file": "test.pss",
+        "line": 6
+      }
+    ]
+  },
+  "types": {}
+}

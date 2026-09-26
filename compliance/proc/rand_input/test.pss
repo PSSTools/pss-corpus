@@ -1,0 +1,21 @@
+import std_pkg::*;
+
+function int sum_to(int n) {
+  int acc = 0;
+  repeat (i : n) {
+    acc += i;
+    message(NONE, "@@PSS-TRACE chk sum_to.step i=%d acc=%d", i, acc);
+  }
+  return acc;
+}
+
+component pss_top {
+  action A {
+    rand bit[4] n;
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A n=%u", n);
+      int r = sum_to(n);
+      message(NONE, "@@PSS-TRACE chk result r=%d", r);
+    }
+  }
+}

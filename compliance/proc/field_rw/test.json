@@ -1,0 +1,53 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.field.rw.001",
+  "rev": 1,
+  "title": "An exec body writes and reads its action's non-rand attributes",
+  "level": "L1",
+  "lrm": [
+    "20.7.3",
+    "20.1"
+  ],
+  "features": {
+    "tests": [
+      "proc.field.write"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local.init"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "fld",
+            "eq": {
+              "r": 7,
+              "w": 8
+            }
+          }
+        ]
+      }
+    }
+  }
+}

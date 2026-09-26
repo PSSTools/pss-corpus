@@ -2,7 +2,12 @@
 
 A shared corpus of PSS source files, used as test input by several projects.
 
-There is nothing to build and nothing to install. This repository is data.
+`curated/` is data: there is nothing to build and nothing to install to use it.
+`compliance/` is the executable tier: instrumented PSS plus legality models, also
+data. `checker/` is the one piece of code, the `pss-corpus` package that judges a
+tool's run of a compliance test (`COMPLIANCE-DESIGN.md`, decision D-1).
+To run the compliance tier on a tool you cannot run yourself (a vendor's),
+export a bundle and import its results: `HANDOFF.md`.
 
 ```
 curated/        100 files in 8 buckets, each with recorded provenance
