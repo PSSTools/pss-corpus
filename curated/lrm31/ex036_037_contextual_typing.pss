@@ -1,0 +1,51 @@
+// ex036_037_contextual_typing.pss
+//
+// Contextual typing of structure literals and enum items (LRM 8.4.2, 8.4.3),
+// modelled on PSS 3.1 Examples 36 and 37 and completed to a whole model.
+//
+// Demonstrates:
+//   - one struct literal interpreted as two different types, by the type of
+//     the other operand of `==` (Example 36)
+//   - an unqualified enum item resolved by its expected type: an
+//     initializer and a call argument (Example 37)
+//   - an enum item qualified by its type where no enum type is expected
+//     (Example 37); the LRM's illegal unqualified `(int)ORANGE` is left out
+//
+// Completed from the LRM: the two function prototypes of Example 37 are
+// given bodies, and both examples share one pss_top.
+
+enum color_e {RED, GREEN, ORANGE};
+
+function void print_color(color_e c) { }
+function void print_num(int n) { }
+
+component my_ip_c {
+  struct my_struct { rand int a; };
+  action my_op {
+    rand my_struct s;
+  }
+}
+
+component pss_top {
+  my_ip_c my_ip;
+  struct your_struct { rand int a; };
+  enum fruit_e {APPLE, ORANGE};
+
+  action test {
+    rand your_struct s;
+    constraint s == {.a = 2};          // pss_top::your_struct literal
+
+    my_ip_c::my_op op;
+    constraint op.s == {.a = 3};       // my_ip_c::my_struct literal
+
+    activity {
+      op;
+    }
+  }
+
+  exec init_down {
+    color_e c = ORANGE;                // expected type is color_e
+    print_color(RED);                  // likewise
+    print_num((int)fruit_e::ORANGE);   // qualified: no enum type expected
+  }
+}

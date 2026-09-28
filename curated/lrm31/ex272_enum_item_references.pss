@@ -1,0 +1,33 @@
+// ex272_enum_item_references.pss
+//
+// Qualified and unqualified enum item references (LRM 18.3), modelled on
+// PSS 3.1 Example 272 and completed to a whole model.
+//
+// Demonstrates:
+//   - an enum item qualified by its type's full path
+//   - an unqualified item resolved by the type of the other operand of `==`
+//   - unqualified items in an `in` range list, resolved by the type of the
+//     left-hand side
+//
+// Taken from the LRM as written: Example 272 is already a whole model.
+
+component my_ip_c {
+  enum mode_e {A, B, C, D};
+  action my_op {
+    rand mode_e mode;
+  }
+}
+
+component pss_top {
+  my_ip_c my_ip;
+  action test {
+    my_ip_c::my_op op;
+    constraint op.mode == my_ip_c::mode_e::A;
+    constraint op.mode == A;
+    constraint op.mode in [A, C, D];
+
+    activity {
+      op;
+    }
+  }
+}
