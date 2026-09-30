@@ -133,6 +133,31 @@ and register results marked untrusted (§4.12). Each needs executor delegation
 |---|---|---|
 | `L0-tap/rw8`, `rw16`, `rw32`, `rw64` | `readN` at a region offset, then `writeN` of the value plus one | 21.7.2.6, 21.13.9.1, 21.13.9.2, 21.13.9.5 |
 
+## Catalogue: activities, first L3 slice (8 tests)
+
+What the P1 checker can already judge: traversals, `seq`, and constant
+`repeat`/`replicate`, all expanded into the exact sequence of `act`
+records. In each model `A` is declared first, so a tool that runs the
+wrong action -- a traversal that falls back to the first one -- prints
+`pss_top::A` and fails.
+
+| Test | Proves | LRM |
+|---|---|---|
+| `act/traverse_handle` | a handle traversal runs the handle's type | 11.3.1 |
+| `act/traverse_handle_multi` | handles of one type and of different types run their own types, in order | 11.3.1, 11.3.3 |
+| `act/traverse_qualified` | `do pss_top::B` runs `B` | 11.3.1 |
+| `act/atomic_body` | the statements of an `atomic` block run | 11.3.7 |
+| `act/repeat_single_stmt` | `repeat (3) do B;`, a body without braces | 11.4.1 |
+| `act/replicate` | `replicate (3) do B;` in a sequential scope | 11.5.1 |
+| `act/nested_labeled` | labeled nested sequences keep their order | 11.3.3, 11.8 |
+| `act/multi_comp` | a traversal of an action declared in a sub-component | 11.3.1, 19.1.3 |
+
+Not yet covered, because the P1 checker does not reach it: `parallel`,
+`schedule` and `select` (they need interleavings and choices, checker P2);
+a bodiless action (it emits no `act` record, which the model has no way to
+say); a compound action's own `pre_solve`/`post_solve` (a `chk` before any
+`act` record is not accepted).
+
 ## Catalogue: negative tests (5 tests)
 
 Each must be rejected (`compile_error`) with an error at a stated line. They

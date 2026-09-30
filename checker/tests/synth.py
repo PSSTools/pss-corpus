@@ -63,6 +63,10 @@ def _act_node(t, node, out):
         return _expand(t, node["do"], out)
     if "seq" in node:
         return all(_act_node(t, n, out) for n in node["seq"])
+    for kw in ("repeat", "replicate"):
+        if kw in node and isinstance(node[kw].get("count"), int):
+            return all(_act_node(t, node["body"], out)
+                       for _ in range(node[kw]["count"]))
     return False
 
 

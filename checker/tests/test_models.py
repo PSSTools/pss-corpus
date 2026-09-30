@@ -93,6 +93,17 @@ def _mutants(lines):
             m[a], m[b] = m[b], m[a]
             yield f"swap lines {a},{b}", m
     yield "extra chk", lines + ["@@PSS-TRACE chk zz.extra"]
+    # The activity itself (L3): an action run once too few or too many
+    # times, or two different actions run in the other order.
+    act = [i for i, l in enumerate(lines) if " act " in l]
+    for i in act:
+        yield f"drop act line {i}", lines[:i] + lines[i + 1:]
+        yield f"duplicate act line {i}", lines[:i + 1] + [lines[i]] + lines[i + 1:]
+    for a, b in zip(act, act[1:]):
+        if lines[a] != lines[b]:
+            m = list(lines)
+            m[a], m[b] = m[b], m[a]
+            yield f"swap act lines {a},{b}", m
 
 
 @pytest.mark.parametrize("t", SYNTH, ids=lambda t: t.id)

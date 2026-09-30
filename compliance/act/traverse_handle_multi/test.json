@@ -1,0 +1,80 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.traverse.handle_multi.001",
+  "rev": 1,
+  "title": "Handles of one type and of different types run their own types, in order",
+  "level": "L3",
+  "lrm": [
+    "11.3.1",
+    "11.3.3"
+  ],
+  "features": {
+    "tests": [
+      "activity.traverse.handle"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "body": {
+        "seq": []
+      }
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "body": {
+        "seq": []
+      }
+    },
+    "pss_top::C": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "body": {
+        "seq": []
+      }
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::B"
+          },
+          {
+            "do": "pss_top::C"
+          },
+          {
+            "do": "pss_top::B"
+          }
+        ]
+      }
+    }
+  }
+}

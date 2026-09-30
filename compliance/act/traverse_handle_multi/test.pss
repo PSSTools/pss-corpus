@@ -1,0 +1,18 @@
+import std_pkg::*;
+
+component pss_top {
+  // A is declared first: a traversal that fell back to the first action
+  // would print pss_top::A.
+  action A { exec body { message(NONE, "@@PSS-TRACE act pss_top::A"); } }
+  action B { exec body { message(NONE, "@@PSS-TRACE act pss_top::B"); } }
+  action C { exec body { message(NONE, "@@PSS-TRACE act pss_top::C"); } }
+  action T {
+    B b1, b2;
+    C c1;
+    activity {
+      b1;
+      c1;
+      b2;
+    }
+  }
+}

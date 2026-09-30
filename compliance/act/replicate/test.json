@@ -1,0 +1,74 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.replicate.001",
+  "rev": 1,
+  "title": "replicate in a sequential scope runs its body count times",
+  "level": "L3",
+  "lrm": [
+    "11.5.1"
+  ],
+  "features": {
+    "tests": [
+      "activity.replicate"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.traverse.type"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "body": {
+        "seq": []
+      }
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "body": {
+        "seq": []
+      }
+    },
+    "pss_top::C": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "body": {
+        "seq": []
+      }
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "activity": {
+        "replicate": {
+          "count": 3
+        },
+        "body": {
+          "do": "pss_top::B"
+        }
+      }
+    }
+  }
+}

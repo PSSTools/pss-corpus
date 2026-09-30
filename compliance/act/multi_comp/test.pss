@@ -1,0 +1,15 @@
+import std_pkg::*;
+
+component sub_c {
+  action S { exec body { message(NONE, "@@PSS-TRACE act sub_c::S"); } }
+}
+
+component pss_top {
+  sub_c sub;
+  action A { exec body { message(NONE, "@@PSS-TRACE act pss_top::A"); } }
+  action T {
+    activity {
+      do sub_c::S;
+    }
+  }
+}

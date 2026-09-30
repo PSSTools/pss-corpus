@@ -1,7 +1,7 @@
 """The checker (§6.4): decide whether one run's log is a legal execution.
 
 P1 scope. Stage 1 (outcome) and stage 2 (structure) cover activities built
-from traversals, ``seq`` and constant ``repeat``, and atomic ``body`` patterns
+from traversals, ``seq`` and constant ``repeat``/``replicate``, and atomic ``body`` patterns
 (§6.7) built from ``seq``, ``repeat`` and ``chk`` leaves. Stage 3 is one SMT
 problem per run over the observed values; a run whose leaves are all exact
 (``eq``) and whose actions have no constraints never starts the solver.
@@ -277,11 +277,16 @@ def _expand_node(test: Test, node: Dict[str, Any], depth: int) -> List[str]:
         for n in node["seq"]:
             out.extend(_expand_node(test, n, depth))
         return out
-    if "repeat" in node:
-        count = node["repeat"].get("count")
-        if not isinstance(count, int):
-            raise ModelError("P1 checker: activity repeat needs a constant count")
-        return _expand_node(test, node["body"], depth) * count
+    # `replicate` in a sequential scope is its body `count` times in
+    # sequence (LRM 11.5.1), which is what a constant `repeat` is. A model
+    # uses it only where that holds: not directly in parallel/schedule, and
+    # with no iteration label.
+    for kw in ("repeat", "replicate"):
+        if kw in node:
+            count = node[kw].get("count")
+            if not isinstance(count, int):
+                raise ModelError(f"P1 checker: activity {kw} needs a constant count")
+            return _expand_node(test, node["body"], depth) * count
     raise ModelError(f"P1 checker: activity node {sorted(node)} is not supported yet")
 
 
