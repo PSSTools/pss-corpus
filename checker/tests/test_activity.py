@@ -85,6 +85,12 @@ CASES = {
              "comp == this.comp.sub1"),
             (["act subc::A comp.pct_id=1 f=3 g=5", "obs pss_top::ObsB f=5 h=3"], "f < h"),
         ]),
+    # Two calls of `lt(x, y, gap)`: each its own block and constraint.
+    "act.symbol.001": (
+        _vals(A, "val", 2, 6, 3, 14), [
+            (_vals(A, "val", 2, 5, 3, 14), "a.val + 3 < b.val"),
+            (_vals(A, "val", 2, 6, 4, 14), "c.val + 10 < d.val"),
+        ]),
     # q prints nothing, but its w must fit between a.v and b.v.
     "act.traverse.bodiless.001": (
         _vals(A, "v", 3, 5), [

@@ -1,0 +1,25 @@
+import std_pkg::*;
+
+// An activity symbol (11.7) is its body where it is called. `lt` takes two
+// handles and a value: lt(a, b, 3) traverses a, then b, with a.val + 3 < b.val
+// in force in the call's block. The second call needs c.val <= 4 so that a
+// d.val is left: c is chosen with lookahead to the symbol's constraint.
+component pss_top {
+  action A {
+    rand bit[4] val;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A val=%u", val); }
+  }
+
+  action T {
+    A a, b, c, d;
+    symbol lt(A x, A y, int gap) {
+      x;
+      y;
+      constraint { x.val + gap < y.val; }
+    }
+    activity {
+      lt(a, b, 3);
+      lt(c, d, 10);
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.symbol.001",
+  "rev": 1,
+  "title": "A symbol call is its body, with each parameter its argument",
+  "level": "L3",
+  "lrm": [
+    "11.7",
+    "13.1.9",
+    "13.4.9"
+  ],
+  "features": {
+    "tests": [
+      "activity.symbol"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.constraint",
+      "activity.traverse.handle",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 32
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "val": "u4"
+      }
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "seq": [
+              {
+                "do": "pss_top::A",
+                "label": "a"
+              },
+              {
+                "do": "pss_top::A",
+                "label": "b"
+              },
+              {
+                "constraint": [
+                  {
+                    "pss": "a.val + 3 < b.val",
+                    "smt": "(bvslt (bvadd ((_ zero_extend 28) |a.val|) #x00000003) ((_ zero_extend 28) |b.val|))",
+                    "smt_source": "hand"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "seq": [
+              {
+                "do": "pss_top::A",
+                "label": "c"
+              },
+              {
+                "do": "pss_top::A",
+                "label": "d"
+              },
+              {
+                "constraint": [
+                  {
+                    "pss": "c.val + 10 < d.val",
+                    "smt": "(bvslt (bvadd ((_ zero_extend 28) |c.val|) #x0000000a) ((_ zero_extend 28) |d.val|))",
+                    "smt_source": "hand"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -155,7 +155,7 @@ wrong action -- a traversal that falls back to the first one -- prints
 Not yet covered, because the P1 checker does not reach it: `parallel`,
 `schedule` and `select` (they need interleavings and choices, checker P2).
 
-## Catalogue: activities, values and constraints (11 tests)
+## Catalogue: activities, values and constraints (12 tests)
 
 Values chosen across an activity (LRM 13.4). A compound's constraint over
 its handles (`a.val < b.val`), a traversal's inline `with` and an activity
@@ -180,11 +180,12 @@ legal trace and constraint-breaking mutants for each.
 | `act/comp_steer` | `comp == this.comp.sub1` steers the traversal, Ex 143 | 13.1.4, 13.4.5 |
 | `act/traverse_bodiless` | an action with no body takes part in the constraints | 11.3.1, 13.4.7 |
 | `act/compound_pre_post` | a compound's `pre_solve` then `post_solve` run before its activity | 13.4.12, 20.1.3 |
+| `act/symbol` | a symbol call is its body, each parameter its argument; its constraint is looked ahead to (32 seeds) | 11.7, 13.1.9 |
 
 A lookahead test has enough seeds that a tool choosing each value greedily
 fails it with near certainty. pssc checks that against its own calibration
 switch (no lookahead) on these seeds: Ex 183 fails on 9 of 32, Ex 184 on 11 of
-32, the activity constraint on 4 of 64 (`pssc/tests/compliance/
+32, the activity constraint on 4 of 64, the symbol on 27 of 32 (`pssc/tests/compliance/
 test_corpus_lookahead_calibrated.py`). Whether the choice is *random* enough (every
 instance in `comp_random`, every legal `a.val`) is a distribution question,
 phase 2 (§8).
