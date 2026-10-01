@@ -1,10 +1,20 @@
 """The checker (§6.4): decide whether one run's log is a legal execution.
 
 P1 scope. Stage 1 (outcome) and stage 2 (structure) cover activities built
-from traversals, ``seq`` and constant ``repeat``/``replicate``, and atomic ``body`` patterns
-(§6.7) built from ``seq``, ``repeat`` and ``chk`` leaves. Stage 3 is one SMT
-problem per run over the observed values; a run whose leaves are all exact
+from traversals, ``seq``, activity ``constraint`` statements and constant
+``repeat``/``replicate``, and atomic ``body`` patterns (§6.7) built from
+``seq``, ``repeat`` and ``chk`` leaves. An observer (``"role": "observer"``)
+prints an ``obs`` record; a ``"traced": false`` action prints none.
+
+Stage 3 is one SMT problem per run over the observed values. It walks the
+activity again: a traversal's ``label`` binds the handle to that occurrence,
+and entering a block or a loop iteration unbinds the handles traversed in it
+(LRM 13.4.8). A compound's constraints, a traversal's ``with`` and an
+activity ``constraint`` are asserted whenever every handle they name is
+bound, once per distinct set of occurrences. A compound's fields, and an
+untraced action's, are unobserved constants. A run whose leaves are all exact
 (``eq``) and whose actions have no constraints never starts the solver.
+
 Binding, inference and interleaving (P2/P3) are not implemented, and a model
 that needs them is an ERROR here rather than a silent PASS.
 """
@@ -238,31 +248,31 @@ def _match(test: Test, records: List[Record]) -> Tuple[List[str], Problem]:
     expected = _expand(test, test.root, depth=0)
     groups = _segment(records)
 
-    tag_to_type = {test.record_tag(t): t for t in expected}
-    got = [tag_to_type.get(g[0].tag, g[0].tag) for g in groups]
+    def what(rec: Record) -> Tuple[str, str]:
+        return rec.kind, rec.tag
+
     for i, want in enumerate(expected):
         if i >= len(groups):
             raise _Fail(f"trace ended after {len(groups)} action occurrence(s); "
                         f"expected occurrence #{i + 1} of {want!r}")
-        if got[i] != want:
+        if what(groups[i][0]) != (test.record_kind(want), test.record_tag(want)):
             raise _Fail(f"occurrence #{i + 1} is {groups[i][0].describe()}; "
-                        f"expected act {test.record_tag(want)!r}")
+                        f"expected {test.record_kind(want)} {test.record_tag(want)!r}")
     if len(groups) > len(expected):
         raise _Fail(f"unexpected occurrence: {groups[len(expected)][0].describe()}")
 
     problem = Problem()
-    for type_name, group in zip(expected, groups):
-        _check_occurrence(test, type_name, group, problem)
+    _Walk(test, groups, problem).root()
     return expected, problem
 
 
 def _expand(test: Test, type_name: str, depth: int) -> List[str]:
-    """The atomic action occurrences a traversal of *type_name* must produce, in order."""
+    """The traced atomic occurrences a traversal of *type_name* must produce, in order."""
     if depth > 32:
         raise ModelError(f"activity nesting too deep at {type_name!r}")
     t = test.type(type_name)
     if t.get("atomic", False):
-        return [type_name]
+        return [type_name] if test.traced(type_name) else []
     act = t.get("activity")
     if act is None:
         raise ModelError(f"compound {type_name!r} has no activity")
@@ -277,6 +287,8 @@ def _expand_node(test: Test, node: Dict[str, Any], depth: int) -> List[str]:
         for n in node["seq"]:
             out.extend(_expand_node(test, n, depth))
         return out
+    if "constraint" in node:
+        return []
     # `replicate` in a sequential scope is its body `count` times in
     # sequence (LRM 11.5.1), which is what a constant `repeat` is. A model
     # uses it only where that holds: not directly in parallel/schedule, and
@@ -291,12 +303,12 @@ def _expand_node(test: Test, node: Dict[str, Any], depth: int) -> List[str]:
 
 
 def _segment(records: List[Record]) -> List[List[Record]]:
-    """Split records into occurrences: each ``act`` and the ``chk`` and ``acc``
-    records after it (§4.12: in sequential code an access belongs to the most
-    recent ``act``, as a checkpoint does)."""
+    """Split records into occurrences: each ``act`` or ``obs`` and the ``chk``
+    and ``acc`` records after it (§4.12: in sequential code an access belongs
+    to the most recent ``act``, as a checkpoint does)."""
     groups: List[List[Record]] = []
     for r in records:
-        if r.kind == "act":
+        if r.kind in ("act", "obs"):
             groups.append([r])
         elif r.kind in ("chk", "acc"):
             if not groups:
@@ -317,32 +329,201 @@ def _field_sort(test: Test, spec) -> Tuple[Sort, bool]:
     return resolve_sort(spec["sort"], sorts), bool(spec.get("observe", True))
 
 
-def _check_occurrence(test: Test, type_name: str, group: List[Record],
-                      problem: Problem) -> None:
-    t = test.type(type_name)
-    act, recs = group[0], group[1:]
-    scope = Scope()
+def _labels(node: Dict[str, Any]) -> List[str]:
+    """The handles traversed in activity *node* and the blocks nested in it
+    -- not in the activities of the types it traverses."""
+    if "do" in node:
+        return [node["label"]] if node.get("label") else []
+    out: List[str] = []
+    for n in node.get("seq", []):
+        out.extend(_labels(n))
+    if "body" in node:
+        out.extend(_labels(node["body"]))
+    return out
 
-    fields = t.get("fields", {}) or {}
-    observed = {}
-    for name, spec in fields.items():
-        sort, obs = _field_sort(test, spec)
-        if obs:
-            observed[name] = sort
-        else:
-            scope.bind_symbol(name, problem.fresh(f"{type_name}.{name}", sort))
-    _check_keys(act, set(observed), f"act {act.tag}")
-    for name, sort in observed.items():
-        scope.bind_value(name, sort, _typed(act, name, sort))
 
-    for c in t.get("constraints", []) or []:
-        problem.add(c["smt"], scope, f"{type_name}: {c.get('pss', c['smt'])} ({act.describe()})")
+#: A name that is a handle of the occurrence, not traversed (yet, or since its
+#: block was entered): a constraint naming it is vacuous for now (13.4.8).
+_UNBOUND = object()
 
-    body = t.get("body")
-    pos = _match_body(test, body, recs, 0, scope, problem) if body else 0
-    if pos < len(recs):
-        raise _Fail(f"unexpected {recs[pos].kind} record in {type_name}: "
-                    f"{recs[pos].describe()}")
+
+@dc.dataclass
+class _Occ:
+    """One occurrence of an action: its fields' values (literals for observed
+    ones, solver constants otherwise) and, for a compound, the occurrence each
+    of its handles is bound to now."""
+
+    type_name: str
+    scope: Scope
+    labels: set
+    env: Dict[str, "_Occ"] = dc.field(default_factory=dict)
+
+    def lookup(self, path: str):
+        """*path*'s SMT term, ``_UNBOUND``, or None when it is not a name here."""
+        if path in self.scope.bindings:
+            return self.scope.bindings[path]
+        head, dot, rest = path.partition(".")
+        if head in self.labels:
+            occ = self.env.get(head)
+            if occ is None:
+                return _UNBOUND
+            if not dot:
+                raise ModelError(f"{self.type_name}: handle {head!r} used as a value")
+            return occ.lookup(rest)
+        return None
+
+
+@dc.dataclass
+class _Constraint:
+    """A constraint in force: a type's (``outer`` None) or a ``with`` (names
+    resolve in the traversed occurrence, then ``outer``; ``this.`` is outer).
+    It must hold for every set of occurrences its handles are bound to at
+    once (13.4.8), so it is asserted once per distinct instance."""
+
+    term: Dict[str, Any]
+    occ: _Occ
+    outer: Optional[_Occ]
+    what: str
+    seen: set = dc.field(default_factory=set)
+
+    def resolve(self, name: str):
+        if name.startswith("this."):
+            return (self.outer or self.occ).lookup(name[5:])
+        got = self.occ.lookup(name)
+        if got is None and self.outer is not None:
+            got = self.outer.lookup(name)
+        return got
+
+
+class _Walk:
+    """Stage 3's walk: the activity again, now with each traced occurrence's
+    records (stage 2 matched the structure). It binds handles as they are
+    traversed, resets them on entry to a block or loop iteration (13.4.8),
+    and asserts each constraint in force whenever its handles are all bound."""
+
+    def __init__(self, test: Test, groups: List[List[Record]], problem: Problem):
+        self.test = test
+        self.groups = groups
+        self.problem = problem
+        self.next = 0
+        self.active: List[_Constraint] = []
+        self.last: Optional[Record] = None
+
+    def root(self) -> None:
+        self.occurrence(self.test.root, None, None, [])
+
+    def occurrence(self, type_name: str, outer: Optional[_Occ],
+                   label: Optional[str], with_: List[Dict[str, Any]]) -> _Occ:
+        test, problem = self.test, self.problem
+        t = test.type(type_name)
+        atomic = t.get("atomic", False)
+        group = None
+        if atomic and test.traced(type_name):
+            group = self.groups[self.next]
+            self.next += 1
+            self.last = group[0]
+
+        scope = Scope()
+        observed = {}
+        for name, spec in (t.get("fields", {}) or {}).items():
+            sort, obs = _field_sort(test, spec)
+            if obs and group is not None:
+                observed[name] = sort
+            else:
+                scope.bind_symbol(name, problem.fresh(f"{type_name}.{name}", sort))
+        if group is not None:
+            act = group[0]
+            _check_keys(act, set(observed), f"{act.kind} {act.tag}")
+            for name, sort in observed.items():
+                scope.bind_value(name, sort, _typed(act, name, sort))
+
+        occ = _Occ(type_name, scope,
+                   set() if atomic else set(_labels(t.get("activity", {}))))
+        if outer is not None and label:
+            outer.env[label] = occ
+
+        mark = len(self.active)
+        for c in t.get("constraints", []) or []:
+            self.active.append(_Constraint(c, occ, None, type_name))
+        for c in with_:
+            self.active.append(_Constraint(
+                c, occ, outer, f"{outer.type_name if outer else '?'}: "
+                               f"{label or type_name} with"))
+        self.fire()
+
+        if group is not None:
+            recs = group[1:]
+            body = t.get("body")
+            pos = _match_body(test, body, recs, 0, scope, problem) if body else 0
+            if pos < len(recs):
+                raise _Fail(f"unexpected {recs[pos].kind} record in {type_name}: "
+                            f"{recs[pos].describe()}")
+        if not atomic:
+            self.node(t["activity"], occ, top=True)
+        del self.active[mark:]
+        return occ
+
+    def node(self, node: Dict[str, Any], occ: _Occ, top: bool = False) -> None:
+        if "do" in node:
+            self.occurrence(node["do"], occ, node.get("label"), node.get("with", []) or [])
+            return
+        if "seq" in node:
+            if not top:
+                self.reset(node, occ)
+            mark = len(self.active)
+            # An activity constraint holds in its whole block (13.1.9 b.3).
+            for n in node["seq"]:
+                for c in n.get("constraint", []) if "constraint" in n else []:
+                    self.active.append(_Constraint(c, occ, None, f"{occ.type_name}: activity"))
+            self.fire()
+            for n in node["seq"]:
+                if "constraint" not in n:
+                    self.node(n, occ)
+            del self.active[mark:]
+            return
+        if "constraint" in node:
+            mark = len(self.active)
+            for c in node["constraint"]:
+                self.active.append(_Constraint(c, occ, None, f"{occ.type_name}: activity"))
+            self.fire()
+            del self.active[mark:]
+            return
+        for kw in ("repeat", "replicate"):
+            if kw in node:
+                for _ in range(node[kw]["count"]):
+                    self.reset(node["body"], occ)
+                    self.node(node["body"], occ, top=True)
+                return
+
+    def reset(self, node: Dict[str, Any], occ: _Occ) -> None:
+        """Entry to an activity block: the handles traversed in it are
+        uninitialized again (13.4.8)."""
+        for lb in _labels(node):
+            occ.env.pop(lb, None)
+
+    def fire(self) -> None:
+        """Assert each constraint in force whose handles are all bound, once
+        per distinct instance."""
+        for c in self.active:
+            term = smt.parse(c.term["smt"])
+            env: Dict[str, str] = {}
+            vacuous = False
+            for name in smt.symbols(term):
+                got = c.resolve(name)
+                if got is _UNBOUND:
+                    vacuous = True
+                    break
+                if got is not None:
+                    env[name] = got
+            if vacuous:
+                continue
+            text = smt.unparse(smt.substitute(term, env))
+            if text in c.seen:
+                continue
+            c.seen.add(text)
+            where = f" ({self.last.describe()})" if self.last is not None else ""
+            self.problem.assert_term(
+                text, f"{c.what}: {c.term.get('pss', c.term['smt'])}{where}")
 
 
 def _check_keys(rec: Record, want: set, what: str) -> None:

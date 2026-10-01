@@ -1,0 +1,22 @@
+import std_pkg::*;
+
+// An activity constraint (13.1.9) holds in the block that encloses it. a is
+// traversed before the block, so a.val is chosen with lookahead to it: never
+// 15, which would leave no b.val.
+component pss_top {
+  action A {
+    rand bit[4] val;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A val=%u", val); }
+  }
+
+  action T {
+    A a, b;
+    activity {
+      a;
+      {
+        b;
+        constraint { b.val > a.val; }
+      }
+    }
+  }
+}

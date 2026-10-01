@@ -1,0 +1,25 @@
+import std_pkg::*;
+
+// After LRM Example 50: `do my_comp_c::A_a` runs in one of comp1, comp2 and
+// comp3, chosen at random (11.3.1 f, 13.4.5). Each instance is told apart by
+// its pct_id (§4.3), set by the parent in init_down.
+component my_comp_c {
+  int pct_id;
+  action A_a {
+    exec body { message(NONE, "@@PSS-TRACE act my_comp_c::A_a comp.pct_id=%d", comp.pct_id); }
+  }
+}
+
+component pss_top {
+  my_comp_c comp1, comp2, comp3;
+  exec init_down {
+    comp1.pct_id = 1;
+    comp2.pct_id = 2;
+    comp3.pct_id = 3;
+  }
+  action entry_a {
+    activity {
+      do my_comp_c::A_a;
+    }
+  }
+}

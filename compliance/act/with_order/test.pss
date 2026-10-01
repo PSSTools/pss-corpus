@@ -1,0 +1,28 @@
+import std_pkg::*;
+
+// LRM Example 142, with its illegal `a3 with { f == a4.f; }` replaced by a
+// legal one: an inline constraint may read a sibling already traversed (a2),
+// never one still to come. c2 equates a1.f with a4.f from outside any
+// scheduling context, so it holds although a4 is traversed last.
+component pss_top {
+  action A {
+    rand bit[4] f;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A f=%u", f); }
+  }
+
+  action B {
+    A a1, a2, a3, a4;
+    constraint c1 { a1.f in [8..15]; }
+    constraint c2 { a1.f == a4.f; }
+    activity {
+      a1;
+      a2 with {
+        f in [8..15];   // same effect as constraint c1 has on a1
+      };
+      a3 with {
+        f == a2.f;      // legal: a2 has been traversed
+      };
+      a4;
+    }
+  }
+}

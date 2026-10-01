@@ -153,10 +153,41 @@ wrong action -- a traversal that falls back to the first one -- prints
 | `act/multi_comp` | a traversal of an action declared in a sub-component | 11.3.1, 19.1.3 |
 
 Not yet covered, because the P1 checker does not reach it: `parallel`,
-`schedule` and `select` (they need interleavings and choices, checker P2);
-a bodiless action (it emits no `act` record, which the model has no way to
-say); a compound action's own `pre_solve`/`post_solve` (a `chk` before any
-`act` record is not accepted).
+`schedule` and `select` (they need interleavings and choices, checker P2).
+
+## Catalogue: activities, values and constraints (11 tests)
+
+Values chosen across an activity (LRM 13.4). A compound's constraint over
+its handles (`a.val < b.val`), a traversal's inline `with` and an activity
+`constraint` are judged on the occurrences the handles are bound to when the
+constraint is checked: a handle is bound when it is traversed and reset on
+entry to a block or loop iteration that traverses it again (13.4.8). A
+compound's own values are seen through an **observer** (`"role":
+"observer"`, an `obs` record, §4.4); an action with no `exec body` is
+`"traced": false` and prints nothing. `checker/tests/test_activity.py` holds a
+legal trace and constraint-breaking mutants for each.
+
+| Test | Proves | LRM |
+|---|---|---|
+| `act/solve_order` | sub-action values hold the parent's constraint, Ex 179 | 13.4.7 |
+| `act/lookahead` | `a.val` leaves room for `b.val` and `c.val`, Ex 183 (32 seeds) | 13.4.9 |
+| `act/solve_reset` | handles traversed in a loop are reset on each iteration, Ex 180 | 13.4.8 |
+| `act/lookahead_sub` | lookahead into a compound not yet traversed, Ex 184 (32 seeds) | 13.4.10 |
+| `act/with` | `with` names resolve in the sub-action first, then the parent; `this.` is the parent (after Ex 143) | 13.1.4 |
+| `act/with_order` | a `with` reads siblings already traversed; a member constraint over a later one holds (Ex 142, legal form) | 13.1.4 |
+| `act/constraint` | an activity constraint holds in its block, with lookahead (64 seeds) | 13.1.9, 13.4.9 |
+| `act/comp_random` | `do my_comp_c::A_a` runs in one of three instances (after Ex 50) | 11.3.1, 13.4.5, 9.1.5 |
+| `act/comp_steer` | `comp == this.comp.sub1` steers the traversal, Ex 143 | 13.1.4, 13.4.5 |
+| `act/traverse_bodiless` | an action with no body takes part in the constraints | 11.3.1, 13.4.7 |
+| `act/compound_pre_post` | a compound's `pre_solve` then `post_solve` run before its activity | 13.4.12, 20.1.3 |
+
+A lookahead test has enough seeds that a tool choosing each value greedily
+fails it with near certainty. pssc checks that against its own calibration
+switch (no lookahead) on these seeds: Ex 183 fails on 9 of 32, Ex 184 on 11 of
+32, the activity constraint on 4 of 64 (`pssc/tests/compliance/
+test_corpus_lookahead_calibrated.py`). Whether the choice is *random* enough (every
+instance in `comp_random`, every legal `a.val`) is a distribution question,
+phase 2 (§8).
 
 ## Catalogue: negative tests (5 tests)
 

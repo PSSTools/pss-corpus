@@ -1,0 +1,102 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.with.001",
+  "rev": 1,
+  "title": "Names in an inline with resolve in the traversed action first, then the parent; this. is the parent (Ex 143)",
+  "level": "L3",
+  "lrm": [
+    "13.1.4"
+  ],
+  "features": {
+    "tests": [
+      "activity.traverse.with"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.handle",
+      "activity.traverse.type",
+      "rand.field.scalar",
+      "observer"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::B",
+    "seeds": {
+      "count": 16
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "f": "u4",
+        "g": "u4"
+      }
+    },
+    "pss_top::ObsB": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "f": "u4",
+        "h": "u4"
+      },
+      "role": "observer"
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {
+        "f": "u4",
+        "h": "u4"
+      },
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "label": "a",
+            "with": [
+              {
+                "pss": "f < h",
+                "smt": "(bvult f h)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "g == this.f",
+                "smt": "(= g |this.f|)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::ObsB",
+            "with": [
+              {
+                "pss": "f == this.f",
+                "smt": "(= f |this.f|)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "h == this.h",
+                "smt": "(= h |this.h|)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

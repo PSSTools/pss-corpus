@@ -1,0 +1,36 @@
+import std_pkg::*;
+
+// A compound action has no exec body, so its solve-time blocks are observed
+// through attributes (§4.8) that an observer reports (§4.4). pre_solve runs
+// first, post_solve after T's own values are chosen, both before the
+// activity (13.4.12): sig is 0x12, and m is the solved n plus one.
+component pss_top {
+  action A {
+    rand bit[4] v;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A v=%u", v); }
+  }
+
+  action ObsT {
+    rand int sig;
+    rand bit[4] n;
+    rand int m;
+    exec body { message(NONE, "@@PSS-TRACE obs pss_top::ObsT sig=%d n=%u m=%d", sig, n, m); }
+  }
+
+  action T {
+    rand bit[4] n;
+    int sig;
+    int m;
+    constraint n > 3;
+    A a;
+    exec pre_solve { sig = 1; }
+    exec post_solve {
+      sig = sig * 16 + 2;
+      m = n + 1;
+    }
+    activity {
+      a with { v < this.n; };
+      do ObsT with { sig == this.sig; n == this.n; m == this.m; };
+    }
+  }
+}

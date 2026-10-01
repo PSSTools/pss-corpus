@@ -130,3 +130,38 @@ def test_unsupported_is_its_own_verdict(tmp_path):
     (d / "log.txt").write_text("")
     (d / "outcome.json").write_text(json.dumps({"outcome": "unsupported"}))
     assert check_run(t, str(d)).verdict == "UNSUPPORTED"
+
+
+def _action_text(src: str, name: str):
+    """The text of ``action <name> { ... }`` in *src*, braces matched, or None."""
+    import re
+    m = re.search(r"\baction\s+%s\b[^{;]*\{" % re.escape(name), src)
+    if not m:
+        return None
+    depth, i = 1, m.end()
+    while depth and i < len(src):
+        depth += {"{": 1, "}": -1}.get(src[i], 0)
+        i += 1
+    return src[m.start():i]
+
+
+UNTRACED = [(t, n) for t in TESTS for n, ty in t.model["types"].items()
+            if ty.get("traced", True) is False]
+
+
+def test_there_are_untraced_types():
+    assert UNTRACED
+
+
+@pytest.mark.parametrize("t,name", UNTRACED, ids=lambda x: getattr(x, "id", x))
+def test_an_untraced_type_has_no_exec_body(t, name):
+    """O7: `"traced": false` is only for an atomic action with no exec body.
+    One that has a body prints its act record, and the model would expect
+    none."""
+    assert t.model["types"][name].get("atomic"), name
+    short = name.split("::")[-1]
+    texts = [_action_text(open(s).read(), short) for s in t.sources]
+    texts = [x for x in texts if x]
+    assert texts, f"action {short} not found in {t.sources}"
+    for x in texts:
+        assert "exec body" not in x, x

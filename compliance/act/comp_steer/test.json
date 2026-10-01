@@ -1,0 +1,117 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.comp.steer.001",
+  "rev": 1,
+  "title": "comp == this.comp.sub1 in a with steers the traversal to that instance (Ex 143)",
+  "level": "L3",
+  "lrm": [
+    "13.1.4",
+    "13.4.5"
+  ],
+  "features": {
+    "tests": [
+      "activity.comp.steer"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.traverse.handle",
+      "activity.traverse.with",
+      "rand.field.scalar",
+      "exec.init_down",
+      "comp.pct_id",
+      "observer"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::B",
+    "seeds": {
+      "count": 16
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "subc::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "subc",
+      "fields": {
+        "comp.pct_id": "s32",
+        "f": "u4",
+        "g": "u4"
+      },
+      "constraints": [
+        {
+          "pss": "comp in {sub1, sub2}",
+          "smt": "(or (= |comp.pct_id| #x00000001) (= |comp.pct_id| #x00000002))",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::ObsB": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "f": "u4",
+        "h": "u4"
+      },
+      "role": "observer"
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {
+        "f": "u4",
+        "h": "u4"
+      },
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "subc::A",
+            "label": "a",
+            "with": [
+              {
+                "pss": "f < h",
+                "smt": "(bvult f h)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "g == this.f",
+                "smt": "(= g |this.f|)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "comp == this.comp.sub1",
+                "smt": "(= |comp.pct_id| #x00000001)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::ObsB",
+            "with": [
+              {
+                "pss": "f == this.f",
+                "smt": "(= f |this.f|)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "h == this.h",
+                "smt": "(= h |this.h|)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+import std_pkg::*;
+
+// LRM Example 183 (13.4.9). Choosing a.val without looking ahead to
+// `a.val < b.val; b.val < c.val` picks 14 or 15 one time in eight, and then
+// nothing is left for b.val. 32 seeds make a tool without lookahead fail
+// here with near certainty (a solve failure, or a trace that breaks abc_c).
+component pss_top {
+  action A {
+    rand bit[4] val;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A val=%u", val); }
+  }
+
+  action my_action {
+    A a, b, c;
+    constraint abc_c {
+      a.val < b.val;
+      b.val < c.val;
+    }
+    activity {
+      a;
+      b;
+      c;
+    }
+  }
+}

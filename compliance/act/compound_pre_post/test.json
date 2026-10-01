@@ -1,0 +1,122 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.compound.pre_post.001",
+  "rev": 1,
+  "title": "A compound action's pre_solve and post_solve run before its activity, in order, observed through an observer",
+  "level": "L3",
+  "lrm": [
+    "13.4.12",
+    "20.1.3"
+  ],
+  "features": {
+    "tests": [
+      "activity.compound.solve_exec"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "exec.pre_solve",
+      "exec.post_solve",
+      "activity.seq",
+      "activity.traverse.handle",
+      "activity.traverse.with",
+      "rand.field.scalar",
+      "observer"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 16
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "v": "u4"
+      }
+    },
+    "pss_top::ObsT": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "sig": "s32",
+        "n": "u4",
+        "m": "s32"
+      },
+      "role": "observer"
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {
+        "n": "u4",
+        "sig": "s32",
+        "m": "s32"
+      },
+      "constraints": [
+        {
+          "pss": "n > 3",
+          "smt": "(bvugt n #x3)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "sig == 0x12 (pre_solve, then post_solve)",
+          "smt": "(= sig #x00000012)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "m == n + 1 (post_solve sees the solved n)",
+          "smt": "(= m (bvadd ((_ zero_extend 28) n) #x00000001))",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "label": "a",
+            "with": [
+              {
+                "pss": "v < this.n",
+                "smt": "(bvult v |this.n|)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::ObsT",
+            "with": [
+              {
+                "pss": "sig == this.sig",
+                "smt": "(= sig |this.sig|)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "n == this.n",
+                "smt": "(= n |this.n|)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "m == this.m",
+                "smt": "(= m |this.m|)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

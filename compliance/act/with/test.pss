@@ -1,0 +1,33 @@
+import std_pkg::*;
+
+// LRM 13.1.4, after Example 143 (fields narrowed to bit[4], and no comp):
+// in `a with { ... }` an unqualified name is the sub-action's when it has
+// one, else the containing action's; `this.f` is the containing action's f,
+// which the sub-action's f shadows. B is compound and prints nothing, so its
+// f and h are reported by an observer tied to them by `with` (§4.4).
+component pss_top {
+  action A {
+    rand bit[4] f;
+    rand bit[4] g;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A f=%u g=%u", f, g); }
+  }
+
+  action ObsB {
+    rand bit[4] f;
+    rand bit[4] h;
+    exec body { message(NONE, "@@PSS-TRACE obs pss_top::ObsB f=%u h=%u", f, h); }
+  }
+
+  action B {
+    rand bit[4] f;
+    rand bit[4] h;
+    A a;
+    activity {
+      a with {
+        f < h;        // sub-action's f, containing action's h
+        g == this.f;  // sub-action's g, containing action's f
+      };
+      do ObsB with { f == this.f; h == this.h; };
+    }
+  }
+}

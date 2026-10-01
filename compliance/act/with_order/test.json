@@ -1,0 +1,98 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.with.order.001",
+  "rev": 1,
+  "title": "An inline with applies to its traversal and reads siblings already traversed (Ex 142, legal form)",
+  "level": "L3",
+  "lrm": [
+    "13.1.4"
+  ],
+  "features": {
+    "tests": [
+      "activity.traverse.with.order"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.handle",
+      "rand.field.scalar",
+      "constraint.handle",
+      "constraint.in"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::B",
+    "seeds": {
+      "count": 16
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "f": "u4"
+      }
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [
+        {
+          "pss": "a1.f in [8..15]",
+          "smt": "(bvuge |a1.f| #x8)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "a1.f == a4.f",
+          "smt": "(= |a1.f| |a4.f|)",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "label": "a1"
+          },
+          {
+            "do": "pss_top::A",
+            "label": "a2",
+            "with": [
+              {
+                "pss": "f in [8..15]",
+                "smt": "(bvuge f #x8)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "label": "a3",
+            "with": [
+              {
+                "pss": "f == a2.f",
+                "smt": "(= f |a2.f|)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "label": "a4"
+          }
+        ]
+      }
+    }
+  }
+}

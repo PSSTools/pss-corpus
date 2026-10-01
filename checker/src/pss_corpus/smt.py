@@ -124,6 +124,22 @@ def _bare(sym: str) -> str:
     return sym[1:-1] if sym.startswith("|") and sym.endswith("|") else sym
 
 
+def symbols(s: Sexp) -> List[str]:
+    """Every atom of *s*, bare (``|a.val|`` as ``a.val``), once each, in order.
+    Operators and literals are among them; a caller keeps the ones it can
+    resolve as names."""
+    out: List[str] = []
+
+    def walk(x):
+        if isinstance(x, list):
+            for y in x:
+                walk(y)
+        elif _bare(x) not in out:
+            out.append(_bare(x))
+    walk(s)
+    return out
+
+
 def substitute(s: Sexp, env: Dict[str, str]) -> Sexp:
     """Replace every symbol named in *env* (``|x|`` and ``x`` alike)."""
     if isinstance(s, list):
@@ -168,7 +184,11 @@ class Problem:
         return sym
 
     def add(self, smt: str, scope: Scope, label: str) -> None:
-        self.asserts.append((unparse(substitute(parse(smt), scope.bindings)), label))
+        self.assert_term(unparse(substitute(parse(smt), scope.bindings)), label)
+
+    def assert_term(self, text: str, label: str) -> None:
+        """Assert *text*, already closed over this problem's constants."""
+        self.asserts.append((text, label))
 
     def script(self) -> str:
         """The problem as SMT-LIB2. Assertion *i* is guarded by the Boolean

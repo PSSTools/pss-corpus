@@ -1,0 +1,79 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.lookahead.001",
+  "rev": 1,
+  "title": "Lookahead: a.val is chosen so that b.val and c.val still have values (Ex 183)",
+  "level": "L3",
+  "lrm": [
+    "13.4.9"
+  ],
+  "features": {
+    "tests": [
+      "activity.solve.lookahead"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.handle",
+      "rand.field.scalar",
+      "constraint.handle"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::my_action",
+    "seeds": {
+      "count": 32
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "val": "u4"
+      }
+    },
+    "pss_top::my_action": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [
+        {
+          "pss": "a.val < b.val",
+          "smt": "(bvult |a.val| |b.val|)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "b.val < c.val",
+          "smt": "(bvult |b.val| |c.val|)",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "label": "a"
+          },
+          {
+            "do": "pss_top::A",
+            "label": "b"
+          },
+          {
+            "do": "pss_top::A",
+            "label": "c"
+          }
+        ]
+      }
+    }
+  }
+}

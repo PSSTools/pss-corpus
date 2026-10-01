@@ -1,0 +1,43 @@
+import std_pkg::*;
+
+// LRM Example 143 (fields narrowed to bit[4]): `comp == this.comp.sub1` puts
+// the traversal of subc::A in sub1, though sub2 is a candidate too. The
+// instance is reported by pct_id (§4.3); B's f and h by an observer (§4.4).
+component subc {
+  int pct_id;
+  action A {
+    rand bit[4] f;
+    rand bit[4] g;
+    exec body {
+      message(NONE, "@@PSS-TRACE act subc::A comp.pct_id=%d f=%u g=%u", comp.pct_id, f, g);
+    }
+  }
+}
+
+component pss_top {
+  subc sub1, sub2;
+  exec init_down {
+    sub1.pct_id = 1;
+    sub2.pct_id = 2;
+  }
+
+  action ObsB {
+    rand bit[4] f;
+    rand bit[4] h;
+    exec body { message(NONE, "@@PSS-TRACE obs pss_top::ObsB f=%u h=%u", f, h); }
+  }
+
+  action B {
+    rand bit[4] f;
+    rand bit[4] h;
+    subc::A a;
+    activity {
+      a with {
+        f < h;                  // sub-action's f, containing action's h
+        g == this.f;            // sub-action's g, containing action's f
+        comp == this.comp.sub1; // sub-action runs in sub1
+      };
+      do ObsB with { f == this.f; h == this.h; };
+    }
+  }
+}

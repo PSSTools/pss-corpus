@@ -1,0 +1,29 @@
+import std_pkg::*;
+
+// Q has no exec body, so it prints nothing (the model marks it
+// "traced": false). Its value still sits between a's and b's: b.v must
+// exceed a.v by at least 2.
+component pss_top {
+  action A {
+    rand bit[4] v;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A v=%u", v); }
+  }
+
+  action Q {
+    rand bit[4] w;
+  }
+
+  action T {
+    A a, b;
+    Q q;
+    constraint {
+      a.v < q.w;
+      q.w < b.v;
+    }
+    activity {
+      a;
+      q;
+      b;
+    }
+  }
+}

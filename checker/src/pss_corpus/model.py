@@ -113,6 +113,19 @@ class Test:
         rec = self.model.get("records", {}).get(type_name)
         return rec["tag"] if rec else type_name
 
+    def record_kind(self, type_name: str) -> str:
+        """``act``, or ``obs`` for an observer (§4.4: ``"role": "observer"``)."""
+        rec = self.model.get("records", {}).get(type_name)
+        if rec and "kind" in rec:
+            return rec["kind"]
+        return "obs" if self.type(type_name).get("role") == "observer" else "act"
+
+    def traced(self, type_name: str) -> bool:
+        """Does an occurrence of atomic *type_name* print a record? A type
+        with no ``exec body`` is ``"traced": false`` (O7): it takes part in
+        the structure and the constraints, and consumes no record."""
+        return bool(self.type(type_name).get("traced", True))
+
 
 def find_lib(test_path: str, name: str) -> str:
     """The file of library *name*: ``lib/<name>.pss`` in the nearest directory

@@ -1,0 +1,26 @@
+import std_pkg::*;
+
+// LRM Example 180 (13.4.8). b and c are uninitialized again on entry to each
+// iteration: abc_c holds within an iteration and against a, but the second
+// iteration's b.x need not exceed the first iteration's c.x.
+component pss_top {
+  action A {
+    rand bit[4] x;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A x=%u", x); }
+  }
+
+  action my_action {
+    A a, b, c;
+    constraint abc_c {
+      a.x < b.x;
+      b.x < c.x;
+    }
+    activity {
+      a;
+      repeat (2) {
+        b;
+        c; // at this point constraint 'abc_c' shall hold non-vacuously
+      }
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.traverse.bodiless.001",
+  "rev": 1,
+  "title": "An action with no exec body takes part in the activity's constraints",
+  "level": "L3",
+  "lrm": [
+    "11.3.1",
+    "13.4.7"
+  ],
+  "features": {
+    "tests": [
+      "activity.traverse.bodiless"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.handle",
+      "rand.field.scalar",
+      "constraint.handle"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 16
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "v": "u4"
+      }
+    },
+    "pss_top::Q": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "w": "u4"
+      },
+      "traced": false
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [
+        {
+          "pss": "a.v < q.w",
+          "smt": "(bvult |a.v| |q.w|)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "q.w < b.v",
+          "smt": "(bvult |q.w| |b.v|)",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "label": "a"
+          },
+          {
+            "do": "pss_top::Q",
+            "label": "q"
+          },
+          {
+            "do": "pss_top::A",
+            "label": "b"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.comp.random.001",
+  "rev": 1,
+  "title": "A traversal of a sub-component's action runs in one of its instances (Ex 50)",
+  "level": "L3",
+  "lrm": [
+    "11.3.1",
+    "13.4.5",
+    "9.1.5"
+  ],
+  "features": {
+    "tests": [
+      "activity.comp.random"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.traverse.type",
+      "comp.instance.array",
+      "exec.init_down",
+      "comp.pct_id"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::entry_a",
+    "seeds": {
+      "count": 16
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "my_comp_c::A_a": {
+      "kind": "action",
+      "atomic": true,
+      "component": "my_comp_c",
+      "fields": {
+        "comp.pct_id": "s32"
+      },
+      "constraints": [
+        {
+          "pss": "comp in {comp1, comp2, comp3}",
+          "smt": "(or (= |comp.pct_id| #x00000001) (= |comp.pct_id| #x00000002) (= |comp.pct_id| #x00000003))",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::entry_a": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "do": "my_comp_c::A_a"
+      }
+    }
+  }
+}

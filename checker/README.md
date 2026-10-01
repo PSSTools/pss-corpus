@@ -40,9 +40,12 @@ Verdicts depend on the standard library and an SMT solver (z3) only -- never on
 pssparser, pssc or dv-solve. A run whose expectations are all exact (`eq`) never
 starts the solver.
 
-P1 scope: activities of traversals, `seq` and constant `repeat`; body patterns of
-`seq`, `repeat` and `chk` leaves (`eq`, or `fields` + `where`). Anything else in a
-model is an ERROR, never a silent PASS.
+P1 scope: activities of traversals (with `label` and `with`), `seq`, activity
+`constraint` statements and constant `repeat`/`replicate`; constraints of
+compound actions over their handles, bound to the occurrences the handles name
+(LRM 13.4.8); observers (`obs` records) and untraced (`"traced": false`)
+actions; body patterns of `seq`, `repeat` and `chk` leaves (`eq`, or `fields` +
+`where`). Anything else in a model is an ERROR, never a silent PASS.
 
 Tests: `python -m pytest tests` from this directory. `tests/perfect_tool.py` is
 an always-right adapter built from the models, used to round-trip bundles.

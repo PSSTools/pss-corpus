@@ -1,0 +1,89 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.solve.reset.001",
+  "rev": 1,
+  "title": "Handles traversed in a loop are reset on each iteration (Ex 180)",
+  "level": "L3",
+  "lrm": [
+    "13.4.8"
+  ],
+  "features": {
+    "tests": [
+      "activity.handle.reset"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.repeat",
+      "activity.traverse.handle",
+      "rand.field.scalar",
+      "constraint.handle"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::my_action",
+    "seeds": {
+      "count": 16
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "x": "u4"
+      }
+    },
+    "pss_top::my_action": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [
+        {
+          "pss": "a.x < b.x",
+          "smt": "(bvult |a.x| |b.x|)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "b.x < c.x",
+          "smt": "(bvult |b.x| |c.x|)",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "label": "a"
+          },
+          {
+            "repeat": {
+              "count": 2
+            },
+            "body": {
+              "seq": [
+                {
+                  "do": "pss_top::A",
+                  "label": "b"
+                },
+                {
+                  "do": "pss_top::A",
+                  "label": "c"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+import std_pkg::*;
+
+// LRM Example 179: a tool might assign a.val=2, b.val=4, c.val=7.
+component pss_top {
+  action A {
+    rand bit[4] val;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A val=%u", val); }
+  }
+
+  action my_action {
+    A a, b, c;
+    constraint abc_c {
+      a.val < b.val;
+      b.val < c.val;
+    }
+    activity {
+      a;
+      b;
+      c;
+    }
+  }
+}
