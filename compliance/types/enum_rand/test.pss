@@ -1,0 +1,28 @@
+import std_pkg::*;
+
+// A rand enum attribute holds one of its items (7.5; 7.12.1 e: "the domain of
+// a field of enum type consists of the values of the enum type"): implicit
+// values, sparse explicit ones and negative ones, in an action and in a
+// struct, alone and beside other constraints.
+enum op_e     { OP_READ, OP_WRITE, OP_FLUSH }
+enum sparse_e { X = 1, Y = 5, Z = 9 }
+enum neg_e    { NEG = -3, ZERO = 0, POS = 4 }
+
+struct desc_s {
+  rand op_e   op;
+  rand bit[4] n;
+}
+
+component pss_top {
+  action A {
+    rand op_e     op;
+    rand sparse_e sp;
+    rand neg_e    ng;
+    rand desc_s   d;
+    constraint { ng != ZERO; d.n > 2; }
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A op=%d sp=%d ng=%d d.op=%d d.n=%u",
+              (int)op, (int)sp, (int)ng, (int)d.op, d.n);
+    }
+  }
+}

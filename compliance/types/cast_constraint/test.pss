@@ -1,0 +1,30 @@
+import std_pkg::*;
+
+// A cast in a constraint (7.12) is an assignment-like context (8.7.2): a
+// cast wider than its operand widens the operand's evaluation, and the value
+// is then truncated or extended to the cast's type and read at its
+// signedness. hi is the high byte of the 16-bit product, which an 8-bit
+// `a * b` would lose; the low nibble of x is 5; bit 7 of x is set, which is
+// what (int[8])x < 0 says; and an enum is read as its value.
+enum op_e { OP_READ, OP_WRITE, OP_FLUSH }
+
+component pss_top {
+  action A {
+    rand bit[8]  a;
+    rand bit[8]  b;
+    rand bit[8]  hi;
+    rand bit[16] x;
+    rand op_e    op;
+    constraint {
+      hi == (bit[8])(((bit[16])(a * b)) >> 8);
+      hi > 10;
+      (bit[4])x == 5;
+      (int[8])x < 0;
+      (bit[8])op != 1;
+    }
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A a=%u b=%u hi=%u x=%u op=%d",
+              a, b, hi, x, (int)op);
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.literal.type.001",
+  "rev": 1,
+  "title": "A literal's spelling types it: hex is unsigned, decimal signed, a sized literal its size",
+  "level": "L2",
+  "lrm": [
+    "4.6.1",
+    "8.7.1"
+  ],
+  "features": {
+    "tests": [
+      "types.literal.type"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 64
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "x": "s8",
+        "y": "s8",
+        "z": "s8"
+      },
+      "constraints": [
+        {
+          "pss": "x < 0x10",
+          "smt": "(bvult ((_ sign_extend 24) x) #x00000010)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "y < 16",
+          "smt": "(bvslt ((_ sign_extend 24) y) #x00000010)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "z > 8'h80",
+          "smt": "(bvugt z #x80)",
+          "smt_source": "hand"
+        }
+      ]
+    }
+  }
+}

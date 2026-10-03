@@ -190,6 +190,18 @@ test_corpus_lookahead_calibrated.py`). Whether the choice is *random* enough (ev
 instance in `comp_random`, every legal `a.val`) is a distribution question,
 phase 2 (§8).
 
+## Catalogue: values in an atomic action's constraints (3 tests)
+
+Rand attributes of one atomic action, judged against its constraints on
+every seed. Each is chosen so that a tool that gets the rule wrong breaks a
+constraint on most seeds, not just on a rare one.
+
+| Test | Proves | LRM |
+|---|---|---|
+| `types/enum_rand` | a rand enum holds one of its items: implicit, sparse and negative values, in an action and in a struct, beside other constraints (64 seeds) | 7.5, 7.12.1 e |
+| `types/cast_constraint` | a widening cast widens its operand (`(bit[16])(a * b)` keeps the high byte), a narrowing one truncates, a signed one reinterprets, an enum cast reads its value (64 seeds) | 7.12, 8.7.2 |
+| `types/literal_type` | a literal's spelling types it: `x < 0x10` compares unsigned, `y < 16` signed, `z > 8'h80` at 8 bits (64 seeds) | 4.6.1, 8.7.1 |
+
 ## Catalogue: negative tests (5 tests)
 
 Each must be rejected (`compile_error`) with an error at a stated line. They

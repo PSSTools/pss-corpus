@@ -1,0 +1,81 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.enum.rand.001",
+  "rev": 1,
+  "title": "A rand enum attribute holds one of its items: implicit, sparse and negative values, in an action and a struct",
+  "level": "L1",
+  "lrm": [
+    "7.5",
+    "7.12"
+  ],
+  "features": {
+    "tests": [
+      "types.enum.rand"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "types.enum.cast",
+      "rand.field.scalar",
+      "rand.field.struct"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 64
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "op": "s32",
+        "sp": "s32",
+        "ng": "s32",
+        "d.op": "s32",
+        "d.n": "u4"
+      },
+      "constraints": [
+        {
+          "pss": "op in {OP_READ, OP_WRITE, OP_FLUSH}",
+          "smt": "(or (= op #x00000000) (= op #x00000001) (= op #x00000002))",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "sp in {X, Y, Z}",
+          "smt": "(or (= sp #x00000001) (= sp #x00000005) (= sp #x00000009))",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "ng in {NEG, ZERO, POS}",
+          "smt": "(or (= ng #xfffffffd) (= ng #x00000000) (= ng #x00000004))",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "ng != ZERO",
+          "smt": "(not (= ng #x00000000))",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "d.op in {OP_READ, OP_WRITE, OP_FLUSH}",
+          "smt": "(or (= |d.op| #x00000000) (= |d.op| #x00000001) (= |d.op| #x00000002))",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "d.n > 2",
+          "smt": "(bvugt |d.n| #x2)",
+          "smt_source": "hand"
+        }
+      ]
+    }
+  }
+}

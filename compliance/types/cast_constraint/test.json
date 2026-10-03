@@ -1,0 +1,81 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.cast.constraint.001",
+  "rev": 1,
+  "title": "Casts in constraints: a widening cast widens its operand, a narrowing one truncates, a signed one reinterprets",
+  "level": "L2",
+  "lrm": [
+    "7.12",
+    "8.7.1",
+    "8.7.2"
+  ],
+  "features": {
+    "tests": [
+      "constraint.cast"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "rand.field.scalar",
+      "types.enum.cast"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 64
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "a": "u8",
+        "b": "u8",
+        "hi": "u8",
+        "x": "u16",
+        "op": "s32"
+      },
+      "constraints": [
+        {
+          "pss": "hi == (bit[8])(((bit[16])(a * b)) >> 8)",
+          "smt": "(= hi ((_ extract 15 8) (bvmul ((_ zero_extend 8) a) ((_ zero_extend 8) b))))",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "hi > 10",
+          "smt": "(bvugt hi #x0a)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "(bit[4])x == 5",
+          "smt": "(= ((_ extract 3 0) x) #x5)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "(int[8])x < 0",
+          "smt": "(bvslt ((_ sign_extend 24) ((_ extract 7 0) x)) #x00000000)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "op in {OP_READ, OP_WRITE, OP_FLUSH}",
+          "smt": "(or (= op #x00000000) (= op #x00000001) (= op #x00000002))",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "(bit[8])op != 1",
+          "smt": "(not (= op #x00000001))",
+          "smt_source": "hand"
+        }
+      ]
+    }
+  }
+}

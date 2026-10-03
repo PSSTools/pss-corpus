@@ -1,0 +1,22 @@
+import std_pkg::*;
+
+// An integer literal's type comes from its spelling (4.6.1, Table 21) and
+// decides the comparison it is part of (Table 22): an unsized hex literal is
+// an unsigned bit[32], so x < 0x10 compares unsigned and no negative x meets
+// it; the decimal 16 is a signed int, so y < 16 admits negative y; and the
+// sized 8'h80 makes z > 8'h80 an 8-bit unsigned comparison.
+component pss_top {
+  action A {
+    rand int[8] x;
+    rand int[8] y;
+    rand int[8] z;
+    constraint {
+      x < 0x10;
+      y < 16;
+      z > 8'h80;
+    }
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A x=%d y=%d z=%d", x, y, z);
+    }
+  }
+}
