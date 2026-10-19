@@ -1,7 +1,7 @@
 {
   "schema": "pss-corpus/model/1.0",
   "id": "act.constraint.001",
-  "rev": 1,
+  "rev": 2,
   "title": "An activity constraint holds in its block, and earlier traversals look ahead to it",
   "level": "L3",
   "lrm": [
@@ -27,7 +27,7 @@
   "run": {
     "root": "pss_top::T",
     "seeds": {
-      "count": 64
+      "count": 128
     }
   },
   "expect": {
