@@ -9,7 +9,8 @@
 //   - `super.<name>` reaching a base field the derived type shadows, in a
 //     constraint and in an exec block
 //   - `super.<name>(args)` calling a base component's instance function
-//     that the derived component shadows with a different signature
+//     that the derived component shadows (LRM 20.2: the shadowing function
+//     has the same return type and arguments)
 
 import std_pkg::*;
 
@@ -18,7 +19,7 @@ component base_c {
 }
 
 component der_c : base_c {
-    function int scale() { return super.scale(4) + 1; }
+    function int scale(int v) { return super.scale(v) + 1; }
 
     action A {
         int a;
