@@ -741,3 +741,149 @@ value shows up immediately or not at all.
 | `M3` — proof of safety | `CM2` |
 | `X-5` — dogfooding | `CR5` |
 | `formatter.md` §7.8 | §3.2, `C-21`, `CQ-4` |
+
+---
+
+## 11. Executable-tier tests for full PSS on bc (pssc plan F0.5)
+
+pssc's full-PSS plan (`docs/design/full-pss-implementation-plan.md` in pssc) takes the bc
+pipeline from the subset that runs today to the whole language, phase by phase (F1–F11). Each
+phase lands with executable-tier tests here, so the corpus says what "done" means rather than
+pssc's own unit tests. This section is the list. Directories `act/`, `comp/`, `L0-*`, `lib/`,
+`neg/`, `proc/`, `sync/` and `types/` exist; `constraint/`, `cov/`, `mem/`, `flow/`, `res/`,
+`infer/` and `mon/` are new. Test ids below are paths under the executable tier, without `.pss`.
+
+### 11.1 Checker features the tests need
+
+The checker today adjudicates P1 only (`check.py`: binding, inference and interleaving are not
+implemented) and ignores `distribution[]`. Tests that need more name a checker feature; they are
+written with the phase but stay xfail until the feature lands.
+
+| Id | Checker feature | Builds on (`COMPLIANCE-DESIGN.md`) |
+|---|---|---|
+| `CF-dist` | Evaluate `distribution[]`: fixed seed list, chi-square / total-variation per the sampling plan | §8.2–§8.4 |
+| `CF-cov` | Read a functional-coverage export and compare hit bins with expected bins (new `expect.coverage`). **Done:** `coverage.json` (`pss-corpus/coverage/1.0`), `check.py` `_check_coverage`, self-tests `checker/tests/test_coverage.py` | §6.2 schema, extended; §9.1 taxonomy names the features |
+| `CF-P2` | Binding and inference matcher, witness check by SMT, plan adjudication (pssc F8.3) | §6.4, §6.5 |
+| `CF-res` | `lock`/`share` exclusivity over concurrent spans | §4.9 (yield ladders), §6.4 rule on resource exclusion |
+| `CF-mem` | Claim overlap and region checks from `acc` records | §4.12, §6.8 |
+| `CF-mon` | Monitor and `cover` statement outcomes (matched / not matched, with counts) | §4.5 observability, extended |
+| `CF-err` | Expected located run-time error (kind and source line) as an outcome | §5 adapter outcome, §6.4 step 1 |
+
+### 11.2 Tests per pssc phase
+
+**F1 — foundations and the simulation lane**
+
+| Test | What it pins | LRM | Checker |
+|---|---|---|---|
+| `proc/run_start_end` | `pre_solve`/`post_solve`/`body` order around the root activation, with `run_start`/`run_end` | §22.1 | P1 |
+
+**F2 — actions in simulation**
+
+| Test | What it pins | LRM | Checker |
+|---|---|---|---|
+| `act/export_action_params` | exported action's parameters reach the target | §22.4 | P1 |
+
+**F3 — randomization**
+
+| Test | What it pins | LRM | Checker |
+|---|---|---|---|
+| `constraint/soft_priority_decl` | later soft constraint wins in one declaration | §16.1.12 | P1 |
+| `constraint/soft_priority_extension` | soft constraint in an extension beats the base | §16.1.12 | P1 |
+| `constraint/soft_priority_with` | inline `with` soft beats the type's soft | §16.1.12 | P1 |
+| `constraint/soft_priority_activity` | activity-level soft constraint priority | §16.1.12 | P1 |
+| `constraint/dist_weights` | `dist` with `:=` weights | §16.1.11 | `CF-dist` |
+| `constraint/dist_ranges` | `dist` with `:/` on ranges | §16.1.11 | `CF-dist` |
+| `constraint/unique_array` | `unique` over array elements | §16.1.8 | P1 |
+| `constraint/forall_actions` | `forall` over action instances in an activity | §16.1.7 | P1 |
+| `constraint/super_field` | `super.` field access in an extended constraint (sweep ex284) | §16.1 | P1 |
+| `proc/randomize_with` | procedural `randomize ... with` | §22.7.8 | P1 |
+| `proc/randomize_unsat` | unsatisfiable `randomize` is a located error | §22.7.8 | `CF-err` |
+
+**F4 — functional coverage** (new dir `cov/`)
+
+| Test | What it pins | LRM | Checker |
+|---|---|---|---|
+| `cov/action_cg_post_solve` | action covergroup sampled after solve | §19.1 | `CF-cov` |
+| `cov/struct_cg_sample` | struct covergroup sampled when the struct is randomized (explicit `sample()` still to write) | §19.1 | `CF-cov` |
+| `cov/bins_forms` | value, range, array and `default` bins | §19.3 | `CF-cov` |
+| `cov/cross` | cross of two coverpoints | §19.4 | `CF-cov` |
+| `cov/iff` | `iff` guard suppresses samples | §19.2 | `CF-cov` |
+| `cov/options` | `per_instance`, `at_least`, `weight` options | §19.6 | `CF-cov` |
+| `cov/illegal_bin` | hit illegal bin is a run-time error | §19.3 | `CF-cov` + `CF-err` |
+
+**F5 — host ABI v2: concurrency, events, observation**
+
+| Test | What it pins | LRM | Checker |
+|---|---|---|---|
+| `sync/executor_claim` | executor claim picks an executor of the group | §24.3 | P1 |
+| `sync/executor_group` | executor groups and their trait constraints | §24.3 | P1 |
+| `sync/import_in_component` | import function declared in a component (sweep ex289) | §22.4 | P1 |
+
+**F6 — data types and value ABI**
+
+| Test | What it pins | LRM | Checker |
+|---|---|---|---|
+| `types/array_index` | fixed array index read/write | §8.8 | P1 |
+| `types/array_oob` | out-of-bounds index is a located error | §8.8 | `CF-err` |
+| `constraint/foreach_array` | `foreach` constraint over an array | §16.1.6 | P1 |
+| `constraint/rand_array_size` | random-sized list, size distribution | §8.8, §16.1 | `CF-dist` |
+| `types/string_ops` | string comparison, concatenation, `size()` | §8.6 | P1 |
+| `types/struct_across_import` | struct passed to and from an import function | §22.4 | P1 |
+| `proc/import_arity_4` | import function with four or more parameters | §22.4 | P1 |
+| `types/float_ops` | `float32`/`float64` arithmetic and casts | §8.10 | P1 |
+| `types/chandle_pass` | `chandle` round trip through the host | §8.9 | P1 |
+| `types/ref_fields` | reference types and `null` | §8.11 | P1 |
+| `types/collections` | `list`, `set`, `map` methods | §8.8 | P1 |
+| `types/triple_quoted` | triple-quoted string literal | §4.4 | P1 |
+| `proc/exp_operator` | `**` operator | §9.5 | P1 |
+| `proc/call_before_decl` | call to a function declared later in the file (ex262) | §22.2 | P1 |
+
+**F7 — memory: address spaces and claims** (new dir `mem/`)
+
+| Test | What it pins | LRM | Checker |
+|---|---|---|---|
+| `mem/claim_alloc` | `transparent_addr_claim_s` allocation in a region | §24.4 | `CF-mem` |
+| `mem/claim_overlap` | concurrent claims never overlap | §24.4 | `CF-mem` |
+| `mem/handles` | `addr_handle_t`, `make_handle_from_claim`, offsets | §24.5 | `CF-mem` |
+| `mem/packed_rw` | `read_struct`/`write_struct` of a packed struct | §24.6 | `CF-mem` |
+| `mem/sizeof_s` | `sizeof_s<>` of struct types | §24.6 | P1 |
+
+**F8 — activities completeness, planner v0**
+
+| Test | What it pins | LRM | Checker |
+|---|---|---|---|
+| `act/schedule_ordered` | `schedule` respects flow ordering | §13.3.7 | `CF-P2` |
+| `act/join_select` | `par` with `join_select(n)` | §13.3.6 | `CF-P2` |
+| `act/join_branch` | `par` with `join_branch` | §13.3.6 | `CF-P2` |
+| `act/select_feasible` | `select` drops infeasible branches | §13.3.4 | P1 |
+| `act/while` | `while` / `repeat ... while` | §13.3.3 | P1 |
+| `act/foreach` | activity `foreach` over a collection | §13.3.3 | P1 |
+| `act/sched_constraint` | scheduling constraints (`sequence`, `parallel`) | §13.4 | `CF-P2` |
+| `act/override_type` | type `override` | §20.2 | P1 |
+| `act/override_instance` | instance `override` | §20.2 | P1 |
+| `act/extend_in_package` | `extend` of a type in another package | §20.1 | P1 |
+| `flow/stream_pair` | stream objects bind producer and consumer in parallel | §14.4 | `CF-P2` |
+| `res/lock_share_concurrent` | `lock`/`share` exclusion under `par` | §15.2 | `CF-res` |
+| `res/claim_array` | array of resource claims | §15.1 | `CF-res` + `CF-P2` |
+
+**F9 — inference** (new dir `infer/`)
+
+| Test | What it pins | LRM | Checker |
+|---|---|---|---|
+| `infer/buffer_producer` | missing buffer producer is inferred | §18.2 | `CF-P2` |
+| `infer/state_chain` | state object chain inferred to reach a constraint | §18.2 | `CF-P2` |
+| `infer/stream_pair` | stream partner inferred | §18.2 | `CF-P2` |
+| `infer/pool_bind` | pool binding limits what may be inferred | §17.1 | `CF-P2` |
+| `infer/prev_uid` | `prev` state reference across inferred actions (ex170) | §14.3 | `CF-P2` |
+
+**F11 — monitors and cover statements** (new dir `mon/`)
+
+| Test | What it pins | LRM | Checker |
+|---|---|---|---|
+| `mon/monitor_sequence` | monitor matches a sequence of actions | §13.6 | `CF-mon` |
+| `mon/monitor_concat` | `concat` in a monitor activity | §13.6 | `CF-mon` |
+| `mon/cover_statement` | `cover` statement counts matches | §13.6 | `CF-mon` |
+
+F10 (checking and attribution in simulation) adds no new tests: it runs the tests above under
+simulation. LRM numbers are for PSS 3.0 and are a first cut; each test confirms its clause when
+it is written.

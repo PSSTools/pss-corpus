@@ -113,6 +113,7 @@ are the next batch (§4.12).
 | structs | `types/struct_fields`, `types/struct_copy` (deep copy, `==`), `types/struct_param` (Example 298), `types/struct_return` | 7.8, 8.3, 20.3.2 |
 | conversions | `types/bit_pack` (packing with and without casts: the target size reaches a shift's operand), `types/return_convert` | 7.12, 8.7 |
 | constants and strings | `types/pkg_const`, `types/string_match` (`match` on a string; `return -1` as `bit[64]`) | 10, 20.7.10 |
+| collections | `types/list_methods` (push/insert/pop/delete/`in`/clear, `foreach`), `types/map_set` (map `foreach` key/value, `in` keys(), set de-duplication), `constraint/list_rand` (`in` a component list, rand list elements under `foreach`, `randomize ... with` over a local list; 16 seeds) | 7.9, 16.4.2, 22.7.8 |
 | control shapes | `proc/poll_while_true`, `proc/poll_repeat_while` (start / check / poll), `proc/yield_single`, `proc/compile_if` (`compile has` on a missing constant) | 19, 20.7.6, 20.7.14 |
 | channels | `sync/chan_try`, `sync/chan_depth` (FIFO, copy-in), `sync/chan_guard` (the in-flight guard, per instance) | 21.9.1 |
 
@@ -214,6 +215,34 @@ are semantic errors, so every file still parses (§11.2).
 | `neg/ref_before_decl` | a local referenced before its declaration | 20.7.2 |
 | `neg/call_undeclared` | a call to a function declared nowhere | 18.3, 20.2 |
 | `neg/type_undeclared` | a local of an undeclared type | 18.3, 20.7.2 |
+
+## Catalogue: executors (5 tests)
+
+An action's executor claim (24.6.2) is observed through its trait values: each
+test gives the trait an id or cluster set per executor, which the claim's
+trait equals once it is assigned (24.6.2.3).
+
+| Test | Proves | LRM |
+|---|---|---|
+| `exec/group_hybrid` | a group filled with two executor types by `foreach` gives a claim one of its members, Ex 291 | 24.6.1.2, 24.6.2 |
+| `exec/claim_group` | a claim matches the group under its own context component (Ex 292, in sequence) | 24.6.2, 24.6.2.2 |
+| `exec/claim_trait` | trait constraints pick the cluster; `mem_kind == DDR` keeps cluster 0 off DDR, Ex 293 | 24.6.2.3 |
+| `exec/claim_no_group` | negative: no group of the claim's trait type | 24.6.2.2 |
+| `exec/claim_two` | negative: two executor claims in one action | 24.6.2.1 |
+
+## Catalogue: loops, handle arrays, claim arrays, overrides (7 tests)
+
+Section numbers here are PSS 3.0's (August 2024).
+
+| Test | Proves | LRM |
+|---|---|---|
+| `act/foreach` | activity `foreach` with iterator and index, then index alone, in element order | 12.4.3 |
+| `act/repeat_while` | `repeat { ... } while (c);` runs its body once before testing a false `c` | 12.4.2 |
+| `act/traverse_handle_index` | `aa[2 - i]` in a loop walks a handle array backwards; `aa[k]` runs the element a random `k` picks | 12.3.2 |
+| `resource/lock_array` | `lock rs_s r[2]` holds two distinct instances; two in `parallel` hold all four of the pool | 14.2, 15.4 |
+| `exec/resource_claim` | a resource extending `executor_claim_s` gets the trait of its executor (`core_id == instance_id`), Ex 294 | 24.6.2.4 |
+| `comp/override_type` | `type A with B` retypes a handle, a `do A` and a nested action's `do A`; the outer override wins | 20.5 |
+| `comp/override_inst` | `instance a1 with B` retypes `a1` only; a nested action's own instance override holds | 20.5 |
 
 A model may carry `"pss": "3.1"` when the test needs PSS 3.1 (the
 `sync/` channel tests do). Unstated means 3.0, and `export --pss` filters on it.
