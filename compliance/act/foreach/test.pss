@@ -1,0 +1,22 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    rand bit[8] x;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A x=%u", x); }
+  }
+  // Elements 7, 8, 9: the first loop gives element + index (7, 9, 11), the
+  // second the elements by index alone (7, 8, 9).
+  action T {
+    rand bit[8] arr[3];
+    constraint { arr[0] == 7; arr[1] == 8; arr[2] == 9; }
+    activity {
+      foreach (e : arr[j]) {
+        do A with { x == e + j; };
+      }
+      foreach (arr[k]) {
+        do A with { x == arr[k]; };
+      }
+    }
+  }
+}

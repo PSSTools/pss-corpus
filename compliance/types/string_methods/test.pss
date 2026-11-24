@@ -1,0 +1,27 @@
+import std_pkg::*;
+
+// LRM 7.6.2 Example 7 (string methods), minus the parts that return lists
+component pss_top {
+  action A {
+    exec body {
+      string hello_str = "Hello, world, and good bye!";
+      int m = 7, k = 11;
+      string s1, s2, s3, s4, s5;
+      s1 = hello_str[..4];
+      s2 = hello_str[m..k];
+      s3 = hello_str[m..].lower();
+      s4 = hello_str[1];
+      s5 = format_string("%s-%d", s2.upper(), hello_str.find("world"));
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk sz size=%d n1=%d n2=%d n3=%d n4=%d n5=%d n6=%d",
+              hello_str.size(), hello_str.find("world"), hello_str.find("earth"),
+              hello_str.find("o"), hello_str.find("o", 6), hello_str.find_last("o"),
+              s3.size());
+      message(NONE, "@@PSS-TRACE chk ss s1=%s s2=%s s4=%s lo=%s up=%s f=%s",
+              s1, s2, s4, s1.lower(), s2.upper(), s5);
+      message(NONE, "@@PSS-TRACE chk sc eq=%d ne=%d lit=%d fmt=%d",
+              (s1 == "Hello") ? 1 : 0, (s2 != "world") ? 1 : 0,
+              (s4 == "e") ? 1 : 0, (s5 == "WORLD-7") ? 1 : 0);
+    }
+  }
+}

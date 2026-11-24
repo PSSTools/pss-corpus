@@ -1,0 +1,26 @@
+import std_pkg::*;
+
+function float64 half(float64 x) {
+  return x / 2.0;
+}
+
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      float64 d  = 0.1;
+      float32 s  = 0.1;
+      int     tr = -2.7;
+      int     mx = 7 / 2.0 * 10;
+      int     sq = sqrt(2.0) * 1000.0;
+      int     pw = pow(2.0, 10.0);
+      int     rn = round(-2.5);
+      int     hf = half(9.0) * 10.0;
+      int     ds = d * 1e9;
+      int     ss = (float64)s * 1e9;
+      bool    lt = s > d;
+      message(NONE, "@@PSS-TRACE chk fo tr=%d mx=%d sq=%d pw=%d rn=%d hf=%d ds=%d ss=%d lt=%d",
+              tr, mx, sq, pw, rn, hf, ds, ss, lt);
+    }
+  }
+}

@@ -1,0 +1,21 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    rand bit[8] x;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A x=%u", x); }
+  }
+  // aa[2 - i] walks the array backwards (3, 2, 1); aa[k] is the element a
+  // random k picks.
+  action T {
+    A aa[3];
+    rand bit[8] k;
+    constraint { aa[0].x == 1; aa[1].x == 2; aa[2].x == 3; k < 3; }
+    activity {
+      repeat (i : 3) {
+        aa[2 - i];
+      }
+      aa[k];
+    }
+  }
+}

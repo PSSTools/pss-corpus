@@ -1,0 +1,26 @@
+import std_pkg::*;
+
+// LRM 7.9.3/7.9.4 map and set methods: insert, [] write, foreach over keys and
+// values, `in` on keys(), delete, keys().to_list(); a set ignores a repeat insert
+component pss_top {
+  action A {
+    exec body {
+      map<int, int> m;
+      set<int> s;
+      list<int> ks;
+      int ksum = 0, vsum = 0;
+      m.insert(1, 10); m.insert(2, 20); m[3] = 30; m[2] = 25;
+      foreach (v : m[k]) { ksum += k; vsum += v; }
+      s.insert(4); s.insert(9); s.insert(4);
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk map n=%d m2=%d ksum=%d vsum=%d has3=%d",
+              m.size(), m[2], ksum, vsum, (3 in m.keys()) ? 1 : 0);
+      m.delete(1);
+      ks = m.keys().to_list();
+      message(NONE, "@@PSS-TRACE chk mdel n=%d has1=%d nk=%d", m.size(), (1 in m.keys()) ? 1 : 0, ks.size());
+      message(NONE, "@@PSS-TRACE chk set n=%d in9=%d in5=%d", s.size(), (9 in s) ? 1 : 0, (5 in s) ? 1 : 0);
+      s.delete(9);
+      message(NONE, "@@PSS-TRACE chk sdel n=%d in9=%d", s.size(), (9 in s) ? 1 : 0);
+    }
+  }
+}

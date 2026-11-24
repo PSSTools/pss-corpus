@@ -1,0 +1,40 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "neg.lock.overcommit.001",
+  "rev": 1,
+  "title": "Three parallel locks on a pool of two resources cannot be scheduled",
+  "level": "L3",
+  "lrm": [
+    "15.2",
+    "17.1"
+  ],
+  "features": {
+    "tests": [
+      "diag.resource.overcommit"
+    ],
+    "uses": [
+      "activity.parallel",
+      "resource.lock",
+      "resource.pool"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "compile_error",
+    "diagnostics": [
+      {
+        "file": "test.pss",
+        "line": 15
+      }
+    ]
+  },
+  "types": {}
+}

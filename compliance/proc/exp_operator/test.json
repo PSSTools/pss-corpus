@@ -1,0 +1,58 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.exp_operator.001",
+  "rev": 1,
+  "title": "the ** operator on integer operands",
+  "level": "L1",
+  "lrm": [
+    "8.5.1"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "proc.expr.pow"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "ex",
+            "eq": {
+              "p": 81,
+              "z": 1,
+              "one": 1,
+              "k": 1024,
+              "ng": -8
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "3**4=81; anything **0 is 1; 1**4=1; 2**10=1024; (-2)**3=-8 (op2 positive: op1**op2)."
+}

@@ -1,0 +1,76 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.list.methods.001",
+  "rev": 1,
+  "title": "List methods on a list built at run time: push/insert, index write, foreach, pop/delete, in, clear",
+  "level": "L1",
+  "lrm": [
+    "7.9.2"
+  ],
+  "features": {
+    "tests": [
+      "types.list.methods",
+      "types.list.foreach",
+      "types.list.in"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local_decl"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "build",
+            "eq": {
+              "n": 4,
+              "e0": 3,
+              "e1": 4,
+              "e2": 50,
+              "e3": 7,
+              "sum": 64
+            }
+          },
+          {
+            "chk": "shrink",
+            "eq": {
+              "pf": 3,
+              "pb": 7,
+              "n": 1,
+              "e0": 50,
+              "in50": 1,
+              "in4": 0
+            }
+          },
+          {
+            "chk": "clear",
+            "eq": {
+              "n": 0
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "push_back 5, push_back 7, push_front 3 -> [3,5,7]; insert(1,4) -> [3,4,5,7]; l[2]=50 -> [3,4,50,7], sum 64. pop_front 3, pop_back 7 -> [4,50]; delete(0) -> [50]."
+}

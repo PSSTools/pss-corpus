@@ -1,0 +1,103 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.select.guard.enum.001",
+  "rev": 1,
+  "title": "Each select branch whose guard some value of the field allows is taken",
+  "level": "L3",
+  "lrm": [
+    "13.4.6"
+  ],
+  "features": {
+    "tests": [
+      "activity.select",
+      "activity.select.guard"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.traverse.type",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {}
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {}
+    },
+    "pss_top::C": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {}
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {
+        "mode": "u8"
+      },
+      "constraints": [
+        {
+          "pss": "mode < 4",
+          "smt": "(bvult |mode| #x04)",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "select": [
+          {
+            "guard": {
+              "pss": "mode != 0",
+              "smt": "(not (= |mode| #x00))",
+              "smt_source": "hand"
+            },
+            "body": {
+              "do": "pss_top::A"
+            }
+          },
+          {
+            "guard": {
+              "pss": "mode >= 2",
+              "smt": "(bvuge |mode| #x02)",
+              "smt_source": "hand"
+            },
+            "body": {
+              "do": "pss_top::B"
+            }
+          },
+          {
+            "guard": {
+              "pss": "mode < 2",
+              "smt": "(bvult |mode| #x02)",
+              "smt_source": "hand"
+            },
+            "body": {
+              "do": "pss_top::C"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

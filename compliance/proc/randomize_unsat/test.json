@@ -1,0 +1,40 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.randomize_unsat.001",
+  "rev": 1,
+  "title": "An unsatisfiable `randomize x with { }` fails to solve, located at the statement",
+  "level": "L2",
+  "lrm": [
+    "22.7.8"
+  ],
+  "features": {
+    "tests": [
+      "proc.randomize.unsat"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.randomize.with",
+      "proc.local_decl"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 4
+    }
+  },
+  "expect": {
+    "outcome": "solve_fail",
+    "diagnostics": [
+      {
+        "file": "test.pss",
+        "line": 10
+      }
+    ]
+  },
+  "types": {}
+}

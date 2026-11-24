@@ -1,0 +1,97 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "proc.randomize_with.001",
+  "rev": 1,
+  "title": "`randomize x with { }` in an exec block and in a function meets its constraints",
+  "level": "L2",
+  "lrm": [
+    "22.7.8"
+  ],
+  "features": {
+    "tests": [
+      "proc.randomize.with"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "rand.field.scalar",
+      "proc.func.call",
+      "proc.local_decl"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 32
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "n": "u4"
+      },
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "local",
+            "fields": {
+              "x": "u8",
+              "n": "u4"
+            },
+            "where": [
+              {
+                "pss": "x >= 10",
+                "smt": "(bvuge x #x0a)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "x < 20",
+                "smt": "(bvult x #x14)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "x != n + 10",
+                "smt": "(not (= x (bvadd ((_ zero_extend 4) n) #x0a)))",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "chk": "func",
+            "fields": {
+              "lo": "u8",
+              "y": "u8"
+            },
+            "where": [
+              {
+                "pss": "lo == n",
+                "smt": "(= lo ((_ zero_extend 4) n))",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "y > lo",
+                "smt": "(bvugt y lo)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "y < lo + 8",
+                "smt": "(bvult y (bvadd lo #x08))",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

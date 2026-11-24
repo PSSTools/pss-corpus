@@ -1,0 +1,24 @@
+import std_pkg::*;
+
+// LRM 7.9.2 list methods: push_back/push_front/insert, index write, foreach,
+// pop_front/pop_back/delete, `in` and clear, on a list built at run time
+component pss_top {
+  action A {
+    exec body {
+      list<int> l;
+      int sum = 0, n0, pf, pb;
+      l.push_back(5); l.push_back(7); l.push_front(3); l.insert(1, 4);
+      n0 = l.size();
+      l[2] = 50;
+      foreach (e : l) { sum += e; }
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk build n=%d e0=%d e1=%d e2=%d e3=%d sum=%d",
+              n0, l[0], l[1], l[2], l[3], sum);
+      pf = l.pop_front(); pb = l.pop_back(); l.delete(0);
+      message(NONE, "@@PSS-TRACE chk shrink pf=%d pb=%d n=%d e0=%d in50=%d in4=%d",
+              pf, pb, l.size(), l[0], (50 in l) ? 1 : 0, (4 in l) ? 1 : 0);
+      l.clear();
+      message(NONE, "@@PSS-TRACE chk clear n=%d", l.size());
+    }
+  }
+}

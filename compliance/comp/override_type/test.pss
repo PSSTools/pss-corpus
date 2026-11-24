@@ -1,0 +1,23 @@
+import std_pkg::*;
+
+component pss_top {
+  action A { exec body { message(NONE, "@@PSS-TRACE act pss_top::A"); } }
+  action B : A { exec body { message(NONE, "@@PSS-TRACE act pss_top::B"); } }
+  action C : A { exec body { message(NONE, "@@PSS-TRACE act pss_top::C"); } }
+  // M's own override says C, but T's (further up the containment tree)
+  // wins inside m: m runs B.
+  action M {
+    override { type A with C; }
+    activity { do A; }
+  }
+  action T {
+    override { type A with B; }
+    A a;
+    M m;
+    activity {
+      a;
+      do A;
+      m;
+    }
+  }
+}

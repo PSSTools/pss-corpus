@@ -1,0 +1,88 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "comp.override.type.001",
+  "rev": 1,
+  "title": "A type override replaces the type of action fields and do traversals, nested ones too; the outer override wins",
+  "level": "L3",
+  "lrm": [
+    "20.5"
+  ],
+  "features": {
+    "tests": [
+      "override.type"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.traverse.handle",
+      "activity.traverse.type",
+      "action.inherit"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {}
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {}
+    },
+    "pss_top::C": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {}
+    },
+    "pss_top::M": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A"
+          }
+        ]
+      }
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::B",
+            "label": "a"
+          },
+          {
+            "do": "pss_top::B"
+          },
+          {
+            "do": "pss_top::B",
+            "label": "m"
+          }
+        ]
+      }
+    }
+  }
+}

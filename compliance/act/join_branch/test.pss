@@ -1,0 +1,31 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    rand bit[8] x;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A x=%u", x); }
+  }
+  action B {
+    rand bit[8] x;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::B x=%u", x); }
+  }
+  action C {
+    rand bit[8] x;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::C x=%u", x); }
+  }
+
+  // join_branch(la) (13.3.6): only branch la is joined; d starts after a,
+  // while b may still run. Every branch still runs exactly once.
+  action t {
+    A a;
+    B b;
+    C d;
+    activity {
+      parallel join_branch(la) {
+        la: a;
+        lb: b;
+      }
+      d;
+    }
+  }
+}

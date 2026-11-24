@@ -1,0 +1,76 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.schedule.constraint.001",
+  "rev": 1,
+  "title": "A sequence scheduling constraint orders the members of a schedule",
+  "level": "L3",
+  "lrm": [
+    "13.4",
+    "13.3.7"
+  ],
+  "features": {
+    "tests": [
+      "activity.schedule",
+      "activity.sched_constraint.sequence"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.traverse.handle",
+      "rand.field.scalar",
+      "constraint.expr"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "x": "u8"
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [
+        {
+          "pss": "a1.x == 1",
+          "smt": "(= |a1.x| #x01)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "a2.x == 2",
+          "smt": "(= |a2.x| #x02)",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "label": "a2"
+          },
+          {
+            "do": "pss_top::A",
+            "label": "a1"
+          }
+        ]
+      }
+    }
+  }
+}

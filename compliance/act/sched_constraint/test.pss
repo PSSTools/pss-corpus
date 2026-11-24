@@ -1,0 +1,24 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    rand bit[8] x;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A x=%u", x); }
+  }
+
+  // The scheduling constraint orders a2 before a1 although the schedule
+  // lists a1 first (13.4): the only valid trace is a2 (x=2) then a1 (x=1).
+  action t {
+    A a1;
+    A a2;
+    constraint a1.x == 1;
+    constraint a2.x == 2;
+    activity {
+      schedule {
+        a1;
+        a2;
+      }
+      constraint sequence { a2, a1 };
+    }
+  }
+}

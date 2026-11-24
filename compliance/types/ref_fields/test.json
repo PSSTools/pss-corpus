@@ -1,0 +1,64 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.ref.fields.001",
+  "rev": 1,
+  "title": "component references: fields set in init_down, locals, parameters, compare and null",
+  "level": "L1",
+  "lrm": [
+    "7.10",
+    "8.7.2"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "types.ref.comp"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call",
+      "component.init_down"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "rf",
+            "eq": {
+              "rv": 2,
+              "eqb": 1,
+              "nea": 1,
+              "nn": 1,
+              "xv": 2,
+              "yn": 1,
+              "fa": 1,
+              "fn": -1
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "r is set to b (v=2) in init_down, so r.v=2, r==b, r!=a; n is never set, so it is null. x copies r (x.v=2); y is declared without a value, so null. val(a)=a.v=1; val(null) takes the null branch, -1."
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.schedule.ordered.001",
+  "rev": 1,
+  "title": "A schedule runs a buffer's producer before its consumer, whatever the written order",
+  "level": "L3",
+  "lrm": [
+    "13.3.7",
+    "14.4"
+  ],
+  "features": {
+    "tests": [
+      "activity.schedule",
+      "activity.schedule.flow_order"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "flow.buffer",
+      "flow.bind.explicit",
+      "activity.traverse.handle",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::P": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "o.v": "u8"
+      }
+    },
+    "pss_top::C": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "i.v": "u8"
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [
+        {
+          "pss": "p.o.v == c.i.v",
+          "smt": "(= |p.o.v| |c.i.v|)",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::P",
+            "label": "p"
+          },
+          {
+            "do": "pss_top::C",
+            "label": "c"
+          }
+        ]
+      }
+    }
+  }
+}

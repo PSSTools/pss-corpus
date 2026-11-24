@@ -1,0 +1,19 @@
+import std_pkg::*;
+
+component pss_top {
+  function bool same(string a, string b) {
+    return a == b;
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      string s = """abc""";
+      message(NONE, "@@PSS-TRACE chk tq one=%d nl=%d ne=%d",
+              comp.same(s, "abc"),
+              comp.same("""x
+y""", "x\ny"),
+              comp.same(s, "ab"));
+    }
+  }
+}

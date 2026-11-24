@@ -1,0 +1,113 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.foreach.001",
+  "rev": 1,
+  "title": "An activity foreach traverses once per element, in order, with its iterator and index",
+  "level": "L3",
+  "lrm": [
+    "12.4.3"
+  ],
+  "features": {
+    "tests": [
+      "activity.foreach"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.traverse.with",
+      "rand.field.array"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 4
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "x": "u8"
+      }
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 7",
+                "smt": "(= x #x07)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 9",
+                "smt": "(= x #x09)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 11",
+                "smt": "(= x #x0b)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 7",
+                "smt": "(= x #x07)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 8",
+                "smt": "(= x #x08)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 9",
+                "smt": "(= x #x09)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

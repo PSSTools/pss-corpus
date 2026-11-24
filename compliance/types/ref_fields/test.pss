@@ -1,0 +1,27 @@
+import std_pkg::*;
+
+component leaf_c { int v; }
+
+component pss_top {
+  leaf_c a, b;
+  ref leaf_c r;
+  ref leaf_c n;
+
+  exec init_down { a.v = 1; b.v = 2; r = b; }
+
+  function int val(ref leaf_c c) {
+    if (c == null) return -1;
+    return c.v;
+  }
+
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      ref leaf_c x = comp.r;
+      ref leaf_c y;
+      message(NONE, "@@PSS-TRACE chk rf rv=%d eqb=%d nea=%d nn=%d xv=%d yn=%d fa=%d fn=%d",
+              comp.r.v, comp.r == comp.b, comp.r != comp.a, comp.n == null,
+              x.v, y == null, comp.val(comp.a), comp.val(null));
+    }
+  }
+}

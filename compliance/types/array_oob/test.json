@@ -1,0 +1,53 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.array.oob.001",
+  "rev": 1,
+  "title": "Out-of-bounds run-time array index is a located run-time error",
+  "level": "L1",
+  "lrm": [
+    "8.8"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "types.array.oob"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "runtime_error",
+    "diagnostics": [
+      {
+        "file": "test.pss",
+        "line": 11
+      }
+    ]
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": []
+      }
+    }
+  },
+  "derivation": "j = 4 indexes a 4-element array: valid indices are 0..3, so a[j] at line 11 is a run-time error."
+}

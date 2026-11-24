@@ -1,0 +1,22 @@
+import std_pkg::*;
+
+component pss_top {
+  resource rs_s { }
+  pool[2] rs_s rp;
+  bind rp *;
+
+  action L {
+    lock rs_s r;
+  }
+
+  // Each branch of a parallel needs its own locked instance; there are two.
+  action t {
+    activity {
+      parallel {
+        do L;
+        do L;
+        do L;
+      }
+    }
+  }
+}

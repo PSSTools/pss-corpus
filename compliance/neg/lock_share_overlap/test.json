@@ -1,0 +1,42 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "neg.lock.share.overlap.001",
+  "rev": 1,
+  "title": "A lock and a share of a one-instance pool cannot be scheduled in parallel",
+  "derived_from": "pssc/tests/unit/integration/test_pattern_integration.py (be-py ScenarioRunner resource models)",
+  "level": "L3",
+  "lrm": [
+    "15.2",
+    "17.1"
+  ],
+  "features": {
+    "tests": [
+      "diag.resource.overcommit"
+    ],
+    "uses": [
+      "activity.parallel",
+      "resource.lock",
+      "resource.share",
+      "resource.pool"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "compile_error",
+    "diagnostics": [
+      {
+        "file": "test.pss",
+        "line": 17
+      }
+    ]
+  },
+  "types": {}
+}

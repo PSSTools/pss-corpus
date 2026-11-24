@@ -1,0 +1,20 @@
+import std_pkg::*;
+
+// LRM 8.8: a fixed-size array is read and written by index; the index may be
+// a run-time value. size(), sum() and `in` read the current elements.
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      array<int,4> a;
+      repeat (i : 4) {
+        a[i] = (i + 1) * 10;
+      }
+      int j = 2;
+      a[j] = a[j] + 5;
+      a[0] = a[3] - 1;
+      message(NONE, "@@PSS-TRACE chk ar a0=%d a1=%d a2=%d a3=%d n=%d s=%d in=%d out=%d",
+              a[0], a[1], a[2], a[3], a.size(), a.sum(), (35 in a) ? 1 : 0, (10 in a) ? 1 : 0);
+    }
+  }
+}

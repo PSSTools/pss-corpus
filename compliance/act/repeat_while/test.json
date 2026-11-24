@@ -1,0 +1,75 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "act.repeat.while.001",
+  "rev": 1,
+  "title": "repeat-while runs its body before testing the condition, so once when it is false",
+  "level": "L3",
+  "lrm": [
+    "12.4.2"
+  ],
+  "features": {
+    "tests": [
+      "activity.repeat.while"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.traverse.type",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 2
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {}
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {}
+    },
+    "pss_top::C": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {}
+    },
+    "pss_top::D": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {}
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::B"
+          },
+          {
+            "do": "pss_top::D"
+          }
+        ]
+      }
+    }
+  }
+}

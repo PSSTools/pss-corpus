@@ -1,0 +1,24 @@
+import std_pkg::*;
+
+component pss_top {
+  action A { exec body { message(NONE, "@@PSS-TRACE act pss_top::A"); } }
+  action B : A { exec body { message(NONE, "@@PSS-TRACE act pss_top::B"); } }
+  action C : A { exec body { message(NONE, "@@PSS-TRACE act pss_top::C"); } }
+  action M {
+    override { instance a with C; }
+    A a;
+    activity { a; }
+  }
+  // a1 is overridden, a2 (same type) is not; m's own instance override holds.
+  action T {
+    override { instance a1 with B; }
+    A a1;
+    A a2;
+    M m;
+    activity {
+      a1;
+      a2;
+      m;
+    }
+  }
+}

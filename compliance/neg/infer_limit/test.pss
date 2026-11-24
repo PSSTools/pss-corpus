@@ -1,0 +1,28 @@
+import std_pkg::*;
+
+component pss_top {
+  buffer a_s { rand bit[8] v; }
+  buffer b_s { rand bit[8] v; }
+  pool a_s ap;
+  pool b_s bp;
+  bind ap *;
+  bind bp *;
+
+  action X {
+    input b_s i;
+    output a_s o;
+  }
+  action Y {
+    input a_s i;
+    output b_s o;
+  }
+  action C {
+    input a_s i;
+  }
+
+  action t {
+    activity {
+      do C;
+    }
+  }
+}

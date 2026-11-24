@@ -1,0 +1,30 @@
+import std_pkg::*;
+
+component pss_top {
+  buffer buf_s { rand bit[8] v; }
+  pool buf_s bp;
+  bind bp *;
+
+  action P {
+    output buf_s o;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::P o.v=%u", o.v); }
+  }
+  action C {
+    input buf_s i;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::C i.v=%u", i.v); }
+  }
+
+  // C is written first, but it reads the buffer P writes: the schedule
+  // must run P before C (13.3.7), so the only valid trace is P then C.
+  action t {
+    P p;
+    C c;
+    activity {
+      schedule {
+        c;
+        p;
+      }
+      bind p.o c.i;
+    }
+  }
+}

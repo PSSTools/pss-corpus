@@ -1,0 +1,25 @@
+import std_pkg::*;
+
+// LRM 22.7.8: `randomize x with { ... }` gives x a value that meets the
+// constraints, in an exec block and in a function; the constraints may read
+// other variables (n, lo) whose values are already fixed.
+function bit[8] pick(bit[8] lo) {
+  bit[8] y;
+  randomize y with { y > lo; y < lo + 8; };
+  return y;
+}
+
+component pss_top {
+  action A {
+    rand bit[4] n;
+    exec body {
+      bit[8] x;
+      bit[8] y;
+      message(NONE, "@@PSS-TRACE act pss_top::A n=%u", n);
+      randomize x with { x >= 10; x < 20; x != n + 10; };
+      message(NONE, "@@PSS-TRACE chk local x=%u n=%u", x, n);
+      y = pick(n);
+      message(NONE, "@@PSS-TRACE chk func lo=%u y=%u", n, y);
+    }
+  }
+}

@@ -1,0 +1,25 @@
+import std_pkg::*;
+
+component pss_top {
+  // Every action traversal has its own uid, a non-rand built-in field fixed
+  // before any solve: a repeated `do A` is a new action, and a constraint
+  // can relate a field to another action's uid.
+  action A {
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A uid=%u", uid); }
+  }
+  action B {
+    rand bit[32] t;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::B t=%u uid=%u", t, this.uid); }
+  }
+
+  action t {
+    A a1;
+    B b;
+    constraint b.t == a1.uid + 100;
+    activity {
+      a1;
+      repeat (3) do A;
+      b;
+    }
+  }
+}

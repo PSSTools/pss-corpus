@@ -1,0 +1,62 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.array.index.001",
+  "rev": 1,
+  "title": "Fixed array: run-time index read/write, size, sum, in",
+  "level": "L1",
+  "lrm": [
+    "8.8"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "types.array.index",
+      "types.array.methods"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "ar",
+            "eq": {
+              "a0": 39,
+              "a1": 20,
+              "a2": 35,
+              "a3": 40,
+              "n": 4,
+              "s": 134,
+              "in": 1,
+              "out": 0
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "a = [10,20,30,40]; a[2] += 5 -> 35; a[0] = a[3]-1 = 39; size 4; sum 39+20+35+40 = 134; 35 in a; 10 no longer in a."
+}

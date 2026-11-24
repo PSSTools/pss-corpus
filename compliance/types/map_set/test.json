@@ -1,0 +1,83 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.map_set.methods.001",
+  "rev": 1,
+  "title": "Map and set methods: insert, [] write, foreach key/value, in keys(), delete, keys().to_list(), set de-duplication",
+  "level": "L1",
+  "lrm": [
+    "7.9.3",
+    "7.9.4"
+  ],
+  "features": {
+    "tests": [
+      "types.map.methods",
+      "types.map.foreach",
+      "types.set.methods",
+      "types.set.in"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.local_decl"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "map",
+            "eq": {
+              "n": 3,
+              "m2": 25,
+              "ksum": 6,
+              "vsum": 65,
+              "has3": 1
+            }
+          },
+          {
+            "chk": "mdel",
+            "eq": {
+              "n": 2,
+              "has1": 0,
+              "nk": 2
+            }
+          },
+          {
+            "chk": "set",
+            "eq": {
+              "n": 2,
+              "in9": 1,
+              "in5": 0
+            }
+          },
+          {
+            "chk": "sdel",
+            "eq": {
+              "n": 1,
+              "in9": 0
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "m = {1:10, 2:25, 3:30} (m[2]=25 overwrites 20): keys sum 6, values sum 65; delete(1) leaves 2 keys. s = {4, 9} (the second insert(4) is a no-op); delete(9) leaves {4}."
+}

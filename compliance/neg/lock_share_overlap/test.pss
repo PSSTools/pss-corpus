@@ -1,0 +1,23 @@
+import std_pkg::*;
+
+component pss_top {
+  resource rs_s { }
+  pool[1] rs_s rp;
+  bind rp *;
+
+  action L {
+    lock rs_s r;
+  }
+  action S {
+    share rs_s r;
+  }
+
+  action t {
+    activity {
+      parallel {
+        do L;
+        do S;
+      }
+    }
+  }
+}

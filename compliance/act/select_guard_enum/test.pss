@@ -1,0 +1,26 @@
+import std_pkg::*;
+
+component pss_top {
+  action A {
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A"); }
+  }
+  action B {
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::B"); }
+  }
+  action C {
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::C"); }
+  }
+
+  // mode 0 -> C; mode 1 -> A, C; mode 2 -> A, B; mode 3 -> A, B.
+  action t {
+    rand bit[8] mode;
+    constraint mode < 4;
+    activity {
+      select {
+        (mode != 0): do A;
+        (mode >= 2): do B;
+        (mode < 2): do C;
+      }
+    }
+  }
+}

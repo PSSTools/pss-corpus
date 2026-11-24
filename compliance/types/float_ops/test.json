@@ -1,0 +1,66 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.float.ops.001",
+  "rev": 1,
+  "title": "float32/float64 arithmetic, conversion to int, float32 rounding and the float library",
+  "level": "L1",
+  "lrm": [
+    "7.3",
+    "8.7.1",
+    "8.7.2",
+    "24.5"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "types.float.ops"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "proc.func.call"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "fo",
+            "eq": {
+              "tr": -2,
+              "mx": 35,
+              "sq": 1414,
+              "pw": 1024,
+              "rn": -3,
+              "hf": 45,
+              "ds": 100000000,
+              "ss": 100000001,
+              "lt": 1
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "A float converts to int by truncation toward zero (-2.7 -> -2). 7 / 2.0 is float (3.5), *10 = 35. sqrt(2)*1000 = 1414.2 -> 1414; pow(2,10) = 1024; round(-2.5) rounds half away from zero, -3 (C round). half(9.0) = 4.5, *10 = 45. 0.1 as float64 times 1e9 is 100000000.00000001 -> 100000000; 0.1 rounded to float32 is 0.100000001490116..., times 1e9 -> 100000001, so the float32 is greater than the float64 (lt=1)."
+}

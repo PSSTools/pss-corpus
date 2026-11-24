@@ -1,0 +1,37 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "neg.flow.infer_limit.001",
+  "rev": 1,
+  "title": "A consumer whose only producers need each other is an inference-limit error",
+  "level": "L3",
+  "lrm": [
+    "18.2"
+  ],
+  "features": {
+    "tests": [
+      "diag.flow.infer_limit"
+    ],
+    "uses": [
+      "activity.traverse.type"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "compile_error",
+    "diagnostics": [
+      {
+        "file": "test.pss",
+        "line": 25
+      }
+    ]
+  },
+  "types": {}
+}

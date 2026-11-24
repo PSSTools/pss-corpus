@@ -1,0 +1,14 @@
+import std_pkg::*;
+
+// LRM 8.8: an array index outside [0, size) is an error. With a run-time
+// index it is a run-time error, reported at the indexing expression.
+component pss_top {
+  action A {
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      array<int,4> a;
+      int j = 4;
+      a[j] = 1;
+    }
+  }
+}

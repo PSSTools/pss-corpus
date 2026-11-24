@@ -1,0 +1,85 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "types.string.methods.001",
+  "rev": 1,
+  "title": "String slices, size/find/find_last/lower/upper, format_string and == / != on strings built at run time",
+  "level": "L1",
+  "lrm": [
+    "7.6",
+    "7.6.2",
+    "24.1"
+  ],
+  "profile": [
+    "op-model"
+  ],
+  "features": {
+    "tests": [
+      "types.string.slice",
+      "types.string.methods",
+      "types.string.format",
+      "types.string.compare"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "sz",
+            "eq": {
+              "size": 27,
+              "n1": 7,
+              "n2": -1,
+              "n3": 4,
+              "n4": 8,
+              "n5": 20,
+              "n6": 20
+            }
+          },
+          {
+            "chk": "ss",
+            "eq": {
+              "s1": "Hello",
+              "s2": "world",
+              "s4": "e",
+              "lo": "hello",
+              "up": "WORLD",
+              "f": "WORLD-7"
+            }
+          },
+          {
+            "chk": "sc",
+            "eq": {
+              "eq": 1,
+              "ne": 0,
+              "lit": 1,
+              "fmt": 1
+            }
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "LRM 7.6.2 Example 7 on \"Hello, world, and good bye!\" (27 bytes): [..4] = Hello, [7..11] = world, [1] = e; find(world) = 7, find(earth) = -1, find(o) = 4, find(o, 6) = 8, find_last(o) = 20; [7..] is 20 bytes. format_string(\"%s-%d\", \"WORLD\", 7) = WORLD-7. The compares read contents, not identity: s1, s4 and s5 are built at run time and equal the literals."
+}
