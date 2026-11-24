@@ -1,0 +1,35 @@
+import std_pkg::*;
+
+component sub_c {
+  buffer buf_s { rand bit[8] v; }
+  resource rs_s { }
+  pool buf_s bp;
+  bind bp *;
+  pool[1] rs_s rp;
+  bind rp *;
+
+  abstract action base_a {
+    input buf_s i;
+    lock rs_s r;
+    constraint i.v in [3..7];
+  }
+  action C : base_a {
+    exec body { message(NONE, "@@PSS-TRACE act sub_c::C i.v=%u r.instance_id=%u", i.v, r.instance_id); }
+  }
+  action P {
+    output buf_s o;
+    exec body { message(NONE, "@@PSS-TRACE act sub_c::P o.v=%u", o.v); }
+  }
+}
+
+component pss_top {
+  sub_c s1;
+
+  // C's input is declared in base_a: a P must be inferred to feed it, and
+  // C.i.v obeys base_a's constraint.
+  action t {
+    activity {
+      do sub_c::C;
+    }
+  }
+}

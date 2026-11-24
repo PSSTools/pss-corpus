@@ -1,0 +1,29 @@
+import std_pkg::*;
+
+// LRM 16.1.9: an array in a unique list stands for all of its elements. Each
+// array here is fully determined by its constraints only because of unique,
+// so every seed gives the same values.
+component pss_top {
+  action A {
+    rand bit[2] r[4];
+    rand bit[2] q[4];
+    rand bit[3] x;
+    constraint {
+      // distinct with three values fixed: r[3] can only be the fourth value
+      unique {r};
+      r[0] == 3; r[1] == 2; r[2] != 0;
+      // distinct and increasing: q is 0, 1, 2, 3
+      unique {q};
+      foreach (q[i]) { if (i < 3) { q[i] < q[i + 1]; } }
+      // an array and a scalar in one list: x is none of 0..3
+      unique {q, x};
+      x < 5;
+    }
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk ua r=%u q=%u x=%u",
+              r[0] * 1000 + r[1] * 100 + r[2] * 10 + r[3],
+              q[0] * 1000 + q[1] * 100 + q[2] * 10 + q[3], x);
+    }
+  }
+}

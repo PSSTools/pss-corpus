@@ -1,0 +1,63 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "constraint.soft_priority_decl.001",
+  "rev": 1,
+  "title": "Of two conflicting soft constraints the later is kept; a hard constraint beats a soft one",
+  "level": "L2",
+  "lrm": [
+    "16.1.12"
+  ],
+  "features": {
+    "tests": [
+      "constraint.soft.priority.order"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "rand.field.scalar",
+      "constraint.soft",
+      "constraint.block"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 16
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "v": "u4",
+        "w": "u4",
+        "u": "u4"
+      },
+      "constraints": [
+        {
+          "pss": "v == 5",
+          "smt": "(= v #x5)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "w == 9",
+          "smt": "(= w #x9)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "u < 4",
+          "smt": "(bvult u #x4)",
+          "smt_source": "hand"
+        }
+      ]
+    }
+  }
+}

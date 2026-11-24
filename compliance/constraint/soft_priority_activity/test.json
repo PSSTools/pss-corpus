@@ -1,0 +1,95 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "constraint.soft_priority_activity.001",
+  "rev": 1,
+  "title": "An activity constraint's soft constraint beats the type's, and `with` beats the activity's",
+  "level": "L2",
+  "lrm": [
+    "16.1.12",
+    "13.1.9"
+  ],
+  "features": {
+    "tests": [
+      "constraint.soft.priority.activity"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "rand.field.scalar",
+      "constraint.soft",
+      "activity.seq",
+      "activity.traverse.handle",
+      "activity.traverse.with",
+      "activity.constraint"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 16
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "v": "u4",
+        "w": "u4"
+      },
+      "constraints": []
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "label": "a",
+            "with": [
+              {
+                "pss": "v == 5",
+                "smt": "(= v #x5)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "label": "b"
+          },
+          {
+            "constraint": [
+              {
+                "pss": "a.w == 6",
+                "smt": "(= |a.w| #x6)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "b.v == 9",
+                "smt": "(= |b.v| #x9)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "b.w == 3",
+                "smt": "(= |b.w| #x3)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

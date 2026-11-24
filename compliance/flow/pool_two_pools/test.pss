@@ -1,0 +1,33 @@
+import std_pkg::*;
+
+component pss_top {
+  buffer buf_s { rand bit[8] v; }
+  pool buf_s pa;
+  pool buf_s pb;
+  bind pa {PA.o, CA.i};
+  bind pb {PB.o, CB.i};
+
+  action PA {
+    output buf_s o;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::PA o.v=%u", o.v); }
+  }
+  action PB {
+    output buf_s o;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::PB o.v=%u", o.v); }
+  }
+  action CA {
+    input buf_s i;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::CA i.v=%u", i.v); }
+  }
+  action CB {
+    input buf_s i;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::CB i.v=%u", i.v); }
+  }
+
+  // CB is on pool pb, so only a PB can be inferred for it.
+  action t {
+    activity {
+      do CB;
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "constraint.dist_weights.001",
+  "rev": 1,
+  "title": "`dist` with `:=` keeps the value in its list (weights checked by CF-dist)",
+  "level": "L2",
+  "lrm": [
+    "16.1.11"
+  ],
+  "features": {
+    "tests": [
+      "constraint.dist.weight_each"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "rand.field.scalar",
+      "constraint.block"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 32
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "x": "u4"
+      },
+      "constraints": [
+        {
+          "pss": "dist x in [0 := 40, 1..3 := 60] (hard part: x <= 3)",
+          "smt": "(bvule x #x3)",
+          "smt_source": "hand"
+        }
+      ]
+    }
+  },
+  "distribution": [
+    {
+      "id": "d1",
+      "kind": "dist",
+      "target": {
+        "occ": "pss_top::A",
+        "expr": "x"
+      },
+      "weights": [
+        {
+          "range": [
+            0,
+            0
+          ],
+          "w": 40
+        },
+        {
+          "range": [
+            1,
+            3
+          ],
+          "w": 60
+        }
+      ],
+      "min_samples": 400
+    }
+  ],
+  "note": "The checker checks the dist's hard part (the value is in its list) on every run; the proportions in distribution[] wait for the checker's distribution stage (CF-dist)."
+}

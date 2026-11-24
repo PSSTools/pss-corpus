@@ -1,0 +1,123 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "flow.par.infer.enum.001",
+  "rev": 1,
+  "title": "Two concurrent consumers each get an inferred producer of either type",
+  "level": "L3",
+  "lrm": [
+    "13.3.4",
+    "14.4",
+    "18.2"
+  ],
+  "features": {
+    "tests": [
+      "activity.parallel",
+      "flow.infer.buffer"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.traverse.type",
+      "constraint.expr"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "inference": {
+    "allowed": true
+  },
+  "types": {
+    "pss_top::buf_s": {
+      "kind": "buffer",
+      "fields": {
+        "v": "u8"
+      }
+    },
+    "pss_top::w1": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::buf_s"
+        }
+      },
+      "constraints": [
+        {
+          "pss": "o.v < 10",
+          "smt": "(bvult |o.v| #x0a)",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::w2": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::buf_s"
+        }
+      },
+      "constraints": [
+        {
+          "pss": "o.v >= 10",
+          "smt": "(bvuge |o.v| #x0a)",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::read": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "pss_top::buf_s"
+        }
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "par": [
+          {
+            "do": "pss_top::read"
+          },
+          {
+            "do": "pss_top::read"
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "pss_top": {
+      "pools": {
+        "bp": {
+          "type": "pss_top::buf_s",
+          "bind": "*"
+        }
+      }
+    }
+  }
+}

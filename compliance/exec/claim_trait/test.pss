@@ -1,0 +1,46 @@
+import std_pkg::*;
+import executor_pkg::*;
+
+// LRM 24.6.2.3, Example 293. Eight cores in two clusters of four; op claims
+// a core and ties its cluster to a rand attribute (the example's input
+// buffer's mem_kind is a rand field here). op prints the cluster of the core
+// it was assigned, read through its claim's trait (24.6.2.3: the claim's
+// trait values equal the selected executor's).
+enum mem_kind_e { DDR, SRAM };
+
+struct my_core_trait_s : executor_trait_s {
+  rand int in [0..1] cluster_id;
+};
+
+component my_embedded_cores_group_c : executor_group_c<my_core_trait_s> {
+  executor_c<my_core_trait_s> cores[8];
+  exec init_down {
+    foreach (c: cores[i]) {
+      c.trait.cluster_id = i / 4;
+      add_executor(c);
+    }
+  }
+};
+
+component my_ip_c {
+  action op {
+    rand mem_kind_e mem_kind;
+    rand executor_claim_s<my_core_trait_s> core;
+    constraint mem_kind == DDR -> core.trait.cluster_id != 0;
+    exec body {
+      message(NONE, "@@PSS-TRACE act my_ip_c::op cluster=%d ddr=%n",
+              core.trait.cluster_id, mem_kind == DDR);
+    }
+  };
+};
+
+component pss_top {
+  my_embedded_cores_group_c embedded_core_group;
+  my_ip_c my_ip;
+  action ops_on_two_clusters {
+    activity {
+      do my_ip_c::op with { core.trait.cluster_id == 0; };
+      do my_ip_c::op with { core.trait.cluster_id == 1; };
+    }
+  };
+};

@@ -1,0 +1,56 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "constraint.unique_array.001",
+  "rev": 1,
+  "title": "unique over a fixed-size array: distinct elements, alone and with a scalar",
+  "level": "L2",
+  "lrm": [
+    "16.1.9"
+  ],
+  "features": {
+    "tests": [
+      "constraint.unique"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "rand.field.array",
+      "constraint.block",
+      "constraint.foreach",
+      "constraint.if"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 4
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "ua",
+            "eq": {
+              "r": 3210,
+              "q": 123,
+              "x": 4
+            }
+          }
+        ]
+      }
+    }
+  }
+}

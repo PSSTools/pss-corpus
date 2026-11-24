@@ -1,0 +1,82 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "cov.illegal_bin_hit.001",
+  "rev": 1,
+  "title": "Sampling a value in an illegal bin is a run-time error at the illegal bin",
+  "level": "L3",
+  "lrm": [
+    "19.3.4"
+  ],
+  "features": {
+    "tests": [
+      "coverage.bins.illegal"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.type",
+      "rand.field.scalar",
+      "coverage.covergroup.inline.action"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::B",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "runtime_error",
+    "diagnostics": [
+      {
+        "file": "test.pss",
+        "line": 12
+      }
+    ]
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "a": "u2"
+      }
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "a == 0",
+                "smt": "(= a #b00)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "a == 3",
+                "smt": "(= a #b11)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

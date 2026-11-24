@@ -1,0 +1,40 @@
+import std_pkg::*;
+
+// LRM 16.1.8: a constraint foreach holds its body for every element of a
+// fixed-size array, with the index and the element bound. Each array here is
+// fully determined by its constraints, so every seed gives the same values.
+struct pair_s {
+  rand bit[4] f;
+  rand bit[4] g;
+}
+
+component pss_top {
+  action A {
+    rand bit[4] r[4];
+    rand pair_s p[2];
+    rand bit[4] m[2][2];
+    constraint {
+      // strictly increasing and below 4: r is 0, 1, 2, 3
+      foreach (r[i]) {
+        if (i > 0) { r[i] > r[i - 1]; }
+        r[i] < 4;
+      }
+      // a value iterator over struct elements, with its index
+      foreach (e : p[k]) {
+        e.g == 2;
+        e.f == e.g + k;
+      }
+      // nested: a row, then its elements
+      foreach (row : m[i]) {
+        foreach (v : row[j]) { v == i * 2 + j + 1; }
+      }
+    }
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk fa r=%d p=%d m=%d",
+              r[0] * 1000 + r[1] * 100 + r[2] * 10 + r[3],
+              p[0].f * 10 + p[1].f,
+              m[0][0] * 1000 + m[0][1] * 100 + m[1][0] * 10 + m[1][1]);
+    }
+  }
+}

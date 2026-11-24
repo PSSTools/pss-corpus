@@ -1,0 +1,94 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "exec.claim.group.001",
+  "rev": 1,
+  "title": "A claim is matched with the group under the action's own context component",
+  "level": "L3",
+  "lrm": [
+    "24.6.2",
+    "24.6.2.2"
+  ],
+  "features": {
+    "tests": [
+      "exec.claim.nearest_group"
+    ],
+    "uses": [
+      "exec.group.add_executor",
+      "exec.claim.trait",
+      "exec.body",
+      "std.message",
+      "activity.traverse.handle",
+      "activity.traverse.with"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::test",
+    "seeds": {
+      "count": 2
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "C::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "C",
+      "fields": {
+        "id": "s32"
+      },
+      "constraints": [],
+      "body": {
+        "seq": []
+      }
+    },
+    "pss_top::test": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "C::A",
+            "label": "a1",
+            "with": [
+              {
+                "pss": "comp == this.comp.c1 (so its executor is c1.e, trait id 1)",
+                "smt": "(= id #x00000001)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "C::A",
+            "label": "a2",
+            "with": [
+              {
+                "pss": "comp == this.comp.c1 (so its executor is c1.e, trait id 1)",
+                "smt": "(= id #x00000001)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "C::A",
+            "label": "a3",
+            "with": [
+              {
+                "pss": "comp == this.comp.c2 (so its executor is c2.e, trait id 2)",
+                "smt": "(= id #x00000002)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

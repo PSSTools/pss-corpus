@@ -1,0 +1,30 @@
+import std_pkg::*;
+
+component pss_top {
+  buffer cfg_s { rand bit[8] v; }
+  pool cfg_s cp;
+  bind cp *;
+
+  action config {
+    output cfg_s o;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::config o.v=%u", o.v); }
+  }
+  action A {
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A"); }
+  }
+  action B {
+    input cfg_s i;
+    constraint i.v == 7;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::B i.v=%u", i.v); }
+  }
+
+  // B needs a cfg_s: config is inferred, but not between A and B.
+  action t {
+    activity {
+      atomic {
+        do A;
+        do B;
+      }
+    }
+  }
+}

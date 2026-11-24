@@ -1,0 +1,39 @@
+import std_pkg::*;
+
+component pss_top {
+  resource rs_s { }
+  pool[1] rs_s rp;
+  buffer buf_s { rand bit[8] v; }
+  pool buf_s bp;
+  bind rp *;
+  bind bp *;
+
+  action hold {
+    lock rs_s r;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::hold r.instance_id=%u", r.instance_id); }
+  }
+  action w_lock {
+    output buf_s o;
+    lock rs_s r;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::w_lock o.v=%u r.instance_id=%u", o.v, r.instance_id); }
+  }
+  action w_free {
+    output buf_s o;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::w_free o.v=%u", o.v); }
+  }
+  action read {
+    input buf_s i;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::read i.v=%u", i.v); }
+  }
+
+  // read needs a buf_s, produced in its own branch, concurrent with hold.
+  // The one rs_s instance is hold's, so w_lock cannot be inferred: w_free is.
+  action t {
+    activity {
+      parallel {
+        do hold;
+        do read;
+      }
+    }
+  }
+}

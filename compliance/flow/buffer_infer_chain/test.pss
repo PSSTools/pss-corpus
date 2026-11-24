@@ -1,0 +1,33 @@
+import std_pkg::*;
+
+component pss_top {
+  buffer raw_s { rand bit[8] v; }
+  buffer mid_s { rand bit[8] v; }
+  pool raw_s rp;
+  pool mid_s mp;
+  bind rp *;
+  bind mp *;
+
+  action src {
+    output raw_s o;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::src o.v=%u", o.v); }
+  }
+  action xform {
+    input raw_s i;
+    output mid_s o;
+    constraint i.v < 100;
+    constraint o.v == i.v + 1;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::xform i.v=%u o.v=%u", i.v, o.v); }
+  }
+  action sink {
+    input mid_s i;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::sink i.v=%u", i.v); }
+  }
+
+  // sink alone: xform and src are inferred, in that order of need.
+  action t {
+    activity {
+      do sink;
+    }
+  }
+}

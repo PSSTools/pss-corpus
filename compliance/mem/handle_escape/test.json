@@ -1,0 +1,82 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "mem.handle.escape.001",
+  "rev": 1,
+  "title": "A claim whose handle is stored in a buffer stays live after its action ends",
+  "level": "L3",
+  "lrm": [
+    "24.8.5",
+    "24.10.4.1"
+  ],
+  "features": {
+    "tests": [
+      "mem.handle.escape"
+    ],
+    "uses": [
+      "mem.claim.transparent",
+      "mem.handle.from_claim",
+      "flow.buffer",
+      "activity.seq",
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 4
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::Prod": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {}
+    },
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {}
+    },
+    "pss_top::Chk": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "x1": "u64",
+        "x2": "u64"
+      },
+      "body": {
+        "seq": [
+          {
+            "chk": "esc",
+            "eq": {
+              "dis": 1
+            }
+          }
+        ]
+      }
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {"do": "pss_top::Prod", "label": "p"},
+          {"do": "pss_top::A", "label": "a"},
+          {"do": "pss_top::Chk", "label": "k"}
+        ]
+      }
+    }
+  }
+}

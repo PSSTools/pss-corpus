@@ -1,0 +1,99 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "constraint.soft_priority_extension.001",
+  "rev": 1,
+  "title": "A soft constraint in a type extension or a derived type is kept over the base type's",
+  "level": "L2",
+  "lrm": [
+    "16.1.12",
+    "20.4"
+  ],
+  "features": {
+    "tests": [
+      "constraint.soft.priority.extension"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "rand.field.scalar",
+      "constraint.soft",
+      "type.extend.action",
+      "action.inherit",
+      "activity.seq",
+      "activity.traverse.type"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 16
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "v": "u4",
+        "w": "u4"
+      },
+      "constraints": [
+        {
+          "pss": "v == 7",
+          "smt": "(= v #x7)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "w == 3",
+          "smt": "(= w #x3)",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "v": "u4",
+        "w": "u4"
+      },
+      "constraints": [
+        {
+          "pss": "v == 7",
+          "smt": "(= v #x7)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "w == 5",
+          "smt": "(= w #x5)",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A"
+          },
+          {
+            "do": "pss_top::B"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "flow.stream.infer.001",
+  "rev": 1,
+  "title": "A stream consumer is inferred for a listed stream producer and reads its values",
+  "level": "L3",
+  "lrm": [
+    "14.4",
+    "18.2"
+  ],
+  "features": {
+    "tests": [
+      "flow.stream",
+      "flow.infer.stream"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.type",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "inference": {
+    "allowed": true
+  },
+  "types": {
+    "pss_top::str_s": {
+      "kind": "stream",
+      "fields": {
+        "v": "u8"
+      }
+    },
+    "pss_top::send": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::str_s"
+        }
+      }
+    },
+    "pss_top::receive": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "pss_top::str_s"
+        }
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::send"
+          }
+        ]
+      }
+    }
+  }
+}

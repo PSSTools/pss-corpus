@@ -1,0 +1,26 @@
+import std_pkg::*;
+import addr_reg_pkg::*;
+
+// LRM 24.8: a transparent claim is allocated inside an allocatable region of
+// the address space that matches it, at an address that is a multiple of its
+// alignment. The region is 0x1000 bytes at 0x8000_0000.
+component pss_top {
+  transparent_addr_space_c<> mem;
+  exec init_down {
+    transparent_addr_region_s<> r;
+    r.size = 0x1000;
+    r.addr = 64'h80000000;
+    (void)mem.add_region(r);
+  }
+  action A {
+    rand transparent_addr_claim_s<> c;
+    constraint c.size == 256;
+    constraint c.alignment == 256;
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk cl in=%d al=%d",
+              (c.addr >= 64'h80000000 && c.addr + 256 <= 64'h80001000) ? 1 : 0,
+              (c.addr % 256 == 0) ? 1 : 0);
+    }
+  }
+}

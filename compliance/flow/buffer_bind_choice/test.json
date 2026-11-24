@@ -1,0 +1,125 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "flow.buffer.bind.choice.001",
+  "rev": 1,
+  "title": "An explicit bind picks one of two possible producers",
+  "derived_from": "pssc/tests/unit/integration/test_pattern_integration.py T2-2 (explicit buffer bind)",
+  "level": "L3",
+  "lrm": [
+    "14.4",
+    "16.1"
+  ],
+  "features": {
+    "tests": [
+      "flow.buffer",
+      "flow.bind.explicit"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.handle",
+      "rand.field.scalar",
+      "constraint.in"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::buf_s": {
+      "kind": "buffer",
+      "fields": {
+        "v": "u8"
+      }
+    },
+    "pss_top::P1": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::buf_s"
+        }
+      },
+      "constraints": [
+        {
+          "pss": "o.v in [1..5]",
+          "smt": "(and (bvuge |o.v| #x01) (bvule |o.v| #x05))",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::P2": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::buf_s"
+        }
+      },
+      "constraints": [
+        {
+          "pss": "o.v in [6..10]",
+          "smt": "(and (bvuge |o.v| #x06) (bvule |o.v| #x0a))",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::C": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "pss_top::buf_s"
+        }
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [
+        {
+          "pss": "p1.o.v == c.i.v",
+          "smt": "(= |p1.o.v| |c.i.v|)",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::P1",
+            "label": "p1"
+          },
+          {
+            "do": "pss_top::P2",
+            "label": "p2"
+          },
+          {
+            "do": "pss_top::C",
+            "label": "c"
+          }
+        ]
+      }
+    }
+  }
+}

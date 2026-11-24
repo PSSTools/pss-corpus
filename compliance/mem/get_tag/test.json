@@ -1,0 +1,55 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "mem.get_tag.001",
+  "rev": 1,
+  "title": "get_tag gives the tag of the region an address handle lies in",
+  "level": "L2",
+  "lrm": [
+    "24.10.8",
+    "24.8.2"
+  ],
+  "features": {
+    "tests": [
+      "mem.get_tag"
+    ],
+    "uses": [
+      "mem.claim.transparent",
+      "mem.handle.from_claim",
+      "exec.body",
+      "std.message",
+      "types.string"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 4
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "tg",
+            "eq": {
+              "ok": 1,
+              "out": 1
+            }
+          }
+        ]
+      }
+    }
+  }
+}

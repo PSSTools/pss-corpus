@@ -1,0 +1,30 @@
+import std_pkg::*;
+
+// LRM 16.1.12: an activity constraint's soft constraint is kept over a
+// conflicting soft constraint of the traversed type, and a traversal's
+// `with { }` soft constraint over the activity's. So a.v == 5 (with),
+// a.w == 6 and b.v == 9 (activity), b.w == 3 (type).
+component pss_top {
+  action A {
+    rand bit[4] v;
+    rand bit[4] w;
+    constraint {
+      soft v == 3;
+      soft w == 3;
+    }
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A v=%u w=%u", v, w); }
+  }
+
+  action T {
+    A a, b;
+    activity {
+      a with { soft v == 5; };
+      b;
+      constraint {
+        soft a.v == 7;
+        soft a.w == 6;
+        soft b.v == 9;
+      }
+    }
+  }
+}

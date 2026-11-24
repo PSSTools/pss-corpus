@@ -1,0 +1,40 @@
+import std_pkg::*;
+
+component pss_top {
+  // A state writer and a reader of its pool in parallel (13.3.1): the
+  // write is in progress until the writer's body ends, so the reader sees
+  // the initial state or the completed write -- never a write in progress.
+  state st_s {
+    rand bit[4] s;
+    constraint initial -> s == 0;
+  }
+  pool st_s stp;
+  bind stp *;
+
+  action SW {
+    output st_s o;
+    constraint o.s in [1..15];
+    // A yield ladder (corpus design 4.9): the write is in progress until
+    // the last rung, so a reader may not run between the rungs.
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::SW o.s=%u", o.s);
+      repeat (k : 2) {
+        yield;
+        message(NONE, "@@PSS-TRACE chk SW.rung k=%d", k);
+      }
+    }
+  }
+  action SR {
+    input st_s i;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::SR i.s=%u", i.s); }
+  }
+
+  action t {
+    activity {
+      parallel {
+        do SW;
+        do SR;
+      }
+    }
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "flow.buffer.infer.chain.001",
+  "rev": 1,
+  "title": "A chain of two producers is inferred for a consumer listed alone",
+  "level": "L3",
+  "lrm": [
+    "14.4",
+    "18.2"
+  ],
+  "features": {
+    "tests": [
+      "flow.buffer",
+      "flow.infer.buffer",
+      "flow.infer.chain"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.type",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "inference": {
+    "allowed": true
+  },
+  "types": {
+    "pss_top::raw_s": {
+      "kind": "buffer",
+      "fields": {
+        "v": "u8"
+      }
+    },
+    "pss_top::mid_s": {
+      "kind": "buffer",
+      "fields": {
+        "v": "u8"
+      }
+    },
+    "pss_top::src": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::raw_s"
+        }
+      }
+    },
+    "pss_top::xform": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "pss_top::raw_s"
+        },
+        "o": {
+          "dir": "output",
+          "type": "pss_top::mid_s"
+        }
+      },
+      "constraints": [
+        {
+          "pss": "i.v < 100",
+          "smt": "(bvult |i.v| #x64)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "o.v == i.v + 1",
+          "smt": "(= |o.v| (bvadd |i.v| #x01))",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::sink": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "pss_top::mid_s"
+        }
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::sink"
+          }
+        ]
+      }
+    }
+  }
+}

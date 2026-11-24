@@ -1,0 +1,38 @@
+import std_pkg::*;
+
+package data_pkg {
+  buffer buf_s { rand bit[8] v; }
+}
+
+component leaf_c {
+  action C {
+    input data_pkg::buf_s i;
+    exec body { message(NONE, "@@PSS-TRACE act leaf_c::C i.v=%u", i.v); }
+  }
+}
+
+component mid_c {
+  leaf_c l;
+}
+
+component pss_top {
+  mid_c m;
+  pool data_pkg::buf_s bp;
+  bind bp *;
+
+  action P {
+    output data_pkg::buf_s o;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::P o.v=%u", o.v); }
+  }
+
+  // bp is the only pool of buf_s; P (in pss_top) and C (in m.l) share it,
+  // so c.i is p.o.
+  action t {
+    P p;
+    leaf_c::C c;
+    activity {
+      p;
+      c;
+    }
+  }
+}

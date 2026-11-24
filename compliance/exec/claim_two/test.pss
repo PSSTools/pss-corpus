@@ -1,0 +1,17 @@
+import std_pkg::*;
+import executor_pkg::*;
+
+// LRM 24.6.2.1: an action may be assigned to at most one executor; two
+// executor claims in one action are an error.
+struct t_s : executor_trait_s { rand int id; };
+
+component pss_top {
+  executor_c<t_s> e;
+  executor_group_c<t_s> g;
+  exec init_down { g.add_executor(e); }
+  action A {
+    rand executor_claim_s<t_s> ec1;
+    rand executor_claim_s<t_s> ec2;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A"); }
+  }
+};

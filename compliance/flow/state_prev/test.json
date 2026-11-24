@@ -1,0 +1,116 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "flow.state.prev.001",
+  "rev": 1,
+  "title": "Each state object written is constrained relative to the previous one through prev",
+  "level": "L3",
+  "lrm": [
+    "13.3",
+    "14.3"
+  ],
+  "features": {
+    "tests": [
+      "flow.state",
+      "flow.state.prev",
+      "flow.state.initial"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.handle",
+      "rand.field.scalar",
+      "constraint.in"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::st_s": {
+      "kind": "state",
+      "fields": {
+        "v": "u4",
+        "w": "u4"
+      },
+      "initial": [
+        {
+          "pss": "v == 0 && w == 8",
+          "smt": "(and (= |v| #x0) (= |w| #x8))",
+          "smt_source": "hand"
+        }
+      ],
+      "prev": [
+        {
+          "pss": "v == prev.v + 1",
+          "smt": "(= |v| (bvadd |prev.v| #x1))",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "w in [prev.w - 1 .. prev.w + 1]",
+          "smt": "(and (bvuge |w| (bvsub |prev.w| #x1)) (bvule |w| (bvadd |prev.w| #x1)))",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::W": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::st_s"
+        }
+      }
+    },
+    "pss_top::R": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "pss_top::st_s"
+        }
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::W",
+            "label": "w1"
+          },
+          {
+            "do": "pss_top::W",
+            "label": "w2"
+          },
+          {
+            "do": "pss_top::W",
+            "label": "w3"
+          },
+          {
+            "do": "pss_top::R",
+            "label": "r"
+          }
+        ]
+      }
+    }
+  }
+}

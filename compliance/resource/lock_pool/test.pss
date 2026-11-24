@@ -1,0 +1,23 @@
+import std_pkg::*;
+
+component pss_top {
+  resource rs_s { }
+  pool[2] rs_s rp;
+  bind rp *;
+
+  action L {
+    lock rs_s r;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::L r.instance_id=%u", r.instance_id); }
+  }
+
+  // instance_id is always 0 or 1; the constraint makes the two locks differ.
+  action t {
+    L a;
+    L b;
+    constraint a.r.instance_id != b.r.instance_id;
+    activity {
+      a;
+      b;
+    }
+  }
+}

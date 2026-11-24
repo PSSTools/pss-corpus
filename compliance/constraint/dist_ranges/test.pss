@@ -1,0 +1,14 @@
+import std_pkg::*;
+
+// LRM 16.1.11: `:/` shares an item's weight among its values, so 0..3 as a
+// whole gets 30 and 8..11 as a whole gets 70 (each of 8..11 is picked 70/400
+// of the time). A dist is also a hard constraint: y is never in 4..7 or above 11.
+component pss_top {
+  action A {
+    rand bit[4] y;
+    constraint {
+      dist y in [0..3 :/ 30, 8..11 :/ 70];
+    }
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A y=%u", y); }
+  }
+}

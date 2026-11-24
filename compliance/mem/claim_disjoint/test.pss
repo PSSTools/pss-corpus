@@ -1,0 +1,29 @@
+import std_pkg::*;
+import addr_reg_pkg::*;
+
+// LRM 24.8: claims of one action are live at the same time, so their
+// addresses do not overlap. The region holds exactly two 128-byte blocks
+// at 128-byte alignment, so overlapping placements are among the solutions
+// of the claims' own constraints.
+component pss_top {
+  transparent_addr_space_c<> mem;
+  exec init_down {
+    transparent_addr_region_s<> r;
+    r.size = 0x100;
+    r.addr = 64'h40000000;
+    (void)mem.add_region(r);
+  }
+  action A {
+    rand transparent_addr_claim_s<> c;
+    rand transparent_addr_claim_s<> d;
+    constraint c.size == 128; constraint c.alignment == 128;
+    constraint d.size == 128; constraint d.alignment == 128;
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk cl in=%d dis=%d",
+              (c.addr >= 64'h40000000 && c.addr + 128 <= 64'h40000100
+               && d.addr >= 64'h40000000 && d.addr + 128 <= 64'h40000100) ? 1 : 0,
+              (c.addr + 128 <= d.addr || d.addr + 128 <= c.addr) ? 1 : 0);
+    }
+  }
+}

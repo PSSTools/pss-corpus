@@ -1,0 +1,31 @@
+import std_pkg::*;
+import addr_reg_pkg::*;
+
+// LRM 24.10.8: get_tag() gives the tag of the region an address handle lies
+// in. The claim lands in one of two tagged transparent regions; a handle
+// past both lies in none, and its tag is "".
+component pss_top {
+  transparent_addr_space_c<> tmem;
+  exec init_down {
+    transparent_addr_region_s<> r0;
+    transparent_addr_region_s<> r1;
+    r0.size = 0x100; r0.addr = 64'h80000000; r0.tag = "lo";
+    r1.size = 0x100; r1.addr = 64'h90000000; r1.tag = "hi";
+    (void)tmem.add_region(r0);
+    (void)tmem.add_region(r1);
+  }
+  action A {
+    rand transparent_addr_claim_s<> t;
+    constraint t.size == 64;
+    constraint t.alignment == 64;
+    int ok;
+    int out;
+    exec body {
+      string g = get_tag(make_handle_from_claim(t));
+      ok = ((g == "lo" && t.addr < 64'h90000000) || (g == "hi" && t.addr >= 64'h90000000)) ? 1 : 0;
+      out = (get_tag(make_handle_from_claim(t, 0x1000)) == "") ? 1 : 0;
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk tg ok=%d out=%d", ok, out);
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "mem.sizeof_s.001",
+  "rev": 1,
+  "title": "sizeof_s gives sizes of scalars, arrays and packed structs, and sizes a claim",
+  "level": "L1",
+  "lrm": ["24.10.2"],
+  "features": {
+    "tests": ["mem.sizeof_s"],
+    "uses": ["mem.claim.transparent", "exec.body", "std.message"]
+  },
+  "sources": ["test.pss"],
+  "run": {"root": "pss_top::A", "seeds": {"count": 2}},
+  "expect": {"outcome": "ok"},
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "body": {
+        "seq": [
+          {"chk": "sz", "eq": {"i": 4, "b": 1, "w": 5, "r": 40, "t": 5, "n": 1, "tb": 34, "d": 16, "cs": 16}}
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+import std_pkg::*;
+import executor_pkg::*;
+
+// LRM 24.6.2.2: it is an error if no executor group matches a claim. The
+// only group is of another trait type.
+struct t_s : executor_trait_s { rand int id; };
+struct u_s : executor_trait_s { rand int id; };
+
+component pss_top {
+  executor_c<u_s> e;
+  executor_group_c<u_s> g;
+  exec init_down { g.add_executor(e); }
+  action A {
+    rand executor_claim_s<t_s> ec;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A"); }
+  }
+};

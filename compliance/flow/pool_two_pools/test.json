@@ -1,0 +1,112 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "flow.pool.two_pools.001",
+  "rev": 1,
+  "title": "The consumer's pool decides which producer type is inferred",
+  "level": "L3",
+  "lrm": [
+    "14.5",
+    "18.2"
+  ],
+  "features": {
+    "tests": [
+      "flow.pool",
+      "flow.infer.buffer"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.type",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "inference": {
+    "allowed": true
+  },
+  "types": {
+    "pss_top::buf_s": {
+      "kind": "buffer",
+      "fields": {
+        "v": "u8"
+      }
+    },
+    "pss_top::PA": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::buf_s",
+          "pool": "pss_top.pa"
+        }
+      }
+    },
+    "pss_top::PB": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::buf_s",
+          "pool": "pss_top.pb"
+        }
+      }
+    },
+    "pss_top::CA": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "pss_top::buf_s",
+          "pool": "pss_top.pa"
+        }
+      }
+    },
+    "pss_top::CB": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "pss_top::buf_s",
+          "pool": "pss_top.pb"
+        }
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::CB"
+          }
+        ]
+      }
+    }
+  }
+}

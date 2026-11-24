@@ -1,0 +1,35 @@
+import std_pkg::*;
+
+component pss_top {
+  buffer buf_s { rand bit[8] v; }
+  pool buf_s bp;
+  bind bp *;
+
+  action w1 {
+    output buf_s o;
+    constraint o.v < 10;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::w1 o.v=%u", o.v); }
+  }
+  action w2 {
+    output buf_s o;
+    constraint o.v >= 10;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::w2 o.v=%u", o.v); }
+  }
+  action read {
+    input buf_s i;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::read i.v=%u", i.v); }
+  }
+  action other {
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::other"); }
+  }
+
+  // Structures: other alone; read with w1 inferred; read with w2 inferred.
+  action t {
+    activity {
+      select {
+        do read;
+        do other;
+      }
+    }
+  }
+}

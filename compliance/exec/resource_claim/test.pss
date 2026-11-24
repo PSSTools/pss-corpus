@@ -1,0 +1,55 @@
+import std_pkg::*;
+import executor_pkg::*;
+
+// LRM 24.6.2.4, Example 294: a resource type that extends executor_claim_s
+// claims an executor through its pool; its constraint ties the claimed
+// executor's core_id to the resource's instance_id. Each op prints both.
+struct my_core_trait_s : executor_trait_s {
+  rand int in [0..7] core_id;
+}
+
+resource my_core_r : executor_claim_s<my_core_trait_s> {
+  constraint trait.core_id == instance_id;
+}
+
+component my_cores_group_c : executor_group_c<my_core_trait_s> {
+  executor_c<my_core_trait_s> cores[8];
+  exec init_down {
+    foreach (c: cores[i]) {
+      c.trait.core_id = i;
+      add_executor(c);
+    }
+  }
+}
+
+component pss_top {
+  my_cores_group_c core_group;
+  pool [8] my_core_r core_pool;
+  bind core_pool *;
+
+  action op1 {
+    lock my_core_r core;
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::op1 core.instance_id=%u core.core_id=%d",
+              core.instance_id, core.trait.core_id);
+    }
+  }
+  action op2 {
+    share my_core_r core;
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::op2 core.instance_id=%u core.core_id=%d",
+              core.instance_id, core.trait.core_id);
+    }
+  }
+
+  action T {
+    activity {
+      repeat (4) {
+        select {
+          do op1;
+          do op2;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+import std_pkg::*;
+import addr_reg_pkg::*;
+
+// LRM 24.8.5: a handle made from a claim and stored in a flow object outlives
+// the action that claimed it, so the claim stays live after that action ends.
+// Prod stores a handle from its claim in its output buffer; A, after Prod,
+// claims from the same region, which holds just the two 128-byte blocks, and
+// never overlaps Prod's claim.
+component pss_top {
+  transparent_addr_space_c<> mem;
+  exec init_down {
+    transparent_addr_region_s<> r;
+    r.size = 0x100;
+    r.addr = 64'h40000000;
+    (void)mem.add_region(r);
+  }
+  buffer buf_s { addr_handle_t h; }
+  pool buf_s bp;
+  bind bp *;
+  action Prod {
+    output buf_s ob;
+    rand transparent_addr_claim_s<> c;
+    constraint c.size == 128;
+    exec body {
+      addr_handle_t t = make_handle_from_claim(c);
+      ob.h = make_handle_from_handle(t, 4);
+      message(NONE, "@@PSS-TRACE act pss_top::Prod");
+    }
+  }
+  action A {
+    rand transparent_addr_claim_s<> c;
+    constraint c.size == 128;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A"); }
+  }
+  action Chk {
+    rand bit[64] x1;
+    rand bit[64] x2;
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::Chk x1=%d x2=%d", x1, x2);
+      message(NONE, "@@PSS-TRACE chk esc dis=%d", (x1 + 128 <= x2 || x2 + 128 <= x1) ? 1 : 0);
+    }
+  }
+  action T {
+    Prod p;
+    A a;
+    Chk k;
+    activity { p; a; k; }
+    constraint k.x1 == p.c.addr;
+    constraint k.x2 == a.c.addr;
+  }
+}

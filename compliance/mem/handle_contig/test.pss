@@ -1,0 +1,36 @@
+import std_pkg::*;
+import addr_reg_pkg::*;
+
+// LRM 24.10.4.1: make_handle_from_claim(claim, offset) of a claim in a
+// contiguous address space is a handle at the claim's placed address plus
+// the offset. The placement honours the claim's alignment, two claims of one
+// action do not overlap, and a write through the handle reads back (24.10.9).
+component pss_top {
+  contiguous_addr_space_c<> mem;
+  exec init_down {
+    addr_region_s<> r;
+    r.size = 0x1000;
+    (void)mem.add_region(r);
+  }
+  action A {
+    rand addr_claim_s<> c;
+    rand addr_claim_s<> d;
+    constraint c.size == 64;
+    constraint c.alignment == 64;
+    constraint d.size == 32;
+    constraint d.alignment == 32;
+    exec body {
+      addr_handle_t h0 = make_handle_from_claim(c);
+      addr_handle_t h8 = make_handle_from_claim(c, 8);
+      addr_handle_t hd = make_handle_from_claim(d);
+      write32(h8, 32'h12345678);
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk hd al=%d a8=%d dj=%d rd=%d",
+              (addr_value(h0) % 64 == 0 && addr_value(hd) % 32 == 0) ? 1 : 0,
+              (addr_value(h8) == addr_value(h0) + 8) ? 1 : 0,
+              (addr_value(hd) >= addr_value(h0) + 64
+               || addr_value(h0) >= addr_value(hd) + 32) ? 1 : 0,
+              (read32(h8) == 32'h12345678) ? 1 : 0);
+    }
+  }
+}

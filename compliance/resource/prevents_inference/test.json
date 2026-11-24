@@ -1,0 +1,137 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "resource.prevents_inference.001",
+  "rev": 1,
+  "title": "A producer whose resource lock cannot be granted is not inferred",
+  "level": "L3",
+  "lrm": [
+    "15.2",
+    "11.3.4",
+    "18.2"
+  ],
+  "features": {
+    "tests": [
+      "flow.infer.buffer",
+      "resource.lock"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.type",
+      "rand.field.scalar",
+      "activity.parallel",
+      "resource.pool"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "inference": {
+    "allowed": true
+  },
+  "types": {
+    "pss_top::rs_s": {
+      "kind": "resource",
+      "fields": {}
+    },
+    "pss_top::buf_s": {
+      "kind": "buffer",
+      "fields": {
+        "v": "u8"
+      }
+    },
+    "pss_top::hold": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "r": {
+          "dir": "lock",
+          "type": "pss_top::rs_s"
+        }
+      }
+    },
+    "pss_top::w_lock": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::buf_s"
+        },
+        "r": {
+          "dir": "lock",
+          "type": "pss_top::rs_s"
+        }
+      }
+    },
+    "pss_top::w_free": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::buf_s"
+        }
+      }
+    },
+    "pss_top::read": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "pss_top::buf_s"
+        }
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "par": [
+          {
+            "do": "pss_top::hold"
+          },
+          {
+            "do": "pss_top::read"
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "pss_top": {
+      "pools": {
+        "rp": {
+          "type": "pss_top::rs_s",
+          "bind": "*",
+          "size": 1
+        },
+        "bp": {
+          "type": "pss_top::buf_s",
+          "bind": "*"
+        }
+      }
+    }
+  }
+}

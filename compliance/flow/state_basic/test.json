@@ -1,0 +1,85 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "flow.state.basic.001",
+  "rev": 1,
+  "title": "A state reader sees the state object the previous writer produced",
+  "level": "L3",
+  "lrm": [
+    "14.2",
+    "14.4"
+  ],
+  "features": {
+    "tests": [
+      "flow.state"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.handle",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::SW": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "o.s": "u4"
+      },
+      "constraints": [
+        {
+          "pss": "o.s == 3",
+          "smt": "(= |o.s| #x3)",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::SR": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "i.s": "u4"
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [
+        {
+          "pss": "w.o.s == r.i.s",
+          "smt": "(= |w.o.s| |r.i.s|)",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::SW",
+            "label": "w"
+          },
+          {
+            "do": "pss_top::SR",
+            "label": "r"
+          }
+        ]
+      }
+    }
+  }
+}

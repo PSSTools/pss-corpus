@@ -1,0 +1,138 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "constraint.list_rand.001",
+  "rev": 1,
+  "title": "Lists in constraints: `in` a component list, rand list elements under foreach (size from pre_solve), randomize with `in` a local list",
+  "level": "L2",
+  "lrm": [
+    "16.4.2",
+    "7.9.2",
+    "22.7.8"
+  ],
+  "features": {
+    "tests": [
+      "constraint.in.list",
+      "rand.field.list",
+      "constraint.foreach.list",
+      "proc.randomize.with"
+    ],
+    "uses": [
+      "exec.body",
+      "exec.pre_solve",
+      "exec.init_down",
+      "std.message",
+      "constraint.block",
+      "constraint.if"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 16
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "x": "u8"
+      },
+      "constraints": [
+        {
+          "pss": "x in comp.picks",
+          "smt": "(or (= x #x03) (= x #x05) (= x #x09))",
+          "smt_source": "hand"
+        }
+      ],
+      "body": {
+        "seq": [
+          {
+            "chk": "rl",
+            "fields": {
+              "n": "s32",
+              "e0": "u8",
+              "e1": "u8",
+              "e2": "u8",
+              "e3": "u8"
+            },
+            "where": [
+              {
+                "pss": "n == 4",
+                "smt": "(= n #x00000004)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "e0 < 10",
+                "smt": "(bvult e0 #x0a)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "e1 < 11",
+                "smt": "(bvult e1 #x0b)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "e2 < 12",
+                "smt": "(bvult e2 #x0c)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "e3 < 13",
+                "smt": "(bvult e3 #x0d)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "e1 > e0",
+                "smt": "(bvugt e1 e0)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "e2 > e1",
+                "smt": "(bvugt e2 e1)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "e3 > e2",
+                "smt": "(bvugt e3 e2)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "chk": "rw",
+            "fields": {
+              "xx": "u8",
+              "y": "u8"
+            },
+            "where": [
+              {
+                "pss": "xx == x",
+                "smt": "(= xx x)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "y in w",
+                "smt": "(or (= y #x14) (= y #x1e))",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "y != x + 17",
+                "smt": "(not (= y (bvadd x #x11)))",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "derivation": "comp.picks = [3,5,9] (init_down); l has 4 elements (pre_solve), each e[i] < 10+i and strictly increasing; w = [20,30]."
+}

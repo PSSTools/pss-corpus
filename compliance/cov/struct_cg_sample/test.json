@@ -1,0 +1,105 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "cov.struct_cg_sample.001",
+  "rev": 1,
+  "title": "A struct's covergroup is sampled each time the struct is randomized",
+  "level": "L3",
+  "lrm": [
+    "19.1"
+  ],
+  "features": {
+    "tests": [
+      "coverage.covergroup.type",
+      "coverage.sample.struct"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.type",
+      "rand.field.scalar",
+      "rand.field.struct"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::B",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok",
+    "coverage": [
+      {
+        "covergroup": "cg_t",
+        "samples": 3
+      },
+      {
+        "covergroup": "cg_t",
+        "coverpoint": "cp_v",
+        "bin": "lo",
+        "hits": 2
+      },
+      {
+        "covergroup": "cg_t",
+        "coverpoint": "cp_v",
+        "bin": "hi",
+        "hits": 1
+      }
+    ]
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "v": "u4"
+      }
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "s.v == 1",
+                "smt": "(= v #x1)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "s.v == 6",
+                "smt": "(= v #x6)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "s.v == 11",
+                "smt": "(= v #xb)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

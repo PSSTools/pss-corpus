@@ -1,0 +1,31 @@
+import std_pkg::*;
+
+// LRM 19.3: a value bin, a range bin, an array bin (one bin per value,
+// named v[<value>]) and a default bin, which holds the values no other bin
+// holds. B traverses A with x = 2, 2, 5, 9, 9, 10, 14.
+component pss_top {
+  action A {
+    rand bit[4] x;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A x=%u", x); }
+    covergroup {
+      cp_x: coverpoint x {
+        bins two = [2];
+        bins mid = [4..7];
+        bins v[] = [8..10];
+        bins other = default;
+      }
+    } cs;
+  }
+
+  action B {
+    activity {
+      do A with { x == 2; };
+      do A with { x == 2; };
+      do A with { x == 5; };
+      do A with { x == 9; };
+      do A with { x == 9; };
+      do A with { x == 10; };
+      do A with { x == 14; };
+    }
+  }
+}

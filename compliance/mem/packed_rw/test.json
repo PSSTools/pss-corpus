@@ -1,0 +1,30 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "mem.packed_rw.001",
+  "rev": 1,
+  "title": "write_struct and read_struct move little- and big-endian packed structs byte-exactly",
+  "level": "L2",
+  "lrm": ["24.10.1", "24.10.9.4"],
+  "features": {
+    "tests": ["mem.packed_rw"],
+    "uses": ["mem.claim.transparent", "mem.handle.from_claim", "mem.read32", "mem.read8", "exec.body", "std.message"]
+  },
+  "sources": ["test.pss"],
+  "run": {"root": "pss_top::A", "seeds": {"count": 2}},
+  "expect": {"outcome": "ok"},
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "body": {
+        "seq": [
+          {"chk": "le", "eq": {"w": 1, "rb": 1}},
+          {"chk": "desc", "eq": {"w0": 1, "w1": 1, "w3": 1, "rb": 1}},
+          {"chk": "be", "eq": {"w": 1, "b0": 1, "rb": 1}}
+        ]
+      }
+    }
+  }
+}

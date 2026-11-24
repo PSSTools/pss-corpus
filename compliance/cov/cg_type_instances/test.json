@@ -1,0 +1,150 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "cov.cg_type_instances.001",
+  "rev": 1,
+  "title": "A covergroup type with parameters is instantiated twice in an action; hits sum over the instances",
+  "level": "L3",
+  "lrm": [
+    "19.1",
+    "19.2"
+  ],
+  "features": {
+    "tests": [
+      "coverage.covergroup.type",
+      "coverage.covergroup.instance.action",
+      "coverage.covergroup.portmap"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.type",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::B",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok",
+    "coverage": [
+      {
+        "covergroup": "cg_t",
+        "samples": 6
+      },
+      {
+        "covergroup": "cg_t",
+        "coverpoint": "cp_v",
+        "bin": "lo",
+        "hits": 2
+      },
+      {
+        "covergroup": "cg_t",
+        "coverpoint": "cp_v",
+        "bin": "hi",
+        "hits": 4
+      },
+      {
+        "covergroup": "cg_t",
+        "coverpoint": "cp_f",
+        "bin": "z",
+        "hits": 2
+      },
+      {
+        "covergroup": "cg_t",
+        "coverpoint": "cp_f",
+        "bin": "o",
+        "hits": 4
+      }
+    ]
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "x": "u4",
+        "y": "u4",
+        "f": "u1"
+      }
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 1",
+                "smt": "(= x #x1)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "y == 9",
+                "smt": "(= y #x9)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "f == 0",
+                "smt": "(= f #b0)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 6",
+                "smt": "(= x #x6)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "y == 9",
+                "smt": "(= y #x9)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "f == 1",
+                "smt": "(= f #b1)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 11",
+                "smt": "(= x #xb)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "y == 9",
+                "smt": "(= y #x9)",
+                "smt_source": "hand"
+              },
+              {
+                "pss": "f == 1",
+                "smt": "(= f #b1)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

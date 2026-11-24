@@ -1,0 +1,27 @@
+import std_pkg::*;
+
+component pss_top {
+  resource rs_s { }
+  pool[4] rs_s rp;
+  bind rp *;
+
+  // lock rs_s r[2] is two distinct lock references (14.2): the two parallel
+  // LAs between them hold all four instances.
+  action LA {
+    lock rs_s r[2];
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::LA r0.instance_id=%u r1.instance_id=%u",
+              r[0].instance_id, r[1].instance_id);
+    }
+  }
+
+  action T {
+    activity {
+      do LA;
+      parallel {
+        do LA;
+        do LA;
+      }
+    }
+  }
+}

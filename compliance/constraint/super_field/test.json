@@ -1,0 +1,92 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "constraint.super_field.001",
+  "rev": 1,
+  "title": "`super.v` in a derived action's constraint reaches the base field its own v shadows",
+  "level": "L2",
+  "lrm": [
+    "17.1",
+    "16.1"
+  ],
+  "features": {
+    "tests": [
+      "constraint.expr.super"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "rand.field.scalar",
+      "action.inherit",
+      "constraint.block",
+      "activity.seq",
+      "activity.traverse.type"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 32
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "v": "u4"
+      },
+      "constraints": [
+        {
+          "pss": "v < 8",
+          "smt": "(bvult v #x8)",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "v": "u4",
+        "base_v": "u4"
+      },
+      "constraints": [
+        {
+          "pss": "base_v < 8",
+          "smt": "(bvult base_v #x8)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "v > super.v",
+          "smt": "(bvugt v base_v)",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A"
+          },
+          {
+            "do": "pss_top::B"
+          }
+        ]
+      }
+    }
+  }
+}

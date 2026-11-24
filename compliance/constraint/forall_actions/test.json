@@ -1,0 +1,102 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "constraint.forall_actions.001",
+  "rev": 1,
+  "title": "`forall` over an action type constrains every traversal of that type, and no other",
+  "level": "L2",
+  "lrm": [
+    "16.1.7"
+  ],
+  "features": {
+    "tests": [
+      "constraint.forall.action"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "rand.field.scalar",
+      "activity.seq",
+      "activity.traverse.handle",
+      "activity.traverse.with",
+      "constraint.block"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 32
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "v": "u4"
+      }
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "v": "u4"
+      }
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [
+        {
+          "pss": "a1.v < 4",
+          "smt": "(bvult |a1.v| #x4)",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "a2.v < 4",
+          "smt": "(bvult |a2.v| #x4)",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "label": "a1"
+          },
+          {
+            "do": "pss_top::A",
+            "label": "a2",
+            "with": [
+              {
+                "pss": "v > 1",
+                "smt": "(bvugt v #x1)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::B",
+            "label": "b",
+            "with": [
+              {
+                "pss": "v > 11",
+                "smt": "(bvugt v #xb)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "mem.handle.contig.001",
+  "rev": 1,
+  "title": "A handle made from a contiguous claim addresses where the run placed it",
+  "level": "L2",
+  "lrm": [
+    "24.10.4.1",
+    "24.10.9"
+  ],
+  "features": {
+    "tests": [
+      "mem.handle.contig"
+    ],
+    "uses": [
+      "mem.claim.contiguous",
+      "mem.handle.from_claim",
+      "mem.access.read_write",
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 4
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "hd",
+            "eq": {
+              "al": 1,
+              "a8": 1,
+              "dj": 1,
+              "rd": 1
+            }
+          }
+        ]
+      }
+    }
+  }
+}

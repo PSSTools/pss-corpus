@@ -1,0 +1,30 @@
+import std_pkg::*;
+import addr_reg_pkg::*;
+
+// LRM 24.10.4.1: make_handle_from_claim(claim, offset) is a handle whose
+// address is the claim's address plus the offset; a write through it is read
+// back through the same handle (24.10.9).
+component pss_top {
+  transparent_addr_space_c<> mem;
+  exec init_down {
+    transparent_addr_region_s<> r;
+    r.size = 0x1000;
+    r.addr = 64'h80000000;
+    (void)mem.add_region(r);
+  }
+  action A {
+    rand transparent_addr_claim_s<> c;
+    constraint c.size == 64;
+    constraint c.alignment == 64;
+    exec body {
+      addr_handle_t h0 = make_handle_from_claim(c);
+      addr_handle_t h8 = make_handle_from_claim(c, 8);
+      write32(h8, 32'h12345678);
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk hd a0=%d a8=%d rd=%d",
+              (addr_value(h0) == c.addr) ? 1 : 0,
+              (addr_value(h8) == c.addr + 8) ? 1 : 0,
+              (read32(h8) == 32'h12345678) ? 1 : 0);
+    }
+  }
+}

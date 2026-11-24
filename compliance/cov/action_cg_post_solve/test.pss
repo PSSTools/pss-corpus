@@ -1,0 +1,26 @@
+import std_pkg::*;
+
+// LRM 19.1: a covergroup instantiated in an action is sampled once per
+// traversal, after the action's fields are solved and post_solve has run.
+// y is set only in post_solve, so a sample taken before it sees y == 0 and
+// fills bin lo three times instead of twice. Only x is traced: the
+// coverage counts are what pin the sampling point.
+component pss_top {
+  action A {
+    rand bit[4] x;
+    bit[4] y;
+    exec post_solve { y = x + 1; }
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A x=%u", x); }
+    covergroup {
+      cp_y: coverpoint y { bins lo = [0..7]; bins hi = [8..15]; }
+    } cs;
+  }
+
+  action B {
+    activity {
+      do A with { x == 2; };
+      do A with { x == 3; };
+      do A with { x == 12; };
+    }
+  }
+}

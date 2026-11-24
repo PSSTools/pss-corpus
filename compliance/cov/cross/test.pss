@@ -1,0 +1,25 @@
+import std_pkg::*;
+
+// LRM 19.4: a cross has one bin per combination of its coverpoints' bins
+// (named here by the list of those bins). B traverses A with
+// (a, b) = (0, 0), (1, 0), (3, 1).
+component pss_top {
+  action A {
+    rand bit[2] a;
+    rand bit b;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A a=%u b=%u", a, b); }
+    covergroup {
+      cp_a: coverpoint a { bins lo = [0..1]; bins hi = [2..3]; }
+      cp_b: coverpoint b { bins z = [0]; bins o = [1]; }
+      ab: cross cp_a, cp_b;
+    } cs;
+  }
+
+  action B {
+    activity {
+      do A with { a == 0; b == 0; };
+      do A with { a == 1; b == 0; };
+      do A with { a == 3; b == 1; };
+    }
+  }
+}

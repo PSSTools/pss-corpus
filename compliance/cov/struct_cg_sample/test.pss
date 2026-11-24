@@ -1,0 +1,29 @@
+import std_pkg::*;
+
+// LRM 19.1: a covergroup type instantiated in a struct, with the struct's
+// field as its argument, is sampled when the struct is randomized: here
+// once per traversal of A, which holds a rand S. B traverses A with
+// s.v = 1, 6, 11.
+covergroup cg_t(bit[4] v) {
+  cp_v: coverpoint v { bins lo = [0..7]; bins hi = [8..15]; }
+}
+
+struct S {
+  rand bit[4] v;
+  cg_t cg(v);
+}
+
+component pss_top {
+  action A {
+    rand S s;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A v=%u", s.v); }
+  }
+
+  action B {
+    activity {
+      do A with { s.v == 1; };
+      do A with { s.v == 6; };
+      do A with { s.v == 11; };
+    }
+  }
+}

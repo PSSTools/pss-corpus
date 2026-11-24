@@ -1,0 +1,98 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "resource.lock.array.001",
+  "rev": 1,
+  "title": "An action locks an array of resources; parallel claimers get distinct instances",
+  "level": "L3",
+  "lrm": [
+    "14.2",
+    "15.4"
+  ],
+  "features": {
+    "tests": [
+      "resource.lock.array"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.parallel",
+      "activity.traverse.type",
+      "resource.pool"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "components": {
+    "pss_top": {
+      "pools": {
+        "rp": {
+          "type": "pss_top::rs_s",
+          "bind": "*",
+          "size": 4
+        }
+      }
+    }
+  },
+  "types": {
+    "pss_top::rs_s": {
+      "kind": "resource",
+      "fields": {}
+    },
+    "pss_top::LA": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [
+        {
+          "pss": "r[0] and r[1] are distinct objects",
+          "smt": "(not (= |r0.instance_id| |r1.instance_id|))",
+          "smt_source": "hand"
+        }
+      ],
+      "refs": {
+        "r0": {
+          "dir": "lock",
+          "type": "pss_top::rs_s"
+        },
+        "r1": {
+          "dir": "lock",
+          "type": "pss_top::rs_s"
+        }
+      }
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::LA"
+          },
+          {
+            "par": [
+              {
+                "do": "pss_top::LA"
+              },
+              {
+                "do": "pss_top::LA"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+import std_pkg::*;
+import addr_reg_pkg::*;
+
+// LRM 24.10.2: sizeof_s<T>::nbytes is T's size in whole bytes (a packed
+// struct: its fields' bits, rounded up), nbits its size in bits. As in the
+// LRM DMA example (Example 312), a claim is sized from a descriptor's nbytes.
+struct t_s : packed_s<> { bit[2] a; int b; }
+struct desc_s : packed_s<> { bit[32] src; bit[32] dst; int size; bit[32] next; }
+component pss_top {
+  transparent_addr_space_c<> mem;
+  exec init_down {
+    transparent_addr_region_s<> r;
+    r.size = 0x1000;
+    r.addr = 64'h80000000;
+    (void)mem.add_region(r);
+  }
+  action A {
+    rand transparent_addr_claim_s<> c;
+    constraint c.size == sizeof_s<desc_s>::nbytes;
+    exec body {
+      int i = sizeof_s<int>::nbytes;
+      int b = sizeof_s<bit>::nbytes;
+      int w = sizeof_s<bit[33]>::nbytes;
+      int r = sizeof_s<array<int, 10>>::nbytes;
+      int t = sizeof_s<t_s>::nbytes;
+      int n = sizeof_s<int[4]>::nbytes;
+      int tb = sizeof_s<t_s>::nbits;
+      int d = sizeof_s<desc_s>::nbytes;
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk sz i=%d b=%d w=%d r=%d t=%d n=%d tb=%d d=%d cs=%d",
+              i, b, w, r, t, n, tb, d, c.size);
+    }
+  }
+}

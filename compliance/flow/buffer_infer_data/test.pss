@@ -1,0 +1,32 @@
+import std_pkg::*;
+
+component pss_top {
+  buffer buf_s { rand bit[8] v; }
+  pool buf_s bp;
+  bind bp *;
+
+  action write1 {
+    output buf_s o;
+    constraint o.v in [1..5];
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::write1 o.v=%u", o.v); }
+  }
+  action write2 {
+    output buf_s o;
+    constraint o.v in [6..10];
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::write2 o.v=%u", o.v); }
+  }
+  action read {
+    input buf_s i;
+    constraint i.v in [8..12];
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::read i.v=%u", i.v); }
+  }
+
+  // write1 cannot feed read (Ex 175): a write2 must be inferred before read,
+  // and read.i.v is in [8..10].
+  action t {
+    activity {
+      do write1;
+      do read;
+    }
+  }
+}

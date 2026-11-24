@@ -1,0 +1,23 @@
+import std_pkg::*;
+
+component pss_top {
+  stream str_s { rand bit[8] v; }
+  pool str_s sp;
+  bind sp *;
+
+  action send {
+    output str_s o;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::send o.v=%u", o.v); }
+  }
+  action receive {
+    input str_s i;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::receive i.v=%u", i.v); }
+  }
+
+  // send alone: a receive is inferred to run in parallel with it.
+  action t {
+    activity {
+      do send;
+    }
+  }
+}

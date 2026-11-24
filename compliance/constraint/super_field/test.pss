@@ -1,0 +1,25 @@
+import std_pkg::*;
+
+// LRM 17.1 (Table 27), after Example 284: a derived action's field v shadows
+// the base's v, and `super.v` in the derived type's constraint reaches the
+// base field. The base's own constraint still holds on the base field.
+component pss_top {
+  action A {
+    rand bit[4] v;
+    constraint v < 8;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A v=%u", v); }
+  }
+
+  action B : A {
+    rand bit[4] v;              // shadows A::v
+    constraint v > super.v;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::B v=%u base_v=%u", v, super.v); }
+  }
+
+  action T {
+    activity {
+      do A;
+      do B;
+    }
+  }
+}

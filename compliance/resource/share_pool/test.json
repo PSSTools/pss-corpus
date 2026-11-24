@@ -1,0 +1,86 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "resource.share.pool.001",
+  "rev": 1,
+  "title": "Parallel shares of a one-instance pool all use that instance",
+  "derived_from": "pssc/tests/unit/integration/test_pattern_integration.py (be-py ScenarioRunner resource models)",
+  "level": "L3",
+  "lrm": [
+    "15.2",
+    "17.1"
+  ],
+  "features": {
+    "tests": [
+      "resource.share",
+      "resource.pool"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.parallel",
+      "activity.traverse.type"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::rs_s": {
+      "kind": "resource",
+      "fields": {}
+    },
+    "pss_top::S": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "r.instance_id": "u32"
+      },
+      "refs": {
+        "r": {
+          "dir": "share",
+          "type": "pss_top::rs_s"
+        }
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "par": [
+          {
+            "do": "pss_top::S"
+          },
+          {
+            "do": "pss_top::S"
+          },
+          {
+            "do": "pss_top::S"
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "pss_top": {
+      "pools": {
+        "rp": {
+          "type": "pss_top::rs_s",
+          "bind": "*",
+          "size": 1
+        }
+      }
+    }
+  }
+}

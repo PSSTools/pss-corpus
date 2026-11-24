@@ -1,0 +1,23 @@
+import std_pkg::*;
+
+// LRM 16.1.12: of two soft constraints that conflict, the one declared later
+// is kept and the earlier dropped. A hard constraint always beats a soft one.
+// So v is always 5, w always 9, and u only ever below 4.
+component pss_top {
+  action A {
+    rand bit[4] v;
+    rand bit[4] w;
+    rand bit[4] u;
+    constraint {
+      soft v == 3;
+      soft v == 5;      // later: kept
+      soft w < 4;
+    }
+    constraint {
+      soft w == 9;      // later block: kept over w < 4
+      u < 4;
+      soft u == 9;      // conflicts with a hard constraint: dropped
+    }
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A v=%u w=%u u=%u", v, w, u); }
+  }
+}

@@ -1,0 +1,35 @@
+import std_pkg::*;
+
+component pss_top {
+  // Each state written follows from the one before it (prev, 13.3):
+  // v counts up from the initial 0; w moves by at most one.
+  state st_s {
+    rand bit[4] v;
+    rand bit[4] w;
+    constraint initial -> v == 0 && w == 8;
+    constraint v == prev.v + 1;
+    constraint w in [prev.w - 1 .. prev.w + 1];
+  }
+  pool st_s stp;
+  bind stp *;
+
+  action W {
+    output st_s o;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::W o.v=%u o.w=%u", o.v, o.w); }
+  }
+  action R {
+    input st_s i;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::R i.v=%u i.w=%u", i.v, i.w); }
+  }
+
+  action t {
+    W w1, w2, w3;
+    R r;
+    activity {
+      w1;
+      w2;
+      w3;
+      r;
+    }
+  }
+}

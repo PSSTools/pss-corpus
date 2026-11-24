@@ -1,0 +1,100 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "flow.stream.pair.001",
+  "rev": 1,
+  "title": "A stream binds a producer and a consumer that run in parallel and carries the producer's values",
+  "level": "L3",
+  "lrm": [
+    "14.4",
+    "16.1"
+  ],
+  "features": {
+    "tests": [
+      "flow.stream",
+      "flow.bind.explicit"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.parallel",
+      "activity.traverse.handle",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::str_s": {
+      "kind": "stream",
+      "fields": {
+        "v": "u8"
+      }
+    },
+    "pss_top::P": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::str_s",
+          "pool": "pss_top::str_s"
+        }
+      }
+    },
+    "pss_top::C": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "pss_top::str_s",
+          "pool": "pss_top::str_s"
+        }
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {
+            "par": [
+              {
+                "do": "pss_top::P",
+                "label": "p"
+              },
+              {
+                "do": "pss_top::C",
+                "label": "c"
+              }
+            ]
+          },
+          {
+            "bind": [
+              [
+                "p.o",
+                "c.i"
+              ]
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

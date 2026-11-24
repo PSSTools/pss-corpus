@@ -1,0 +1,26 @@
+import std_pkg::*;
+
+component pss_top {
+  state st_s { rand bit[4] s; }
+  pool st_s stp;
+  bind stp *;
+
+  action SW {
+    output st_s o;
+    constraint o.s == 3;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::SW o.s=%u", o.s); }
+  }
+  action SR {
+    input st_s i;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::SR i.s=%u", i.s); }
+  }
+
+  action t {
+    SW w;
+    SR r;
+    activity {
+      w;
+      r;
+    }
+  }
+}

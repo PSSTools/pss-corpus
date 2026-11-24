@@ -1,0 +1,29 @@
+import std_pkg::*;
+
+// LRM 19.1, 19.2: a covergroup type with two parameters, instantiated twice
+// in an action: once with positional arguments, once with a port map. Both
+// instances are sampled when A is solved, and hits sum over the instances.
+// B traverses A with (x, y, f) = (1, 9, 0), (6, 9, 1), (11, 9, 1).
+covergroup cg_t(bit[4] v, bit f) {
+  cp_v: coverpoint v { bins lo = [0..7]; bins hi = [8..15]; }
+  cp_f: coverpoint f { bins z = [0]; bins o = [1]; }
+}
+
+component pss_top {
+  action A {
+    rand bit[4] x;
+    rand bit[4] y;
+    rand bit f;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A x=%u y=%u f=%u", x, y, f); }
+    cg_t cx(x, f);
+    cg_t cy(.v(y), .f(f));
+  }
+
+  action B {
+    activity {
+      do A with { x == 1; y == 9; f == 0; };
+      do A with { x == 6; y == 9; f == 1; };
+      do A with { x == 11; y == 9; f == 1; };
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "neg.exec.claim.no_group.001",
+  "rev": 1,
+  "title": "An executor claim that no executor group matches is an error",
+  "level": "L1",
+  "lrm": [
+    "24.6.2.2"
+  ],
+  "features": {
+    "tests": [
+      "diag.exec.claim.no_group"
+    ],
+    "uses": [
+      "exec.group.add_executor",
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "compile_error",
+    "diagnostics": [
+      {
+        "file": "test.pss",
+        "line": 14
+      }
+    ]
+  },
+  "types": {}
+}

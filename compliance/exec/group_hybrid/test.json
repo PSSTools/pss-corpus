@@ -1,0 +1,79 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "exec.group.hybrid.001",
+  "rev": 1,
+  "title": "A group filled with two executor types by foreach loops gives a claim one of its members",
+  "level": "L3",
+  "lrm": [
+    "24.6.1.2",
+    "24.6.2"
+  ],
+  "features": {
+    "tests": [
+      "exec.group.add_executor"
+    ],
+    "uses": [
+      "exec.claim.trait",
+      "exec.body",
+      "std.message",
+      "activity.traverse.type",
+      "activity.traverse.with"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::T",
+    "seeds": {
+      "count": 4
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "id": "s32"
+      },
+      "constraints": [
+        {
+          "pss": "id in [0..3, 10, 11] (the members' trait ids: cores[i] has i, bfms[i] has 10 + i)",
+          "smt": "(or (bvult id #x00000004) (= id #x0000000a) (= id #x0000000b))",
+          "smt_source": "hand"
+        }
+      ],
+      "body": {
+        "seq": []
+      }
+    },
+    "pss_top::T": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A"
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "ec.trait.id == 11",
+                "smt": "(= id #x0000000b)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

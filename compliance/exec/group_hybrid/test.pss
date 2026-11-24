@@ -1,0 +1,47 @@
+import std_pkg::*;
+import executor_pkg::*;
+
+// LRM 24.6.1.2, Example 291: a group filled with two executor types of one
+// trait type by foreach loops in init_down. The example's trait is empty;
+// here it has an id, set per executor, so an action that claims an executor
+// of the group (24.6.2) prints which one it got: a core (0..3) or a BFM
+// (10, 11), never anything else.
+struct master_trait_s : executor_trait_s {
+  rand int id;
+};
+
+component my_core_executor_c : executor_c<master_trait_s> { };
+component my_bus_vip_executor_c : executor_c<master_trait_s> { };
+
+component my_hybrid_group_c : executor_group_c<master_trait_s> {
+  my_core_executor_c cores[4];
+  my_bus_vip_executor_c bfms[2];
+  exec init_down {
+    foreach (c: cores[i]) {
+      c.trait.id = i;
+      add_executor(c);
+    }
+    foreach (b: bfms[i]) {
+      b.trait.id = 10 + i;
+      add_executor(b);
+    }
+  }
+};
+
+component pss_top {
+  my_hybrid_group_c hybrid;
+
+  action A {
+    rand executor_claim_s<master_trait_s> ec;
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A id=%d", ec.trait.id);
+    }
+  }
+
+  action T {
+    activity {
+      do A;
+      do A with { ec.trait.id == 11; };
+    }
+  }
+};

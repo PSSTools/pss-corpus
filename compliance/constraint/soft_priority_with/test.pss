@@ -1,0 +1,22 @@
+import std_pkg::*;
+
+// LRM 16.1.12: at a traversal, a soft constraint in `with { }` is kept over
+// a conflicting soft constraint of the traversed type. Soft constraints it
+// does not conflict with stay in force: v == 5, w == 3.
+component pss_top {
+  action A {
+    rand bit[4] v;
+    rand bit[4] w;
+    constraint {
+      soft v == 3;
+      soft w == 3;
+    }
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A v=%u w=%u", v, w); }
+  }
+
+  action T {
+    activity {
+      do A with { soft v == 5; };
+    }
+  }
+}

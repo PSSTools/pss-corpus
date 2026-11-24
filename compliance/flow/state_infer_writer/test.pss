@@ -1,0 +1,27 @@
+import std_pkg::*;
+
+component pss_top {
+  state st_s {
+    rand bit[4] s;
+    constraint initial -> s == 0;
+  }
+  pool st_s stp;
+  bind stp *;
+
+  action W {
+    output st_s o;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::W o.s=%u", o.s); }
+  }
+  action R {
+    input st_s i;
+    constraint i.s == 5;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::R i.s=%u", i.s); }
+  }
+
+  // The initial state has s == 0; R needs 5, so a W is inferred before R.
+  action t {
+    activity {
+      do R;
+    }
+  }
+}

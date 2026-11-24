@@ -1,0 +1,29 @@
+import std_pkg::*;
+
+// LRM 16.1.7: `forall (it: A)` in a compound action constrains every A
+// traversed in its activity -- a1 and a2, not b, which is a different type.
+// a2 also has its own bound from a `with`.
+component pss_top {
+  action A {
+    rand bit[4] v;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A v=%u", v); }
+  }
+
+  action B {
+    rand bit[4] v;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::B v=%u", v); }
+  }
+
+  action T {
+    A a1, a2;
+    B b;
+    constraint forall (it: A) {
+      it.v < 4;
+    }
+    activity {
+      a1;
+      a2 with { v > 1; };
+      b with { v > 11; };
+    }
+  }
+}

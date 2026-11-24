@@ -1,0 +1,52 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "mem.claim.region.001",
+  "rev": 1,
+  "title": "A transparent claim lands inside its region, aligned",
+  "level": "L2",
+  "lrm": [
+    "24.8"
+  ],
+  "features": {
+    "tests": [
+      "mem.claim.transparent.region"
+    ],
+    "uses": [
+      "mem.space.transparent.add_region",
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 4
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "cl",
+            "eq": {
+              "in": 1,
+              "al": 1
+            }
+          }
+        ]
+      }
+    }
+  }
+}

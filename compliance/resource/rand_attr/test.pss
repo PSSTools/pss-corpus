@@ -1,0 +1,22 @@
+import std_pkg::*;
+
+component pss_top {
+  resource ra_s { rand bit[4] attr; }
+  pool[4] ra_s rp;
+  bind rp *;
+
+  action L {
+    lock ra_s r;
+    constraint r.attr == 1;
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::L r.attr=%u r.instance_id=%u", r.attr, r.instance_id);
+    }
+  }
+
+  action t {
+    L a;
+    activity {
+      a;
+    }
+  }
+}

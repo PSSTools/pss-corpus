@@ -1,0 +1,80 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "constraint.dist_ranges.001",
+  "rev": 1,
+  "title": "`dist` with `:/` keeps the value in its ranges (weights checked by CF-dist)",
+  "level": "L2",
+  "lrm": [
+    "16.1.11"
+  ],
+  "features": {
+    "tests": [
+      "constraint.dist.weight_range"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "rand.field.scalar",
+      "constraint.block"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 32
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "y": "u4"
+      },
+      "constraints": [
+        {
+          "pss": "dist y in [0..3 :/ 30, 8..11 :/ 70] (hard part: y in [0..3] or [8..11])",
+          "smt": "(or (bvule y #x3) (and (bvuge y #x8) (bvule y #xb)))",
+          "smt_source": "hand"
+        }
+      ]
+    }
+  },
+  "distribution": [
+    {
+      "id": "d1",
+      "kind": "dist",
+      "target": {
+        "occ": "pss_top::A",
+        "expr": "y"
+      },
+      "weights": [
+        {
+          "range": [
+            0,
+            3
+          ],
+          "w": 30,
+          "per": "range"
+        },
+        {
+          "range": [
+            8,
+            11
+          ],
+          "w": 70,
+          "per": "range"
+        }
+      ],
+      "min_samples": 400
+    }
+  ],
+  "note": "The checker checks the dist's hard part (the value is in its list) on every run; the proportions in distribution[] wait for the checker's distribution stage (CF-dist)."
+}

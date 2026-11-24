@@ -1,0 +1,171 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "cov.bins_forms.001",
+  "rev": 1,
+  "title": "Value, range, array and default bins count the values they hold",
+  "level": "L3",
+  "lrm": [
+    "19.3"
+  ],
+  "features": {
+    "tests": [
+      "coverage.bins.value",
+      "coverage.bins.range",
+      "coverage.bins.array",
+      "coverage.bins.default"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.type",
+      "rand.field.scalar",
+      "coverage.covergroup.inline.action"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::B",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok",
+    "coverage": [
+      {
+        "covergroup": "pss_top::A::cs",
+        "samples": 7
+      },
+      {
+        "covergroup": "pss_top::A::cs",
+        "coverpoint": "cp_x",
+        "bin": "two",
+        "hits": 2
+      },
+      {
+        "covergroup": "pss_top::A::cs",
+        "coverpoint": "cp_x",
+        "bin": "mid",
+        "hits": 1
+      },
+      {
+        "covergroup": "pss_top::A::cs",
+        "coverpoint": "cp_x",
+        "bin": "v[8]",
+        "hits": 0
+      },
+      {
+        "covergroup": "pss_top::A::cs",
+        "coverpoint": "cp_x",
+        "bin": "v[9]",
+        "hits": 2
+      },
+      {
+        "covergroup": "pss_top::A::cs",
+        "coverpoint": "cp_x",
+        "bin": "v[10]",
+        "hits": 1
+      },
+      {
+        "covergroup": "pss_top::A::cs",
+        "coverpoint": "cp_x",
+        "bin": "other",
+        "hits": 1
+      }
+    ]
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "x": "u4"
+      }
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 2",
+                "smt": "(= x #x2)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 2",
+                "smt": "(= x #x2)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 5",
+                "smt": "(= x #x5)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 9",
+                "smt": "(= x #x9)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 9",
+                "smt": "(= x #x9)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 10",
+                "smt": "(= x #xa)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 14",
+                "smt": "(= x #xe)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

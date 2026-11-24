@@ -1,0 +1,27 @@
+import std_pkg::*;
+
+component sub_c {
+  resource rs_s { }
+  pool[3] rs_s rp;
+  bind rp *;
+
+  action L {
+    lock rs_s r;
+    exec body { message(NONE, "@@PSS-TRACE act sub_c::L r.instance_id=%u", r.instance_id); }
+  }
+}
+
+component pss_top {
+  sub_c s1;
+
+  // s1's pool has three instances: instance_id is 0..2.
+  action t {
+    sub_c::L a;
+    sub_c::L b;
+    constraint a.r.instance_id != b.r.instance_id;
+    activity {
+      a;
+      b;
+    }
+  }
+}

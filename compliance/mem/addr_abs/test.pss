@@ -1,0 +1,45 @@
+import std_pkg::*;
+import addr_reg_pkg::*;
+
+// LRM 24.10.6-7: in exec pre_body, addr_value_abs() says whether a handle's
+// absolute address is known, and addr_value_solve() gives it. A transparent
+// claim's handle is absolute (its addr); a contiguous claim's is not, and
+// addr_value_solve() still tells two handles of one claim apart by offset.
+// (The contiguous space has its own trait, so the transparent claim fits
+// only the transparent space, LRM 24.8.6.)
+struct my_trait_s : addr_trait_s { bit[8] kind; }
+
+component pss_top {
+  transparent_addr_space_c<> tmem;
+  contiguous_addr_space_c<my_trait_s> cmem;
+  exec init_down {
+    transparent_addr_region_s<> tr;
+    addr_region_s<my_trait_s> cr;
+    tr.size = 0x1000; tr.addr = 64'h80000000;
+    cr.size = 0x1000;
+    (void)tmem.add_region(tr);
+    (void)cmem.add_region(cr);
+  }
+  action A {
+    rand transparent_addr_claim_s<> t;
+    rand addr_claim_s<my_trait_s> c;
+    constraint t.size == 64;
+    constraint t.alignment == 64;
+    constraint c.size == 32;
+    exec pre_body {
+      ta = addr_value_abs(make_handle_from_claim(t)) ? 1 : 0;
+      tv = (addr_value_solve(make_handle_from_claim(t, 4)) == t.addr + 4) ? 1 : 0;
+      ca = addr_value_abs(make_handle_from_claim(c)) ? 1 : 0;
+      cv = (addr_value_solve(make_handle_from_claim(c, 4))
+            == addr_value_solve(make_handle_from_claim(c)) + 4) ? 1 : 0;
+    }
+    int ta;
+    int tv;
+    int ca;
+    int cv;
+    exec body {
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk av ta=%d tv=%d ca=%d cv=%d", ta, tv, ca, cv);
+    }
+  }
+}

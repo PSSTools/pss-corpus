@@ -1,0 +1,96 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "flow.bind.nested.001",
+  "rev": 1,
+  "title": "A wildcard pool bind reaches actions two sub-component levels down",
+  "derived_from": "pssc/tests/unit/integration/test_pattern_integration.py T1-8 (pool bind * to sub-components)",
+  "level": "L3",
+  "lrm": [
+    "14.4",
+    "16.4"
+  ],
+  "features": {
+    "tests": [
+      "flow.buffer",
+      "flow.bind.implicit",
+      "resource.pool.bind.component"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.handle",
+      "rand.field.scalar",
+      "comp.instance"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "data_pkg::buf_s": {
+      "kind": "buffer",
+      "fields": {
+        "v": "u8"
+      }
+    },
+    "pss_top::P": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "data_pkg::buf_s"
+        }
+      }
+    },
+    "leaf_c::C": {
+      "kind": "action",
+      "atomic": true,
+      "component": "leaf_c",
+      "fields": {},
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "data_pkg::buf_s"
+        }
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [
+        {
+          "pss": "p.o.v == c.i.v",
+          "smt": "(= |p.o.v| |c.i.v|)",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::P",
+            "label": "p"
+          },
+          {
+            "do": "leaf_c::C",
+            "label": "c"
+          }
+        ]
+      }
+    }
+  }
+}

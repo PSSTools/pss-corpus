@@ -1,0 +1,28 @@
+import std_pkg::*;
+
+component pss_top {
+  resource rs_s { }
+  pool[2] rs_s rp;
+  bind rp *;
+
+  action lk {
+    lock rs_s r;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::lk r.instance_id=%u", r.instance_id); }
+  }
+  action sh {
+    share rs_s r;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::sh r.instance_id=%u", r.instance_id); }
+  }
+
+  // Two lockers leave no instance for the third branch, so at most one lk:
+  // sh sh sh, or lk in exactly one of the three branches.
+  action t {
+    activity {
+      parallel {
+        select { do lk; do sh; }
+        select { do lk; do sh; }
+        select { do lk; do sh; }
+      }
+    }
+  }
+}

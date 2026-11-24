@@ -1,0 +1,125 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "flow.inherited.claims.001",
+  "rev": 1,
+  "title": "Flow objects, constraints and locks inherited from an abstract base are honoured",
+  "derived_from": "pssc/tests/unit/integration/test_pattern_integration.py T1-4/T1-9 (inherited stream + lock)",
+  "level": "L3",
+  "lrm": [
+    "11.7",
+    "14.4",
+    "15.2",
+    "18.2"
+  ],
+  "features": {
+    "tests": [
+      "flow.buffer",
+      "flow.infer.buffer",
+      "resource.lock",
+      "action.inherit"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.type",
+      "rand.field.scalar",
+      "constraint.in",
+      "resource.pool",
+      "comp.instance"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "inference": {
+    "allowed": true
+  },
+  "types": {
+    "sub_c::buf_s": {
+      "kind": "buffer",
+      "fields": {
+        "v": "u8"
+      }
+    },
+    "sub_c::rs_s": {
+      "kind": "resource",
+      "fields": {}
+    },
+    "sub_c::P": {
+      "kind": "action",
+      "atomic": true,
+      "component": "sub_c",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "sub_c::buf_s"
+        }
+      }
+    },
+    "sub_c::C": {
+      "kind": "action",
+      "atomic": true,
+      "component": "sub_c",
+      "fields": {
+        "r.instance_id": "u32"
+      },
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "sub_c::buf_s"
+        },
+        "r": {
+          "dir": "lock",
+          "type": "sub_c::rs_s"
+        }
+      },
+      "constraints": [
+        {
+          "pss": "i.v in [3..7]",
+          "smt": "(and (bvuge |i.v| #x03) (bvule |i.v| #x07))",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "r.instance_id == 0",
+          "smt": "(= |r.instance_id| #x00000000)",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {
+            "do": "sub_c::C"
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "sub_c": {
+      "pools": {
+        "rp": {
+          "type": "sub_c::rs_s",
+          "bind": "*",
+          "size": 1
+        }
+      }
+    }
+  }
+}

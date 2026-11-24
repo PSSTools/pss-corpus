@@ -1,0 +1,91 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "exec.claim.trait.001",
+  "rev": 1,
+  "title": "An executor claim's trait constraints pick the executor, and its trait values are the executor's",
+  "level": "L3",
+  "lrm": [
+    "24.6.2.3"
+  ],
+  "features": {
+    "tests": [
+      "exec.claim.trait"
+    ],
+    "uses": [
+      "exec.group.add_executor",
+      "exec.body",
+      "std.message",
+      "activity.traverse.type",
+      "activity.traverse.with"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::ops_on_two_clusters",
+    "seeds": {
+      "count": 4
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "my_ip_c::op": {
+      "kind": "action",
+      "atomic": true,
+      "component": "my_ip_c",
+      "fields": {
+        "cluster": "s32",
+        "ddr": "bool"
+      },
+      "constraints": [
+        {
+          "pss": "cluster in [0..1] (the cores' trait values: cores[i] is in cluster i/4)",
+          "smt": "(or (= cluster #x00000000) (= cluster #x00000001))",
+          "smt_source": "hand"
+        },
+        {
+          "pss": "mem_kind == DDR -> core.trait.cluster_id != 0",
+          "smt": "(=> ddr (not (= cluster #x00000000)))",
+          "smt_source": "hand"
+        }
+      ],
+      "body": {
+        "seq": []
+      }
+    },
+    "pss_top::ops_on_two_clusters": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "my_ip_c::op",
+            "with": [
+              {
+                "pss": "core.trait.cluster_id == 0",
+                "smt": "(= cluster #x00000000)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "my_ip_c::op",
+            "with": [
+              {
+                "pss": "core.trait.cluster_id == 1",
+                "smt": "(= cluster #x00000001)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

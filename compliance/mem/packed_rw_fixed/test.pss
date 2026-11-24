@@ -1,0 +1,58 @@
+import std_pkg::*;
+import addr_reg_pkg::*;
+
+// LRM 24.10.1 and 24.10.9.4: write_struct puts a packed struct's bytes in
+// memory, read_struct reads them back field by field. Same structs and checks
+// as mem/packed_rw, but the handles come from a region handle at a fixed
+// address (no claim), so the case also runs where address claims do not.
+// csr_s (32 bits, little-endian, fields from the LSB): n=0x123, r=0xA, en=1,
+// m=M2, d=-2 is 0xfff5a123, one 32-bit access. desc_s (128 bits, the LRM DMA
+// descriptor's shape) moves member by member, csr first. be_s is LRM Example
+// 304 (Figure 57): A=5 B=2 C=300 D=99 E=33 is the bytes 16 96 63 84, byte 0
+// first, so a little-endian read32 sees 0x84639616.
+enum m_e : bit[2] { M0, M1, M2 }
+struct csr_s : packed_s<> { bit[12] n; bit[4] r; bool en; m_e m; int[13] d; }
+struct desc_s : packed_s<> { csr_s csr; bit[32] src; bit[32] dst; bit[32] nx; }
+struct be_s : packed_s<BIG_ENDIAN> { bit[6] A; bit[2] B; bit[9] C; bit[7] D; bit[6] E; }
+component pss_top {
+  transparent_addr_space_c<> mem;
+  addr_handle_t ram;
+  exec init_down {
+    transparent_addr_region_s<> r;
+    r.size = 0x1000;
+    r.addr = 64'h80000000;
+    ram = mem.add_region(r);
+  }
+  action A {
+    exec body {
+      addr_handle_t h0 = make_handle_from_handle(comp.ram, 0x100);
+      addr_handle_t h16 = make_handle_from_handle(comp.ram, 0x100 + 16);
+      addr_handle_t h32 = make_handle_from_handle(comp.ram, 0x100 + 32);
+      csr_s w; csr_s r;
+      desc_s dw; desc_s dr;
+      be_s bw; be_s br;
+      w.n = 0x123; w.r = 0xA; w.en = true; w.m = M2; w.d = -2;
+      write_struct(h0, w);
+      read_struct(h0, r);
+      dw.csr = w; dw.src = 0x11111111; dw.dst = 0x22222222; dw.nx = 0x33333333;
+      write_struct(h16, dw);
+      read_struct(h16, dr);
+      bw.A = 5; bw.B = 2; bw.C = 300; bw.D = 99; bw.E = 33;
+      write_struct(h32, bw);
+      read_struct(h32, br);
+      message(NONE, "@@PSS-TRACE act pss_top::A");
+      message(NONE, "@@PSS-TRACE chk le w=%d rb=%d",
+              (read32(h0) == 32'hfff5a123) ? 1 : 0,
+              (r.n == 0x123 && r.r == 0xA && r.en && r.m == M2 && r.d == -2) ? 1 : 0);
+      message(NONE, "@@PSS-TRACE chk desc w0=%d w1=%d w3=%d rb=%d",
+              (read32(h16) == 32'hfff5a123) ? 1 : 0,
+              (read32(make_handle_from_handle(comp.ram, 0x100 + 20)) == 32'h11111111) ? 1 : 0,
+              (read32(make_handle_from_handle(comp.ram, 0x100 + 28)) == 32'h33333333) ? 1 : 0,
+              (dr.csr.d == -2 && dr.dst == 0x22222222 && dr.nx == 0x33333333) ? 1 : 0);
+      message(NONE, "@@PSS-TRACE chk be w=%d b0=%d rb=%d",
+              (read32(h32) == 32'h84639616) ? 1 : 0,
+              (read8(h32) == 8'h16) ? 1 : 0,
+              (br.A == 5 && br.B == 2 && br.C == 300 && br.D == 99 && br.E == 33) ? 1 : 0);
+    }
+  }
+}

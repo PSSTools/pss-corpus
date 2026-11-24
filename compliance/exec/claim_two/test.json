@@ -1,0 +1,39 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "neg.exec.claim.two.001",
+  "rev": 1,
+  "title": "Two executor claims in one action are an error",
+  "level": "L1",
+  "lrm": [
+    "24.6.2.1"
+  ],
+  "features": {
+    "tests": [
+      "diag.exec.claim.multiple"
+    ],
+    "uses": [
+      "exec.group.add_executor",
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 1
+    }
+  },
+  "expect": {
+    "outcome": "compile_error",
+    "diagnostics": [
+      {
+        "file": "test.pss",
+        "line": 14
+      }
+    ]
+  },
+  "types": {}
+}

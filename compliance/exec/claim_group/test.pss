@@ -1,0 +1,40 @@
+import std_pkg::*;
+import executor_pkg::*;
+
+// LRM 24.6.2, Example 292: A's claim matches the group eg directly under its
+// context component C, so A runs on that C's executor e. The example's trait
+// is the default (empty) one; here it has an id, set per C instance, so A
+// prints which executor it got. The example's parallel is a sequence here.
+struct id_trait_s : executor_trait_s {
+  rand int id;
+};
+
+component C {
+  executor_c<id_trait_s> e;
+  executor_group_c<id_trait_s> eg;
+  exec init_down {
+    eg.add_executor(e);
+  }
+  action A {
+    rand executor_claim_s<id_trait_s> ec;
+    exec body {
+      message(NONE, "@@PSS-TRACE act C::A id=%d", ec.trait.id);
+    }
+  };
+};
+
+component pss_top {
+  C c1, c2;
+  exec init_down {
+    c1.e.trait.id = 1;
+    c2.e.trait.id = 2;
+  }
+  action test {
+    C::A a1, a2, a3;
+    activity {
+      a1 with { comp == this.comp.c1; };
+      a2 with { comp == this.comp.c1; };
+      a3 with { comp == this.comp.c2; };
+    }
+  };
+};

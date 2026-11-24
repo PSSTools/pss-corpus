@@ -1,0 +1,105 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "cov.action_cg_post_solve.001",
+  "rev": 1,
+  "title": "An action's inline covergroup is sampled once per traversal, after post_solve",
+  "level": "L3",
+  "lrm": [
+    "19.1"
+  ],
+  "features": {
+    "tests": [
+      "coverage.covergroup.inline.action",
+      "coverage.sample.post_solve"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.type",
+      "rand.field.scalar",
+      "exec.post_solve"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::B",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok",
+    "coverage": [
+      {
+        "covergroup": "pss_top::A::cs",
+        "samples": 3
+      },
+      {
+        "covergroup": "pss_top::A::cs",
+        "coverpoint": "cp_y",
+        "bin": "lo",
+        "hits": 2
+      },
+      {
+        "covergroup": "pss_top::A::cs",
+        "coverpoint": "cp_y",
+        "bin": "hi",
+        "hits": 1
+      }
+    ]
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "x": "u4"
+      }
+    },
+    "pss_top::B": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 2",
+                "smt": "(= x #x2)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 3",
+                "smt": "(= x #x3)",
+                "smt_source": "hand"
+              }
+            ]
+          },
+          {
+            "do": "pss_top::A",
+            "with": [
+              {
+                "pss": "x == 12",
+                "smt": "(= x #xc)",
+                "smt_source": "hand"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

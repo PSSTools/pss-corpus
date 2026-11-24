@@ -1,0 +1,59 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "mem.addr_abs.001",
+  "rev": 1,
+  "title": "Pre-body code asks whether a handle's address is absolute and what it is",
+  "level": "L2",
+  "lrm": [
+    "24.10.6",
+    "24.10.7",
+    "22.1.1"
+  ],
+  "features": {
+    "tests": [
+      "mem.addr_value_solve"
+    ],
+    "uses": [
+      "mem.claim.transparent",
+      "mem.claim.contiguous",
+      "mem.handle.from_claim",
+      "exec.pre_body",
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 4
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "av",
+            "eq": {
+              "ta": 1,
+              "tv": 1,
+              "ca": 0,
+              "cv": 1
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "flow.buffer.implicit.001",
+  "rev": 1,
+  "title": "A consumer's buffer input binds to the only earlier producer on its pool",
+  "level": "L3",
+  "lrm": [
+    "14.4",
+    "16.4"
+  ],
+  "features": {
+    "tests": [
+      "flow.buffer",
+      "flow.bind.implicit"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.seq",
+      "activity.traverse.handle",
+      "rand.field.scalar"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::P": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "o.v": "u8"
+      }
+    },
+    "pss_top::C": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {
+        "i.v": "u8"
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [
+        {
+          "pss": "p.o.v == c.i.v",
+          "smt": "(= |p.o.v| |c.i.v|)",
+          "smt_source": "hand"
+        }
+      ],
+      "activity": {
+        "seq": [
+          {
+            "do": "pss_top::P",
+            "label": "p"
+          },
+          {
+            "do": "pss_top::C",
+            "label": "c"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "flow.state.par_rw.002",
+  "rev": 1,
+  "title": "A state writer in parallel with a reader of its pool never runs inside the reader",
+  "level": "L3",
+  "lrm": [
+    "13.3.1",
+    "13.3.6"
+  ],
+  "features": {
+    "tests": [
+      "flow.state",
+      "flow.state.initial",
+      "flow.state.concurrency"
+    ],
+    "uses": [
+      "exec.body",
+      "std.message",
+      "activity.parallel",
+      "activity.traverse.type",
+      "rand.field.scalar",
+      "constraint.in",
+      "exec.yield.single"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::t",
+    "seeds": {
+      "count": 8
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::st_s": {
+      "kind": "state",
+      "fields": {
+        "s": "u4"
+      },
+      "initial": [
+        {
+          "pss": "s == 0",
+          "smt": "(= |s| #x0)",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::SW": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "o": {
+          "dir": "output",
+          "type": "pss_top::st_s"
+        }
+      },
+      "constraints": [
+        {
+          "pss": "o.s in [1..15]",
+          "smt": "(bvuge |o.s| #x1)",
+          "smt_source": "hand"
+        }
+      ]
+    },
+    "pss_top::SR": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "refs": {
+        "i": {
+          "dir": "input",
+          "type": "pss_top::st_s"
+        }
+      },
+      "body": {
+        "seq": [
+          {
+            "chk": "SR.rung",
+            "eq": {
+              "k": 0
+            }
+          },
+          {
+            "chk": "SR.rung",
+            "eq": {
+              "k": 1
+            }
+          }
+        ]
+      }
+    },
+    "pss_top::t": {
+      "kind": "action",
+      "atomic": false,
+      "component": "pss_top",
+      "fields": {},
+      "activity": {
+        "seq": [
+          {
+            "par": [
+              {
+                "do": "pss_top::SW"
+              },
+              {
+                "do": "pss_top::SR"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

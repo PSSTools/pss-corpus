@@ -1,0 +1,35 @@
+import std_pkg::*;
+
+component pss_top {
+  buffer buf_s { rand bit[8] v; }
+  pool buf_s bp;
+  bind bp *;
+
+  action P1 {
+    output buf_s o;
+    constraint o.v in [1..5];
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::P1 o.v=%u", o.v); }
+  }
+  action P2 {
+    output buf_s o;
+    constraint o.v in [6..10];
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::P2 o.v=%u", o.v); }
+  }
+  action C {
+    input buf_s i;
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::C i.v=%u", i.v); }
+  }
+
+  // Both p1 and p2 could feed c; the bind says p1 (not the most recent), so c.i.v is in [1..5].
+  action t {
+    P1 p1;
+    P2 p2;
+    C c;
+    activity {
+      p1;
+      p2;
+      c;
+      bind p1.o c.i;
+    }
+  }
+}

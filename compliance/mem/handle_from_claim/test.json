@@ -1,0 +1,55 @@
+{
+  "schema": "pss-corpus/model/1.0",
+  "id": "mem.handle.from_claim.001",
+  "rev": 1,
+  "title": "A handle made from a claim plus an offset addresses the claim",
+  "level": "L2",
+  "lrm": [
+    "24.10.4.1",
+    "24.10.9"
+  ],
+  "features": {
+    "tests": [
+      "mem.handle.from_claim"
+    ],
+    "uses": [
+      "mem.claim.transparent.region",
+      "mem.access.read_write",
+      "exec.body",
+      "std.message"
+    ]
+  },
+  "sources": [
+    "test.pss"
+  ],
+  "run": {
+    "root": "pss_top::A",
+    "seeds": {
+      "count": 4
+    }
+  },
+  "expect": {
+    "outcome": "ok"
+  },
+  "types": {
+    "pss_top::A": {
+      "kind": "action",
+      "atomic": true,
+      "component": "pss_top",
+      "fields": {},
+      "constraints": [],
+      "body": {
+        "seq": [
+          {
+            "chk": "hd",
+            "eq": {
+              "a0": 1,
+              "a8": 1,
+              "rd": 1
+            }
+          }
+        ]
+      }
+    }
+  }
+}

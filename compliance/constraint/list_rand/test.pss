@@ -1,0 +1,35 @@
+import std_pkg::*;
+
+// LRM 16.4.2, 7.9: a list's current contents feed `in` and size() at solve
+// time; a rand list's elements are solved (its size is set in pre_solve),
+// under foreach constraints over the list.
+component pss_top {
+  list<bit[8]> picks;
+  exec init_down {
+    picks.push_back(3); picks.push_back(5); picks.push_back(9);
+  }
+  action A {
+    rand bit[8] x;
+    rand list<bit[8]> l;
+    constraint { x in comp.picks; }
+    constraint {
+      foreach (e : l[i]) {
+        e < 10 + i;
+        if (i > 0) { e > l[i - 1]; }
+      }
+    }
+    exec pre_solve {
+      repeat (4) { l.push_back(0); }
+    }
+    exec body {
+      bit[8] y;
+      list<bit[8]> w;
+      w.push_back(20); w.push_back(30);
+      randomize y with { y in w; y != x + 17; };
+      message(NONE, "@@PSS-TRACE act pss_top::A x=%u", x);
+      message(NONE, "@@PSS-TRACE chk rl n=%d e0=%u e1=%u e2=%u e3=%u",
+              l.size(), l[0], l[1], l[2], l[3]);
+      message(NONE, "@@PSS-TRACE chk rw xx=%u y=%u", x, y);
+    }
+  }
+}

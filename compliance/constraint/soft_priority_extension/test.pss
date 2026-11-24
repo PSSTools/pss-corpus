@@ -1,0 +1,33 @@
+import std_pkg::*;
+
+// LRM 16.1.12: a soft constraint in a type extension is kept over a
+// conflicting one in the type it extends, and one in a derived type over one
+// in its base. A runs with v == 7 (extension) and w == 3 (its own); B, derived
+// from the extended A, keeps v == 7 and has w == 5.
+component pss_top {
+  action A {
+    rand bit[4] v;
+    rand bit[4] w;
+    constraint {
+      soft v == 3;
+      soft w == 3;
+    }
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::A v=%u w=%u", v, w); }
+  }
+
+  action B : A {
+    constraint { soft w == 5; }
+    exec body { message(NONE, "@@PSS-TRACE act pss_top::B v=%u w=%u", v, w); }
+  }
+
+  action T {
+    activity {
+      do A;
+      do B;
+    }
+  }
+}
+
+extend action pss_top::A {
+  constraint { soft v == 7; }
+}
