@@ -103,6 +103,36 @@ CASES = {
             (["act pss_top::A v=2", "obs pss_top::ObsT sig=18 n=3 m=4"], "n > 3"),
             (["act pss_top::A v=5", "obs pss_top::ObsT sig=18 n=5 m=6"], "v < this.n"),
         ]),
+    # The schedule's order is forced (13.3.7, 13.4), so the model is a seq.
+    "act.schedule.ordered.001": (
+        ["act pss_top::P o.v=5", "act pss_top::C i.v=5"], [
+            (["act pss_top::P o.v=5", "act pss_top::C i.v=6"], "p.o.v == c.i.v"),
+        ]),
+    # foreach over [7, 8, 9]: element + index, then the elements (12.4.3).
+    "act.foreach.001": (
+        _vals(A, "x", 7, 9, 11, 7, 8, 9), [
+            (_vals(A, "x", 7, 9, 10, 7, 8, 9), "x == 11"),
+            (_vals(A, "x", 7, 9, 11, 7, 9, 9), "x == 8"),
+        ]),
+    # aa[2 - i] for i in 0..2, then aa[k] (12.3.2).
+    "act.traverse.handle.index.001": (
+        _vals(A, "x", 3, 2, 1, 2), [
+            (_vals(A, "x", 3, 1, 1, 2), "x == 2"),
+        ]),
+    # Guards over t's untraced mode: each single branch is legal for some mode.
+    "act.select.guard.enum.001": (["act pss_top::B"], []),
+    "act.uid.001": (
+        _vals(A, "uid", 1, 2, 3, 4) + ["act pss_top::B t=101 uid=5"], [
+            (_vals(A, "uid", 1, 2, 3, 4) + ["act pss_top::B t=102 uid=5"],
+             "b.t == a1.uid + 100"),
+            (_vals(A, "uid", 1, 2, 2, 4) + ["act pss_top::B t=101 uid=5"],
+             "each action has its own uid"),
+        ]),
+    "act.schedule.constraint.001": (
+        _vals(A, "x", 2, 1), [
+            (_vals(A, "x", 1, 1), "a2.x == 2"),
+            (_vals(A, "x", 2, 2), "a1.x == 1"),
+        ]),
 }
 
 

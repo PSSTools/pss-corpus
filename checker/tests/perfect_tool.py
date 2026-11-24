@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src"))
 
 from pss_corpus import default_root, discover  # noqa: E402
-from synth import synth, synth_diagnostics      # noqa: E402
+from synth import synth, synth_coverage, synth_diagnostics      # noqa: E402
 
 
 def main(argv=None):
@@ -46,8 +46,8 @@ def main(argv=None):
     oc = {"schema": "pss-corpus/outcome/1.0", "tool": "perfect_tool",
           "tool_version": "1", "target": "synth", "seed_honored": True}
     lines = synth(t)
-    if t.expect == "compile_error":
-        oc["outcome"] = "compile_error"
+    if t.expect != "ok":
+        oc["outcome"] = t.expect
         prefix = os.path.dirname(a.sources[0]) + "/"
         with open(os.path.join(a.out, "diagnostics.json"), "w") as fp:
             json.dump({"schema": "pss-corpus/diagnostics/1.0",
@@ -57,6 +57,10 @@ def main(argv=None):
         oc["outcome"], lines = "unsupported", []
     else:
         oc["outcome"] = "ok"
+        cov = synth_coverage(t)
+        if cov is not None:
+            with open(os.path.join(a.out, "coverage.json"), "w") as fp:
+                json.dump(cov, fp)
         if os.environ.get("PERFECT_TOOL_BREAK") == t.id:
             lines = [ln.replace("@@PSS-TRACE ", "@@PSS-TRACE  ") for ln in lines]
     with open(os.path.join(a.out, "log.txt"), "w") as fp:

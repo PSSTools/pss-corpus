@@ -5,9 +5,10 @@ then fixed mutations of it must each FAIL (§6.5: checker sensitivity is tested,
 not assumed). A model whose checker cannot tell a mutant from a legal trace is a
 defective model.
 
-P1 synthesis (``synth.py``) covers exact (``eq``) leaves. A leaf stated with
-``where`` needs the solver to synthesize a value, so its test is only loaded and
-linted here. Negative tests are covered by ``test_diagnostics.py``.
+Synthesis (``synth.py``) prints exact (``eq``) leaves; action field values the
+model leaves free (random fields, constraints, ``with``) are picked by the
+solver. A check leaf stated with ``where`` is not synthesized, so its test is
+only loaded and linted here. Negative tests are covered by ``test_diagnostics.py``.
 """
 
 import copy
@@ -18,7 +19,7 @@ import pytest
 
 from pss_corpus import PASS, FAIL, check_run, default_root, discover
 
-from synth import synth
+from synth import synth, synth_coverage, synth_exact
 
 TESTS = list(discover(default_root()))
 
@@ -46,6 +47,9 @@ def _run(tmp_path, t, lines, name="run"):
     d.mkdir()
     (d / "log.txt").write_text("\n".join(lines) + "\n")
     (d / "outcome.json").write_text(json.dumps({"outcome": "ok"}))
+    cov = synth_coverage(t)
+    if cov is not None:
+        (d / "coverage.json").write_text(json.dumps(cov))
     return check_run(t, str(d))
 
 
@@ -70,7 +74,7 @@ def _bump(val):
     return val + "x"
 
 
-def _mutants(lines):
+def _mutants(lines, solved=False):
     chk = [i for i, l in enumerate(lines) if " chk " in l or " acc " in l]
     for i in chk:
         yield f"drop line {i}", lines[:i] + lines[i + 1:]
@@ -100,16 +104,22 @@ def _mutants(lines):
         yield f"drop act line {i}", lines[:i] + lines[i + 1:]
         yield f"duplicate act line {i}", lines[:i + 1] + [lines[i]] + lines[i + 1:]
     for a, b in zip(act, act[1:]):
-        if lines[a] != lines[b]:
+        # Two runs of one action with solver-picked values may be legal in
+        # either order (a.x != b.x): only a model's fixed values make it a cheat.
+        if lines[a] != lines[b] and not (solved and _act_type(lines[a]) == _act_type(lines[b])):
             m = list(lines)
             m[a], m[b] = m[b], m[a]
             yield f"swap act lines {a},{b}", m
 
 
+def _act_type(line):
+    return line.split(" ")[2]
+
+
 @pytest.mark.parametrize("t", SYNTH, ids=lambda t: t.id)
 def test_every_mutant_fails(tmp_path, t):
     lines = synth(t)
-    for n, (what, m) in enumerate(_mutants(lines)):
+    for n, (what, m) in enumerate(_mutants(lines, solved=synth_exact(t) is None)):
         v = _run(tmp_path, t, m, name=f"m{n}")
         assert v.verdict == FAIL, f"{what} was not detected:\n" + "\n".join(m)
 

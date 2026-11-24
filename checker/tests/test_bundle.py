@@ -133,7 +133,8 @@ def test_the_bundle_driver_is_the_package_driver(tmp_path):
 def test_round_trip_with_a_perfect_tool(tmp_path):
     b = _export(tmp_path)
     done = _run(b, jobs=os.cpu_count() or 1)
-    assert set(done.values()) <= {"ok", "compile_error", "unsupported"}
+    assert set(done.values()) <= {"ok", "compile_error", "solve_fail", "runtime_error",
+                                 "unsupported"}
     rep = import_results(b, TESTS)
     by_test = {}
     for r in rep.results:

@@ -100,6 +100,12 @@ class Test:
         return list(self.model.get("expect", {}).get("diagnostics", []))
 
     @property
+    def expect_coverage(self) -> List[Dict[str, Any]]:
+        """Functional coverage a passing run must report (CF-cov): ``[{covergroup,
+        samples | coverpoint+bin+hits | cross+bins+hits}]``."""
+        return list(self.model.get("expect", {}).get("coverage", []))
+
+    @property
     def level(self) -> Optional[str]:
         return self.model.get("level")
 

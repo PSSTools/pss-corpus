@@ -16,17 +16,18 @@ from pss_corpus import (ERROR, FAIL, PASS, UNLOCATED, check_run, default_root,
 from synth import synth_diagnostics
 
 TESTS = list(discover(default_root()))
-NEG = [t for t in TESTS if t.expect == "compile_error"]
+NEG = [t for t in TESTS if t.expect != "ok"]
 
 
 def test_the_corpus_has_negative_tests():
     assert len(NEG) >= 5
     assert any(t.level == "L0" for t in NEG), "L0 must check the diagnostics protocol"
+    assert any(t.expect == "solve_fail" for t in NEG), "a located run-time error (CF-err)"
 
 
 @pytest.mark.parametrize("t", NEG, ids=lambda t: t.id)
 def test_every_negative_test_says_where(t):
-    assert t.expect_diagnostics, "a compile_error test must state where the error is"
+    assert t.expect_diagnostics, "a negative test must state where the error is"
     for d in t.expect_diagnostics:
         assert d["file"] in t.source_names, d
         assert ("line" in d) != ("lines" in d), f"exactly one of line/lines: {d}"
@@ -35,11 +36,11 @@ def test_every_negative_test_says_where(t):
         assert 1 <= lo <= hi <= n, f"{d} is outside {d['file']} ({n} lines)"
 
 
-def _run(tmp_path, t, outcome="compile_error", diags=None, name="r", schema=None):
+def _run(tmp_path, t, outcome=None, diags=None, name="r", schema=None):
     d = tmp_path / name
     d.mkdir()
     (d / "log.txt").write_text("")
-    (d / "outcome.json").write_text(json.dumps({"outcome": outcome}))
+    (d / "outcome.json").write_text(json.dumps({"outcome": outcome or t.expect}))
     if diags is not None:
         (d / "diagnostics.json").write_text(json.dumps(
             {"schema": schema or "pss-corpus/diagnostics/1.0", "diagnostics": diags}))
@@ -63,7 +64,8 @@ def test_each_wrong_rejection_is_caught(tmp_path, t):
     far = 1000
     cases = [
         ("accepted", dict(outcome="ok"), FAIL),
-        ("wrong outcome", dict(outcome="runtime_error", diags=good), FAIL),
+        ("wrong outcome", dict(outcome="compile_error" if t.expect == "runtime_error"
+                               else "runtime_error", diags=good), FAIL),
         ("wrong line", dict(diags=_moved(good, far)), FAIL),
         ("wrong file", dict(diags=[dict(d, file="other.pss") for d in good]), FAIL),
         ("a file that merely ends the same", dict(diags=[dict(d, file="xtest.pss") for d in good]), FAIL),
@@ -85,8 +87,9 @@ def test_extra_cascade_errors_are_allowed(tmp_path):
 
 def test_a_positive_test_rejected_names_the_first_error(tmp_path):
     t = next(t for t in TESTS if t.expect == "ok")
-    v = _run(tmp_path, t, diags=[{"severity": "error", "file": "test.pss", "line": 3,
-                                  "message": "boom"}])
+    v = _run(tmp_path, t, outcome="compile_error",
+             diags=[{"severity": "error", "file": "test.pss", "line": 3,
+                      "message": "boom"}])
     assert v.verdict == FAIL
     assert "test.pss:3: boom" in v.reason
 

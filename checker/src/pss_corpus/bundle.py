@@ -291,6 +291,12 @@ For each job, `results/<job>/` must hold:
   Some tests are meant to be rejected, and those are passed only by an error on
   the right line. `file` may be absolute or relative, and is matched by its
   trailing path.
+* `coverage.json`, when the scenario has covergroups:
+  `{{"schema": "pss-corpus/coverage/1.0", "covergroups": [{{"name": "pss_top::A::cs", "samples": 3,
+  "coverpoints": {{"cp_x": {{"lo": 2, "hi": 1}}}}, "crosses": {{"cx": [{{"bins": ["lo", "a"], "hits": 1}}]}}}}]}}`.
+  `name` is the covergroup type; an inline covergroup is named after its
+  instance in the enclosing type. Tests with covergroups pass only when the
+  listed bins have the expected hit counts.
 
 ## Running
 

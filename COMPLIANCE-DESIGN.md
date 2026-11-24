@@ -984,6 +984,7 @@ Activity nodes in the model mirror LRM §11:
 |---|---|
 | traversal | `{"do": T, "label"?: L, "with"?: [smt…]}` |
 | sequence | `{"seq": [...]}` |
+| atomic | `{"seq": [...], "atomic": true}` (no inferred action inside) |
 | activity constraint | `{"constraint": [smt…]}` |
 | parallel | `{"par": [...], "join"?: "all|none|first:N|branch:L"}` |
 | schedule | `{"schedule": [...]}` |

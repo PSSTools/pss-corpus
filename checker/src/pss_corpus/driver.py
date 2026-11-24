@@ -36,7 +36,7 @@ import sys
 OUTCOME_SCHEMA = "pss-corpus/outcome/1.0"
 
 #: The files a run directory may hold; ``--force`` clears exactly these.
-RUN_FILES = ("log.txt", "outcome.json", "diagnostics.json", "adapter.log")
+RUN_FILES = ("log.txt", "outcome.json", "diagnostics.json", "coverage.json", "adapter.log")
 
 
 def invoke_adapter(cmd, sources, root, seed, out_dir, timeout=300.0):
