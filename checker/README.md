@@ -45,7 +45,20 @@ P1 scope: activities of traversals (with `label` and `with`), `seq`, activity
 compound actions over their handles, bound to the occurrences the handles name
 (LRM 13.4.8); observers (`obs` records) and untraced (`"traced": false`)
 actions; body patterns of `seq`, `repeat` and `chk` leaves (`eq`, or `fields` +
-`where`). Anything else in a model is an ERROR, never a silent PASS.
+`where`). Inferred actions when the model says `"inference": {"allowed": true}`,
+never inside an `atomic` block (`{"seq": [...], "atomic": true}`). Anything else
+in a model is an ERROR, never a silent PASS.
 
 Tests: `python -m pytest tests` from this directory. `tests/perfect_tool.py` is
 an always-right adapter built from the models, used to round-trip bundles.
+
+Plan files: `schema/plan-1.0.json` (JSON Schema 2020-12, id
+`pss-corpus/plan/1.0`) is the optional `plan.json` an adapter may write per
+test: the action occurrences that ran (type, component, solved fields, start
+and end), flow objects (producer, consumers, values), resource instances per
+claim, the realised order (transitively reduced `[before, after]` pairs) and
+each `select`/`if`/`repeat` outcome. A tool that decides at run time writes the
+plan it realised, so its plan is not independent of its trace. `pss-corpus check
+TEST [RUN_DIR] --plan plan.json` judges a plan with no execution (`PLAN-FAIL`:
+the generator decided wrongly) and, with a run, whether the run carried it out
+(`REALISE-FAIL`); `src/pss_corpus/plan.py`, tests in `tests/test_plan.py`. `pssc test --plan-out DIR` writes this format.

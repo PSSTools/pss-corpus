@@ -9,6 +9,7 @@ import json
 import os
 import sys
 
+from . import plan
 from .bundle import BundleError, Selection, export, import_results, select
 from .check import PASS, check_run
 from .html_report import render_html
@@ -46,7 +47,13 @@ def cmd_list(args):
 
 def cmd_check(args):
     t = load(args.test)
-    v = check_run(t, args.run_dir, seed=args.seed)
+    if args.plan:
+        v = plan.check(t, args.run_dir, args.plan, seed=args.seed)
+    elif args.run_dir is None:
+        print("pss-corpus check: a run directory, or --plan, is required", file=sys.stderr)
+        return 2
+    else:
+        v = check_run(t, args.run_dir, seed=args.seed)
     print(json.dumps(v.to_json(), indent=2))
     return 0 if v.verdict == "PASS" else 1
 
@@ -142,8 +149,12 @@ def main(argv=None):
 
     sp = sub.add_parser("check", help="check one run directory against a test")
     sp.add_argument("test", help="test directory")
-    sp.add_argument("run_dir", help="directory holding log.txt + outcome.json")
+    sp.add_argument("run_dir", nargs="?", default=None,
+                    help="directory holding log.txt + outcome.json")
     sp.add_argument("--seed", type=int, default=None)
+    sp.add_argument("--plan", default=None, metavar="PLAN_JSON",
+                    help="judge this plan.json (pss-plan 1.0) too: PLAN-FAIL if it is "
+                         "not a legal run, REALISE-FAIL if the run did not carry it out")
     sp.set_defaults(fn=cmd_check)
 
     sp = sub.add_parser("run", help="run an adapter over tests and check every run")

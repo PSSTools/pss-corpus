@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pss-corpus/plan/1.0",
+  "title": "pss-plan 1.0: the plan of one test run",
+  "description": "Optional adapter output (COMPLIANCE-DESIGN.md: plan.json). Which action occurrences ran, with what values, which flow objects and resource instances they used, the order they ran in and how each select/if/repeat went. A tool that decides at run time writes the realised plan, which is then not independent of its trace.",
+  "type": "object",
+  "required": ["format", "version", "seed", "occurrences", "flow", "resources", "order", "control"],
+  "additionalProperties": false,
+  "properties": {
+    "format": {"const": "pss-plan"},
+    "version": {"const": "1.0"},
+    "seed": {"type": ["integer", "null"], "description": "The run's seed; null when the tool has none."},
+    "occurrences": {
+      "description": "One per traversal started, in start order; id is the index.",
+      "type": "array",
+      "items": {"$ref": "#/$defs/occurrence"}
+    },
+    "flow": {
+      "description": "One per flow object (buffer, state or stream) the run made or used.",
+      "type": "array",
+      "items": {"$ref": "#/$defs/flow"}
+    },
+    "resources": {
+      "description": "One per resource instance claimed.",
+      "type": "array",
+      "items": {"$ref": "#/$defs/resource"}
+    },
+    "order": {
+      "description": "Realised order, transitively reduced: [a, b] = occurrence a ended before b started. The root and occurrences still running are left out.",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "prefixItems": [{"$ref": "#/$defs/occ"}, {"$ref": "#/$defs/occ"}],
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "control": {
+      "description": "One per choice the run made.",
+      "type": "array",
+      "items": {"$ref": "#/$defs/control"}
+    }
+  },
+  "$defs": {
+    "occ": {"type": "integer", "minimum": 0, "description": "An occurrence id."},
+    "value": {"description": "A field value: any JSON value (integer, bool, string, number, array, object, null)."},
+    "fields": {
+      "type": "object",
+      "description": "Leaf name (dotted below the owner, e.g. \"o.v\") -> value.",
+      "additionalProperties": {"$ref": "#/$defs/value"}
+    },
+    "occurrence": {
+      "type": "object",
+      "required": ["id", "site", "path", "stim", "type", "comp", "fields", "start", "end", "completed"],
+      "properties": {
+        "id": {"$ref": "#/$defs/occ"},
+        "site": {"type": ["integer", "null"], "minimum": 0, "description": "Activity site index; null for the root action."},
+        "path": {"type": "string", "description": "Traversal path below the root (label or #index); \"\" for the root."},
+        "stim": {"type": "string", "description": "Stimulus id, as in the trace's act records."},
+        "type": {"type": "string", "description": "Qualified action type, e.g. pss_top::P."},
+        "comp": {"type": ["integer", "string", "null"], "description": "Component instance the action ran on (index or path); null if it never ended."},
+        "fields": {"$ref": "#/$defs/fields"},
+        "start": {"type": "integer", "minimum": 0, "description": "Event counter when it started."},
+        "end": {"type": ["integer", "null"], "minimum": 0, "description": "Event counter when it ended; null while running."},
+        "completed": {"type": ["boolean", "null"]}
+      }
+    },
+    "flow": {
+      "type": "object",
+      "required": ["id", "kind", "pool", "producer", "consumers", "fields"],
+      "properties": {
+        "id": {"type": "integer", "minimum": 0},
+        "kind": {"enum": ["buffer", "state", "stream"]},
+        "pool": {"type": ["string", "null"], "description": "\"name@instance\"; null for a bound pair."},
+        "producer": {"oneOf": [{"$ref": "#/$defs/occ"}, {"type": "null"}], "description": "null: the initial state object."},
+        "consumers": {"type": "array", "items": {"$ref": "#/$defs/occ"}},
+        "fields": {"$ref": "#/$defs/fields"}
+      }
+    },
+    "resource": {
+      "type": "object",
+      "required": ["pool", "instance", "claims"],
+      "properties": {
+        "pool": {"type": "string"},
+        "instance": {"type": "integer", "minimum": 0},
+        "claims": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["occ", "lock"],
+            "properties": {
+              "occ": {"$ref": "#/$defs/occ"},
+              "lock": {"type": "boolean", "description": "true: lock; false: share."}
+            }
+          }
+        }
+      }
+    },
+    "control": {
+      "type": "object",
+      "required": ["occ", "kind", "value"],
+      "properties": {
+        "occ": {"oneOf": [{"$ref": "#/$defs/occ"}, {"type": "null"}], "description": "The occurrence whose activity made the choice; null outside an action tree."},
+        "kind": {"enum": ["select", "if", "repeat"]},
+        "select": {"type": ["integer", "null"], "description": "select: the tool's id of the select statement."},
+        "scope": {"type": ["integer", "null"], "description": "if/repeat: the tool's id of the branch or loop body."}
+      },
+      "allOf": [
+        {"if": {"properties": {"kind": {"const": "select"}}},
+         "then": {"properties": {"value": {"type": ["integer", "null"], "minimum": 0, "description": "Branch index; null when no branch was eligible."}}}},
+        {"if": {"properties": {"kind": {"const": "if"}}},
+         "then": {"properties": {"value": {"type": "boolean", "description": "true: then branch; false: else branch."}}}},
+        {"if": {"properties": {"kind": {"const": "repeat"}}},
+         "then": {"properties": {"value": {"type": "integer", "minimum": 1, "description": "Iterations whose body was entered."}}}}
+      ]
+    }
+  }
+}
